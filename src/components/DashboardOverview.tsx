@@ -8,7 +8,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
-import { useData } from "@/contexts/DataContext";
+import { useUltraData } from "@/contexts/UltraDataContext";
 import { useState, useEffect } from "react";
 
 // Mock data based on Moloco CRM specification
@@ -97,7 +97,7 @@ export function DashboardOverview() {
   const queryClient = useQueryClient();
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [connectionStatus, setConnectionStatus] = useState<'online' | 'offline' | 'checking'>('checking');
-  const { data: csvData, getDashboardSummary, getFilteredCampaigns } = useData();
+  const { data: csvData, getUltraSummary, getFilteredCampaigns } = useUltraData();
 
   // Fetch real data from API with enhanced error handling
   const { 
@@ -164,7 +164,7 @@ export function DashboardOverview() {
   };
 
   // Use CSV data if available, fallback to API data, then mock data
-  const csvSummary = getDashboardSummary();
+      const csvSummary = getUltraSummary();
   // Get unique campaigns sorted by spend (descending) to avoid duplicates
   const allCampaigns = getFilteredCampaigns({ 
     sortBy: 'spend', 
@@ -185,8 +185,8 @@ export function DashboardOverview() {
     totalInstalls: csvSummary.totalInstalls,
     totalCampaigns: csvSummary.totalCampaigns,
     averageCPI: csvSummary.avgCPI,
-    activeApps: csvSummary.activeApps,
-    activeCountries: csvSummary.activeCountries
+    activeApps: csvSummary.totalApps,
+    activeCountries: csvSummary.totalExchanges
   } : (validateMetrics((dashboardData as any)?.data?.data?.summary) || mockMetrics);
   
   const campaigns = csvData ? recentCampaigns : ((campaignsData as any)?.data?.data || mockCampaigns);
