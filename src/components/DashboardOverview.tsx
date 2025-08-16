@@ -120,7 +120,7 @@ export function DashboardOverview() {
         throw error;
       }
     },
-    refetchInterval: (data, query) => {
+    refetchInterval: () => {
       // Dynamic refetch interval based on connection status
       if (connectionStatus === 'offline') return 60000; // 1 minute when offline
       return 30000; // 30 seconds when online
@@ -178,9 +178,9 @@ export function DashboardOverview() {
     averageCPI: csvSummary.avgCPI,
     activeApps: csvSummary.activeApps,
     activeCountries: csvSummary.activeCountries
-  } : (validateMetrics(dashboardData?.data?.data?.summary) || mockMetrics);
+  } : (validateMetrics((dashboardData as any)?.data?.data?.summary) || mockMetrics);
   
-  const campaigns = csvData ? recentCampaigns : (campaignsData?.data?.data || mockCampaigns);
+  const campaigns = csvData ? recentCampaigns : ((campaignsData as any)?.data?.data || mockCampaigns);
   
   // Helper function to safely get metric values with fallbacks
   const getMetricValue = (key: string) => {
@@ -254,7 +254,7 @@ export function DashboardOverview() {
       {/* Page Header with Status */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <h1 className="text-3xl font-bold text-foreground">Overview</h1>
+          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
           <div className="flex items-center gap-2">
             {isUsingCSVData && (
               <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
@@ -358,7 +358,7 @@ export function DashboardOverview() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-card-foreground">${getMetricValue('total_spend') || getMetricValue('totalSpend') || 0}</div>
+            <div className="text-2xl font-bold text-card-foreground">${(getMetricValue('total_spend') || getMetricValue('totalSpend') || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
             <p className="text-xs text-muted-foreground">Last 30 days</p>
             <div className="mt-4 h-2 bg-muted rounded-full overflow-hidden">
               <div className="h-full w-3/4 bg-primary rounded-full"></div>
@@ -403,7 +403,7 @@ export function DashboardOverview() {
             <RefreshCw className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-card-foreground">${(getMetricValue('average_cpi') || getMetricValue('averageCPI') || 0).toFixed(2)}</div>
+            <div className="text-2xl font-bold text-card-foreground">${(getMetricValue('average_cpi') || getMetricValue('averageCPI') || getMetricValue('avgCPI') || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
             <p className="text-xs text-muted-foreground">Cost per install</p>
             <div className="mt-4 h-2 bg-muted rounded-full overflow-hidden">
               <div className="h-full w-2/3 bg-accent rounded-full"></div>
@@ -491,25 +491,31 @@ export function DashboardOverview() {
               ) : (
                 campaigns.slice(0, 5).map((campaign: any, index: number) => {
                   // Handle both API data format and mock data format
-                  const campaignName = campaign.campaign_name || campaign.campaignName || 'Unknown Campaign';
-                  const appName = campaign.app_name || campaign.appName || 'Unknown App';
-                  const country = campaign.country || 'Unknown';
-                  const date = campaign.date || '';
-                  const spend = typeof campaign.spend === 'number' 
-                    ? `$${campaign.spend.toLocaleString()}` 
-                    : campaign.spend || '$0';
-                  const installs = typeof campaign.installs === 'number' 
+                  const campaignName = campaign.name || campaign.campaignName || 'Unknown Campaign';
+                  const appName = campaign.targetApp || campaign.appName || 'Unknown App';
+                  const country = campaign.countries?.[0] || campaign.country || 'Unknown';
+                  const date = campaign.startDate || campaign.date || campaign.lastUpdated;
+                  const spend = typeof campaign.totalSpend === 'number' 
+                    ? `$${campaign.totalSpend.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}` 
+                    : typeof campaign.spend === 'number' 
+                    ? `$${campaign.spend.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}` 
+                    : '$0.00';
+                  const installs = typeof campaign.totalInstalls === 'number' 
+                    ? campaign.totalInstalls 
+                    : typeof campaign.installs === 'number' 
                     ? campaign.installs 
-                    : parseInt(campaign.installs?.toString() || '0');
+                    : 0;
                   const cpi = typeof campaign.cpi === 'number' 
-                    ? `$${campaign.cpi.toFixed(2)}` 
-                    : campaign.cpi || '$0.00';
-                  const status = campaign.status || 'UNKNOWN';
+                    ? `$${campaign.cpi.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}` 
+                    : '$0.00';
+                  const status = campaign.status?.toUpperCase() || 'ACTIVE';
 
                   // Get country flag
                   const countryFlags: { [key: string]: string } = {
                     'US': '🇺🇸', 'UK': '🇬🇧', 'DE': '🇩🇪', 'CA': '🇨🇦', 'AU': '🇦🇺',
-                    'FR': '🇫🇷', 'IT': '🇮🇹', 'ES': '🇪🇸', 'JP': '🇯🇵', 'KR': '🇰🇷'
+                    'FR': '🇫🇷', 'IT': '🇮🇹', 'ES': '🇪🇸', 'JP': '🇯🇵', 'KR': '🇰🇷',
+                    'FRA': '🇫🇷', 'GRC': '🇬🇷', 'GBR': '🇬🇧', 'USA': '🇺🇸', 'CAN': '🇨🇦',
+                    'AUS': '🇦🇺', 'DEU': '🇩🇪', 'ITA': '🇮🇹', 'ESP': '🇪🇸'
                   };
                   const flag = countryFlags[country] || '🌍';
 
