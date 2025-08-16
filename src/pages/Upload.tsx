@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,257 +7,29 @@ import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Upload as UploadIcon, X, Trash2, AlertTriangle, Loader2, FileText, CheckCircle, Eye } from "lucide-react";
+import { Upload as UploadIcon, X, Trash2, AlertTriangle, Loader2, FileText, CheckCircle, Eye, Download, Database } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { api } from "@/lib/api";
+import { csvProcessor, CSVValidationResult } from "@/lib/csvProcessor";
+import { useData } from "@/contexts/DataContext";
 
 interface FileUpload {
   id: string;
   file: File;
-  status: "pending" | "uploading" | "success" | "error";
+  status: "pending" | "validating" | "uploading" | "success" | "error";
   progress: number;
-  preview?: string[][];
-  validationErrors?: string[];
-  rowCount?: number;
-  columnCount?: number;
-}
-
-interface ValidationResult {
-  isValid: boolean;
-  errors: string[];
-  warnings: string[];
-  preview: string[][];
-  rowCount: number;
-  columnCount: number;
+  validation?: CSVValidationResult;
+  errorMessage?: string;
 }
 
 export default function Upload() {
   const [files, setFiles] = useState<FileUpload[]>([]);
   const [dragActive, setDragActive] = useState(false);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const { setData, clearData, data } = useData();
 
-  // CSV validation function
-  const validateCSV = async (file: File): Promise<ValidationResult> => {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const csv = e.target?.result as string;
-          const lines = csv.split('\n').filter(line => line.trim());
-          
-          if (lines.length === 0) {
-            resolve({
-              isValid: false,
-              errors: ['File is empty'],
-              warnings: [],
-              preview: [],
-              rowCount: 0,
-              columnCount: 0
-            });
-            return;
-          }
-
-          // Parse CSV (simple parser - could be enhanced)
-          const rows = lines.map(line => {
-            // Handle quoted values and commas
-            const result: string[] = [];
-            let current = '';
-            let inQuotes = false;
-            
-            for (let i = 0; i < line.length; i++) {
-              const char = line[i];
-              if (char === '"') {
-                inQuotes = !inQuotes;
-              } else if (char === ',' && !inQuotes) {
-                result.push(current.trim());
-                current = '';
-              } else {
-                current += char;
-              }
-            }
-            result.push(current.trim());
-            return result;
-          });
-
-          const headers = rows[0]?.map(h => h.toLowerCase().replace(/['"]/g, '')) || [];
-          const dataRows = rows.slice(1);
-          
-          // Validation rules
-          const errors: string[] = [];
-          const warnings: string[] = [];
-
-          // Check required columns for campaign data
-          const requiredCampaignColumns = ['date', 'campaign_name', 'app_name', 'country', 'spend', 'installs'];
-          const requiredCreativeColumns = ['date', 'creative_name', 'campaign_name', 'app_name', 'spend', 'installs'];
-          
-          const hasRequiredCampaignColumns = requiredCampaignColumns.every(col => 
-            headers.some(header => header.includes(col.replace('_', '')))
-          );
-          
-          const hasRequiredCreativeColumns = requiredCreativeColumns.every(col => 
-            headers.some(header => header.includes(col.replace('_', '')))
-          );
-
-          if (!hasRequiredCampaignColumns && !hasRequiredCreativeColumns) {
-            errors.push('Missing required columns. Expected either campaign or creative data format.');
-          }
-
-          // Check data types in sample rows
-          if (dataRows.length > 0) {
-            const sampleRows = dataRows.slice(0, 5);
-            
-            sampleRows.forEach((row, idx) => {
-              if (row.length !== headers.length) {
-                warnings.push(`Row ${idx + 2}: Column count mismatch (${row.length} vs ${headers.length})`);
-              }
-
-              // Check spend column (should be numeric)
-              const spendIndex = headers.findIndex(h => h.includes('spend'));
-              if (spendIndex >= 0 && row[spendIndex]) {
-                const spendValue = parseFloat(row[spendIndex].replace(/[$,]/g, ''));
-                if (isNaN(spendValue)) {
-                  warnings.push(`Row ${idx + 2}: Invalid spend value "${row[spendIndex]}"`);
-                }
-              }
-
-              // Check installs column (should be numeric)
-              const installsIndex = headers.findIndex(h => h.includes('installs'));
-              if (installsIndex >= 0 && row[installsIndex]) {
-                const installsValue = parseInt(row[installsIndex].replace(/[,]/g, ''));
-                if (isNaN(installsValue)) {
-                  warnings.push(`Row ${idx + 2}: Invalid installs value "${row[installsIndex]}"`);
-                }
-              }
-
-              // Check date format
-              const dateIndex = headers.findIndex(h => h.includes('date'));
-              if (dateIndex >= 0 && row[dateIndex]) {
-                const dateValue = new Date(row[dateIndex]);
-                if (isNaN(dateValue.getTime())) {
-                  warnings.push(`Row ${idx + 2}: Invalid date format "${row[dateIndex]}"`);
-                }
-              }
-            });
-          }
-
-          // Size warnings
-          if (dataRows.length > 10000) {
-            warnings.push(`Large file: ${dataRows.length} rows. Processing may take longer.`);
-          }
-
-          if (dataRows.length === 0) {
-            errors.push('No data rows found (only headers)');
-          }
-
-          resolve({
-            isValid: errors.length === 0,
-            errors,
-            warnings,
-            preview: rows.slice(0, 6), // First 5 data rows + header
-            rowCount: dataRows.length,
-            columnCount: headers.length
-          });
-        } catch (error) {
-          resolve({
-            isValid: false,
-            errors: ['Failed to parse CSV file'],
-            warnings: [],
-            preview: [],
-            rowCount: 0,
-            columnCount: 0
-          });
-        }
-      };
-      reader.readAsText(file);
-    });
-  };
-
-  // Upload mutation
-  const uploadMutation = useMutation({
-    mutationFn: async (files: File[]) => {
-      return api.uploadMultipleCSV(files);
-    },
-    onSuccess: (response) => {
-      toast({
-        title: "Upload Successful",
-        description: `${files.length} file(s) uploaded and processed successfully`,
-      });
-      
-      // Mark all files as successful
-      setFiles(prev => prev.map(f => ({ ...f, status: "success" as const, progress: 100 })));
-      
-      // Refresh dashboard data
-      queryClient.invalidateQueries({ queryKey: ['dashboard-data'] });
-      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
-    },
-    onError: (error: any) => {
-      const errorMessage = error.response?.data?.message || error.message || 'Upload failed';
-      toast({
-        title: "Upload Failed",
-        description: errorMessage,
-        variant: "destructive",
-      });
-      
-      // Mark all files as error
-      setFiles(prev => prev.map(f => ({ ...f, status: "error" as const })));
-    },
-  });
-
-  // Clear data mutation
-  const clearDataMutation = useMutation({
-    mutationFn: () => api.clearUploadedData(),
-    onSuccess: () => {
-      toast({
-        title: "Data Cleared",
-        description: "All uploaded data has been permanently deleted",
-      });
-      
-      // Clear local files
-      setFiles([]);
-      
-      // Refresh dashboard data
-      queryClient.invalidateQueries({ queryKey: ['dashboard-data'] });
-      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
-    },
-    onError: (error: any) => {
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to clear data';
-      toast({
-        title: "Clear Failed",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleDrag = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
-  }, []);
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-
-    const droppedFiles = Array.from(e.dataTransfer.files);
-    handleFiles(droppedFiles);
-  }, []);
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const selectedFiles = Array.from(e.target.files);
-      handleFiles(selectedFiles);
-    }
-  };
-
+  // Handle file selection and validation
   const handleFiles = async (newFiles: File[]) => {
     const csvFiles = newFiles.filter(file => file.type === "text/csv" || file.name.endsWith(".csv"));
     
@@ -278,7 +50,7 @@ export default function Upload() {
       return;
     }
 
-    // Create file uploads with validation
+    // Create file uploads and validate
     const fileUploads: FileUpload[] = [];
     
     for (const file of csvFiles) {
@@ -295,312 +67,542 @@ export default function Upload() {
       const fileUpload: FileUpload = {
         id: Math.random().toString(36).substr(2, 9),
         file,
-        status: "pending",
+        status: "validating",
         progress: 0,
       };
-
-      // Validate CSV in background
-      try {
-        const validation = await validateCSV(file);
-        fileUpload.preview = validation.preview;
-        fileUpload.validationErrors = validation.errors;
-        fileUpload.rowCount = validation.rowCount;
-        fileUpload.columnCount = validation.columnCount;
-
-        if (!validation.isValid) {
-          toast({
-            title: "Validation Warning",
-            description: `${file.name} has validation issues. Check the preview.`,
-            variant: "destructive",
-          });
-        } else if (validation.warnings.length > 0) {
-          toast({
-            title: "File Warning",
-            description: `${file.name} has ${validation.warnings.length} warning(s). Check the preview.`,
-          });
-        }
-      } catch (error) {
-        fileUpload.validationErrors = ['Failed to validate file'];
-      }
 
       fileUploads.push(fileUpload);
     }
 
     setFiles(prev => [...prev, ...fileUploads]);
 
+    // Validate files
+    for (const fileUpload of fileUploads) {
+      try {
+        const validation = await csvProcessor.validateCSV(fileUpload.file);
+        
+        setFiles(prev => prev.map(f => 
+          f.id === fileUpload.id 
+            ? { 
+                ...f, 
+                status: validation.isValid ? "pending" : "error",
+                validation,
+                errorMessage: validation.errors.join(', ')
+              }
+            : f
+        ));
+
+        if (!validation.isValid) {
+          toast({
+            title: "Validation Failed",
+            description: `${fileUpload.file.name}: ${validation.errors[0]}`,
+            variant: "destructive",
+          });
+        } else if (validation.warnings.length > 0) {
+          toast({
+            title: "Validation Warning",
+            description: `${fileUpload.file.name}: ${validation.warnings.length} warning(s)`,
+          });
+        }
+      } catch (error) {
+        setFiles(prev => prev.map(f => 
+          f.id === fileUpload.id 
+            ? { 
+                ...f, 
+                status: "error",
+                errorMessage: 'Failed to validate file'
+              }
+            : f
+        ));
+      }
+    }
+
     if (fileUploads.length > 0) {
       toast({
         title: "Files Added",
-        description: `${fileUploads.length} file(s) ready for upload`,
+        description: `${fileUploads.length} file(s) ready for processing`,
       });
     }
   };
 
-  const removeFile = (id: string) => {
-    setFiles(prev => prev.filter(file => file.id !== id));
-  };
-
-  const clearAllFiles = () => {
-    setFiles([]);
-  };
-
-  const uploadFiles = async () => {
-    if (files.length === 0) {
+  // Process all valid files
+  const processFiles = async () => {
+    const validFiles = files.filter(f => f.status === "pending" && f.validation?.isValid);
+    
+    if (validFiles.length === 0) {
       toast({
-        title: "No files selected",
-        description: "Please select files to upload",
+        title: "No Valid Files",
+        description: "Please add valid CSV files before processing",
         variant: "destructive",
       });
       return;
     }
 
-    // Mark all files as uploading
-    setFiles(prev => prev.map(f => ({ ...f, status: "uploading" as const, progress: 0 })));
-
-    // Start progress animation
-    const progressInterval = setInterval(() => {
-      setFiles(prev => prev.map(f => ({
-        ...f,
-        progress: f.status === "uploading" ? Math.min(f.progress + 5, 95) : f.progress
-      })));
-    }, 200);
+    setIsProcessing(true);
 
     try {
-      const fileList = files.map(f => f.file);
-      await uploadMutation.mutateAsync(fileList);
-    } catch (error) {
-      // Error handling is done in mutation
-    } finally {
+      // Update status to uploading
+      setFiles(prev => prev.map(f => 
+        validFiles.some(vf => vf.id === f.id) 
+          ? { ...f, status: "uploading" as const, progress: 0 }
+          : f
+      ));
+
+      // Simulate progress for each file
+      const progressInterval = setInterval(() => {
+        setFiles(prev => prev.map(f => 
+          f.status === "uploading" && f.progress < 90
+            ? { ...f, progress: f.progress + Math.random() * 20 }
+            : f
+        ));
+      }, 500);
+
+      // Process files
+      const fileObjects = validFiles.map(f => f.file);
+      const processedData = await csvProcessor.processMultipleFiles(fileObjects);
+
       clearInterval(progressInterval);
+
+      // Update status to success
+      setFiles(prev => prev.map(f => 
+        validFiles.some(vf => vf.id === f.id) 
+          ? { ...f, status: "success" as const, progress: 100 }
+          : f
+      ));
+
+      // Save processed data
+      setData(processedData);
+
+      toast({
+        title: "Processing Complete",
+        description: `Successfully processed ${processedData.campaigns.length + processedData.creatives.length} rows from ${processedData.fileNames.length} files`,
+      });
+
+    } catch (error) {
+      // Update failed files
+      setFiles(prev => prev.map(f => 
+        f.status === "uploading" 
+          ? { ...f, status: "error" as const, errorMessage: (error as Error).message }
+          : f
+      ));
+
+      toast({
+        title: "Processing Failed",
+        description: (error as Error).message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
+  // Clear all data
   const clearAllData = () => {
-    if (confirm("Are you sure you want to clear all uploaded data? This action cannot be undone.")) {
-      clearDataMutation.mutate();
+    clearData();
+    setFiles([]);
+    setSelectedFile(null);
+    
+    toast({
+      title: "Data Cleared",
+      description: "All files and processed data have been removed",
+    });
+  };
+
+  // Remove individual file
+  const removeFile = (id: string) => {
+    setFiles(prev => prev.filter(file => file.id !== id));
+    if (selectedFile === id) {
+      setSelectedFile(null);
     }
   };
+
+  // Drag and drop handlers
+  const handleDrag = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const selectedFiles = Array.from(e.dataTransfer.files);
+      handleFiles(selectedFiles);
+    }
+  }, []);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const selectedFiles = Array.from(e.target.files);
+      handleFiles(selectedFiles);
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "success": return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+      case "error": return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
+      case "uploading": return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
+      case "validating": return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
+      default: return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
+    }
+  };
+
+  const selectedFileData = files.find(f => f.id === selectedFile);
 
   return (
     <Layout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Upload CSV Files</h1>
-          <p className="text-muted-foreground">
-            Upload campaign, inventory, and creative reports for analysis
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">CSV Data Upload</h1>
+            <p className="text-muted-foreground">
+              Upload and process your campaign CSV files
+            </p>
+          </div>
+          {data && (
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                <Database className="h-3 w-3 mr-1" />
+                {data.campaigns.length + data.creatives.length} rows loaded
+              </Badge>
+              <Button variant="outline" onClick={() => data && setData(data)}>
+                <Download className="h-4 w-4 mr-2" />
+                Export Data
+              </Button>
+            </div>
+          )}
         </div>
 
-        {/* Upload Zone */}
-        <Card>
-          <CardHeader>
-            <CardTitle>File Upload</CardTitle>
-            <CardDescription>Drag and drop CSV files or click to select</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div
-              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                dragActive 
-                  ? "border-primary bg-primary/10" 
-                  : "border-border hover:border-primary/50"
-              }`}
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
-              onDrop={handleDrop}
-            >
-              <UploadIcon className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-semibold mb-2">Drop your CSV files here</h3>
-              <p className="text-muted-foreground mb-4">
-                Support for campaign, inventory, and creative reports
-              </p>
-              <Button asChild>
-                <label className="cursor-pointer">
-                  Click to select files
+        <Tabs defaultValue="upload" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="upload">Upload Files</TabsTrigger>
+            <TabsTrigger value="preview">Preview Data</TabsTrigger>
+            <TabsTrigger value="processed">Processed Data</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="upload" className="space-y-6">
+            {/* Upload Area */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Upload CSV Files</CardTitle>
+                <CardDescription>
+                  Drag and drop your campaign CSV files or click to select
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div
+                  className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                    dragActive 
+                      ? "border-primary bg-primary/5" 
+                      : "border-muted-foreground/25 hover:border-muted-foreground/50"
+                  }`}
+                  onDragEnter={handleDrag}
+                  onDragLeave={handleDrag}
+                  onDragOver={handleDrag}
+                  onDrop={handleDrop}
+                >
+                  <UploadIcon className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                  <p className="text-lg font-medium mb-2">Drop your CSV files here</p>
+                  <p className="text-muted-foreground mb-4">
+                    Or click to select files (Max 10 files, 50MB each)
+                  </p>
                   <input
                     type="file"
                     multiple
                     accept=".csv"
-                    className="hidden"
                     onChange={handleFileSelect}
+                    className="hidden"
+                    id="file-upload"
                   />
-                </label>
-              </Button>
-              <p className="text-xs text-muted-foreground mt-2">
-                Maximum 10 files, 100MB each
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+                  <label htmlFor="file-upload">
+                    <Button variant="outline" className="cursor-pointer">
+                      Select Files
+                    </Button>
+                  </label>
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* File List */}
-        {files.length > 0 && (
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Selected Files ({files.length})</CardTitle>
-                  <CardDescription>Files ready for upload</CardDescription>
-                </div>
-                <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={clearAllFiles}
-                    disabled={uploadMutation.isPending}
-                  >
-                    Clear All
-                  </Button>
-                  <Button 
-                    onClick={uploadFiles}
-                    disabled={uploadMutation.isPending}
-                  >
-                    {uploadMutation.isPending ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Uploading...
-                      </>
-                    ) : (
-                      'Upload Files'
-                    )}
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {files.map((fileUpload) => (
-                  <div key={fileUpload.id} className="flex items-center gap-3 p-3 border rounded-lg">
-                    <div className="flex-1">
-                      <p className="font-medium">{fileUpload.file.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {(fileUpload.file.size / 1024 / 1024).toFixed(2)} MB
-                      </p>
-                      {fileUpload.status === "uploading" && (
-                        <Progress value={fileUpload.progress} className="mt-2" />
-                      )}
+            {/* File List */}
+            {files.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Uploaded Files</CardTitle>
+                      <CardDescription>
+                        {files.filter(f => f.validation?.isValid).length} of {files.length} files are valid
+                      </CardDescription>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {fileUpload.status === "pending" && (
-                        <span className="text-sm text-muted-foreground">Pending</span>
-                      )}
-                      {fileUpload.status === "uploading" && (
-                        <span className="text-sm text-blue-600">Uploading...</span>
-                      )}
-                      {fileUpload.status === "success" && (
-                        <span className="text-sm text-green-600">Success</span>
-                      )}
-                      {fileUpload.status === "error" && (
-                        <span className="text-sm text-red-600">Error</span>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeFile(fileUpload.id)}
+                    <div className="flex gap-2">
+                      <Button 
+                        onClick={processFiles} 
+                        disabled={isProcessing || !files.some(f => f.validation?.isValid)}
+                        className="flex items-center gap-2"
                       >
-                        <X className="w-4 h-4" />
+                        {isProcessing ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Database className="h-4 w-4" />
+                        )}
+                        Process Files
+                      </Button>
+                      <Button variant="outline" onClick={clearAllData}>
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Clear All
                       </Button>
                     </div>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {files.map((file) => (
+                      <div key={file.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <FileText className="h-5 w-5 text-muted-foreground" />
+                          <div>
+                            <p className="font-medium">{file.file.name}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {(file.file.size / 1024 / 1024).toFixed(2)} MB
+                              {file.validation && (
+                                <span className="ml-2">
+                                  • {file.validation.rowCount} rows • {file.validation.detectedType}
+                                </span>
+                              )}
+                            </p>
+                            {file.errorMessage && (
+                              <p className="text-sm text-destructive mt-1">{file.errorMessage}</p>
+                            )}
+                          </div>
+                        </div>
 
-        {/* Instructions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>File Format Requirements</CardTitle>
-            <CardDescription>Ensure your CSV files follow these guidelines</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <h4 className="font-semibold mb-2">Campaign Reports</h4>
-                <p className="text-sm text-muted-foreground mb-2">Required columns:</p>
-                <ul className="text-xs space-y-1">
-                  <li>• <code>date</code> - Campaign date (YYYY-MM-DD)</li>
-                  <li>• <code>campaign_name</code> - Campaign name</li>
-                  <li>• <code>app_name</code> - Application name</li>
-                  <li>• <code>country</code> - Target country (US, UK, etc.)</li>
-                  <li>• <code>spend</code> - Total spend amount</li>
-                  <li>• <code>installs</code> - Number of installs</li>
-                </ul>
-                <p className="text-xs text-muted-foreground mt-2">Optional columns:</p>
-                <ul className="text-xs space-y-1">
-                  <li>• <code>actions</code> - Post-install actions</li>
-                  <li>• <code>impressions</code> - Ad impressions</li>
-                  <li>• <code>clicks</code> - Ad clicks</li>
-                  <li>• <code>exchange</code> - Ad exchange</li>
-                  <li>• <code>inventory_type</code> - Inventory type</li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-2">Creative Reports</h4>
-                <p className="text-sm text-muted-foreground mb-2">Required columns:</p>
-                <ul className="text-xs space-y-1">
-                  <li>• <code>date</code> - Campaign date</li>
-                  <li>• <code>creative_name</code> - Creative name</li>
-                  <li>• <code>campaign_name</code> - Associated campaign</li>
-                  <li>• <code>app_name</code> - Application name</li>
-                  <li>• <code>spend</code> - Creative spend</li>
-                  <li>• <code>installs</code> - Installs from creative</li>
-                </ul>
-                <p className="text-xs text-muted-foreground mt-2">Optional columns:</p>
-                <ul className="text-xs space-y-1">
-                  <li>• <code>creative_size</code> - Creative dimensions</li>
-                  <li>• <code>creative_type</code> - Image/Video/etc.</li>
-                  <li>• <code>country</code> - Target country</li>
-                  <li>• <code>actions</code> - Post-install actions</li>
-                </ul>
-              </div>
-            </div>
-            
-            <div className="mt-4 p-4 bg-muted/50 rounded-lg">
-              <h5 className="font-semibold text-sm mb-2">📋 Important Notes:</h5>
-              <ul className="text-xs space-y-1 text-muted-foreground">
-                <li>• Column names are case-sensitive</li>
-                <li>• Date format: YYYY-MM-DD (e.g., 2025-01-15)</li>
-                <li>• Numeric values should not contain currency symbols</li>
-                <li>• Files are automatically processed and validated</li>
-                <li>• Duplicate data is automatically handled</li>
-              </ul>
-            </div>
-          </CardContent>
-        </Card>
+                        <div className="flex items-center gap-3">
+                          <Badge variant="secondary" className={getStatusColor(file.status)}>
+                            {file.status === "success" && <CheckCircle className="h-3 w-3 mr-1" />}
+                            {file.status === "error" && <AlertTriangle className="h-3 w-3 mr-1" />}
+                            {file.status === "uploading" && <Loader2 className="h-3 w-3 mr-1 animate-spin" />}
+                            {file.status}
+                          </Badge>
 
-        {/* Danger Zone */}
-        <Card className="border-destructive">
-          <CardHeader>
-            <CardTitle className="text-destructive">Danger Zone</CardTitle>
-            <CardDescription>Irreversible actions that affect all data</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Alert className="mb-4">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>
-                This will permanently delete all uploaded data and cannot be undone.
-              </AlertDescription>
-            </Alert>
-            <Button 
-              variant="destructive" 
-              onClick={clearAllData}
-              disabled={clearDataMutation.isPending}
-            >
-              {clearDataMutation.isPending ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Clearing...
-                </>
-              ) : (
-                <>
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Clear All Data
-                </>
-              )}
-            </Button>
-          </CardContent>
-        </Card>
+                          {file.validation && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setSelectedFile(file.id)}
+                            >
+                              <Eye className="h-4 w-4 mr-2" />
+                              Preview
+                            </Button>
+                          )}
+
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeFile(file.id)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+
+                        {file.status === "uploading" && (
+                          <div className="absolute bottom-0 left-0 right-0 h-1 bg-muted overflow-hidden">
+                            <div 
+                              className="h-full bg-primary transition-all duration-300"
+                              style={{ width: `${file.progress}%` }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* File Format Requirements */}
+            <Card>
+              <CardHeader>
+                <CardTitle>CSV Format Requirements</CardTitle>
+                <CardDescription>
+                  Your CSV files should contain the following columns
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <h4 className="font-semibold mb-2">Campaign Reports:</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                    <Badge variant="outline">date</Badge>
+                    <Badge variant="outline">campaign_name</Badge>
+                    <Badge variant="outline">app_name</Badge>
+                    <Badge variant="outline">country</Badge>
+                    <Badge variant="outline">spend</Badge>
+                    <Badge variant="outline">installs</Badge>
+                    <Badge variant="outline">actions (optional)</Badge>
+                    <Badge variant="outline">source (optional)</Badge>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold mb-2">Creative Reports:</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                    <Badge variant="outline">date</Badge>
+                    <Badge variant="outline">creative_name</Badge>
+                    <Badge variant="outline">campaign_name</Badge>
+                    <Badge variant="outline">app_name</Badge>
+                    <Badge variant="outline">spend</Badge>
+                    <Badge variant="outline">installs</Badge>
+                    <Badge variant="outline">format (optional)</Badge>
+                    <Badge variant="outline">size (optional)</Badge>
+                  </div>
+                </div>
+
+                <Alert>
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    <strong>Important:</strong> Column names are flexible - the system will automatically 
+                    detect variations like "Campaign Name", "campaign", "App", "application_name", etc.
+                  </AlertDescription>
+                </Alert>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="preview">
+            {selectedFileData?.validation ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle>File Preview: {selectedFileData.file.name}</CardTitle>
+                  <CardDescription>
+                    {selectedFileData.validation.detectedType} data • {selectedFileData.validation.rowCount} rows
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {selectedFileData.validation.warnings.length > 0 && (
+                    <Alert className="mb-4">
+                      <AlertTriangle className="h-4 w-4" />
+                      <AlertDescription>
+                        <strong>Warnings:</strong>
+                        <ul className="mt-1 list-disc list-inside">
+                          {selectedFileData.validation.warnings.map((warning, i) => (
+                            <li key={i} className="text-sm">{warning}</li>
+                          ))}
+                        </ul>
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          {selectedFileData.validation.preview[0]?.map((header, i) => (
+                            <TableHead key={i}>{header}</TableHead>
+                          ))}
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {selectedFileData.validation.preview.slice(1).map((row, i) => (
+                          <TableRow key={i}>
+                            {row.map((cell, j) => (
+                              <TableCell key={j} className="max-w-[200px] truncate">
+                                {cell}
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card>
+                <CardContent className="text-center py-8">
+                  <p className="text-muted-foreground">Select a file to preview its contents</p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="processed">
+            {data ? (
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Processing Summary</CardTitle>
+                    <CardDescription>
+                      Data processed on {new Date(data.processedAt).toLocaleString()}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold">{data.campaigns.length}</div>
+                        <div className="text-sm text-muted-foreground">Campaigns</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold">{data.creatives.length}</div>
+                        <div className="text-sm text-muted-foreground">Creatives</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold">{data.apps.length}</div>
+                        <div className="text-sm text-muted-foreground">Apps</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-2xl font-bold">{data.countries.length}</div>
+                        <div className="text-sm text-muted-foreground">Countries</div>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="text-center p-4 border rounded-lg">
+                        <div className="text-xl font-bold">${data.totalSpend.toLocaleString()}</div>
+                        <div className="text-sm text-muted-foreground">Total Spend</div>
+                      </div>
+                      <div className="text-center p-4 border rounded-lg">
+                        <div className="text-xl font-bold">{data.totalInstalls.toLocaleString()}</div>
+                        <div className="text-sm text-muted-foreground">Total Installs</div>
+                      </div>
+                      <div className="text-center p-4 border rounded-lg">
+                        <div className="text-xl font-bold">${data.avgCPI.toFixed(2)}</div>
+                        <div className="text-sm text-muted-foreground">Average CPI</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Processed Files</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {data.fileNames.map((fileName, i) => (
+                        <div key={i} className="flex items-center gap-2">
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                          <span>{fileName}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="text-center py-8">
+                  <p className="text-muted-foreground">No processed data available. Upload and process CSV files first.</p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
     </Layout>
   );

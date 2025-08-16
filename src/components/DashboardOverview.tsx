@@ -7,6 +7,7 @@ import { TrendingUp, DollarSign, Users, BarChart, RefreshCw, Loader2, AlertTrian
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { useData } from "@/contexts/DataContext";
 import { useState, useEffect } from "react";
 
 // Mock data based on Moloco CRM specification
@@ -95,6 +96,7 @@ export function DashboardOverview() {
   const queryClient = useQueryClient();
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [connectionStatus, setConnectionStatus] = useState<'online' | 'offline' | 'checking'>('checking');
+  const { data: csvData, getDashboardSummary, getFilteredCampaigns } = useData();
 
   // Fetch real data from API with enhanced error handling
   const { 
@@ -160,12 +162,25 @@ export function DashboardOverview() {
     return data;
   };
 
-  // Use real data if available and valid, fallback to mock data
-  const rawMetrics = dashboardData?.data?.data?.summary;
-  const validatedMetrics = validateMetrics(rawMetrics);
-  const metrics = validatedMetrics || mockMetrics;
+  // Use CSV data if available, fallback to API data, then mock data
+  const csvSummary = getDashboardSummary();
+  const recentCampaigns = getFilteredCampaigns({ 
+    sortBy: 'date', 
+    sortOrder: 'desc', 
+    limit: 5 
+  });
+
+  // Use CSV data if available, otherwise fallback to API or mock
+  const metrics = csvData ? {
+    totalSpend: csvSummary.totalSpend,
+    totalInstalls: csvSummary.totalInstalls,
+    totalCampaigns: csvSummary.totalCampaigns,
+    averageCPI: csvSummary.avgCPI,
+    activeApps: csvSummary.activeApps,
+    activeCountries: csvSummary.activeCountries
+  } : (validateMetrics(dashboardData?.data?.data?.summary) || mockMetrics);
   
-  const campaigns = campaignsData?.data?.data || mockCampaigns;
+  const campaigns = csvData ? recentCampaigns : (campaignsData?.data?.data || mockCampaigns);
   
   // Helper function to safely get metric values with fallbacks
   const getMetricValue = (key: string) => {
@@ -191,7 +206,8 @@ export function DashboardOverview() {
   
   const isLoading = isDashboardLoading || isCampaignsLoading;
   const hasError = dashboardError || campaignsError;
-  const isUsingFallbackData = !validatedMetrics;
+  const isUsingCSVData = !!csvData;
+  const isUsingFallbackData = !csvData && !validateMetrics(dashboardData?.data?.data?.summary);
 
   const handleRefresh = async () => {
     try {
@@ -240,19 +256,25 @@ export function DashboardOverview() {
         <div className="flex items-center gap-4">
           <h1 className="text-3xl font-bold text-foreground">Overview</h1>
           <div className="flex items-center gap-2">
-            {connectionStatus === 'online' && (
-              <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+            {isUsingCSVData && (
+              <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                 <CheckCircle className="h-3 w-3 mr-1" />
-                Live
+                CSV Data
               </Badge>
             )}
-            {connectionStatus === 'offline' && (
+            {!isUsingCSVData && connectionStatus === 'online' && (
+              <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Live API
+              </Badge>
+            )}
+            {!isUsingCSVData && connectionStatus === 'offline' && (
               <Badge variant="secondary" className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
                 <AlertTriangle className="h-3 w-3 mr-1" />
                 Offline
               </Badge>
             )}
-            {connectionStatus === 'checking' && (
+            {!isUsingCSVData && connectionStatus === 'checking' && (
               <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
                 <Loader2 className="h-3 w-3 mr-1 animate-spin" />
                 Connecting

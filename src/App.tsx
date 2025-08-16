@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { DataProvider } from "@/contexts/DataContext";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import Dashboard from "./pages/Dashboard";
@@ -50,7 +51,8 @@ const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <TooltipProvider>
+        <DataProvider>
+          <TooltipProvider>
           <Toaster />
           <Sonner />
           <BrowserRouter>
@@ -139,7 +141,8 @@ const App = () => (
           </BrowserRouter>
           {/* React Query Devtools - only in development */}
           {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
-        </TooltipProvider>
+          </TooltipProvider>
+        </DataProvider>
       </AuthProvider>
     </QueryClientProvider>
   </ErrorBoundary>
