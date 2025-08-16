@@ -60,14 +60,7 @@ const App = () => (
               <Route path="/signin" element={<SignIn />} />
               <Route path="/signup" element={<SignUp />} />
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
-              <Route 
-                path="/dashboard" 
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                } 
-              />
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route 
                 path="/overview" 
                 element={
@@ -79,21 +72,17 @@ const App = () => (
               <Route 
                 path="/campaigns" 
                 element={
-                  <ProtectedRoute>
-                    <ErrorBoundary>
-                      <Campaigns />
-                    </ErrorBoundary>
-                  </ProtectedRoute>
+                  <ErrorBoundary>
+                    <Campaigns />
+                  </ErrorBoundary>
                 } 
               />
               <Route 
                 path="/upload" 
                 element={
-                  <ProtectedRoute>
-                    <ErrorBoundary>
-                      <Upload />
-                    </ErrorBoundary>
-                  </ProtectedRoute>
+                  <ErrorBoundary>
+                    <Upload />
+                  </ErrorBoundary>
                 } 
               />
               <Route 
