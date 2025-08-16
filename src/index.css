@@ -8,30 +8,30 @@
   :root {
     /* Light Theme - Primary Colors */
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 240 1% 13%; /* shark #222223 */
     
     /* Cards and Surfaces */
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 240 1% 13%;
     
     /* Popover Elements */
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 240 1% 13%;
     
-    /* Primary Brand Colors - RevenueCat Blue/Purple */
-    --primary: 264 83% 57%;
+    /* Primary Brand Colors - cornflower-blue */
+    --primary: 230 74% 66%; /* cornflower-blue #6a7de7 */
     --primary-foreground: 0 0% 100%;
     
-    /* Secondary Colors */
-    --secondary: 215 20% 65%;
-    --secondary-foreground: 0 0% 100%;
+    /* Secondary Colors - chatelle */
+    --secondary: 285 13% 75%; /* chatelle #bfb8c7 */
+    --secondary-foreground: 240 1% 13%;
     
     /* Muted Elements */
     --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted-foreground: 0 1% 45%; /* jumbo #737375 */
     
-    /* Accent Colors - RevenueCat Bright Green */
-    --accent: 142 69% 58%;
+    /* Accent Colors - mountain-meadow */
+    --accent: 158 75% 45%; /* mountain-meadow #1fc78a */
     --accent-foreground: 0 0% 100%;
     
     /* Destructive Actions */
@@ -41,31 +41,31 @@
     /* Borders and Inputs */
     --border: 214 32% 91%;
     --input: 214 32% 91%;
-    --ring: 264 83% 57%;
+    --ring: 230 74% 66%;
     
     /* UI Elements */
     --radius: 0.5rem;
     
     /* Sidebar Colors */
-    --sidebar-background: 222 84% 5%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 264 83% 57%;
+    --sidebar-background: 240 1% 13%; /* shark #222223 */
+    --sidebar-foreground: 285 13% 75%; /* chatelle #bfb8c7 */
+    --sidebar-primary: 230 74% 66%; /* cornflower-blue #6a7de7 */
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 33% 18%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217 33% 18%;
-    --sidebar-ring: 264 83% 57%;
+    --sidebar-accent: 0 1% 29%; /* abbey #49494a */
+    --sidebar-accent-foreground: 285 13% 75%;
+    --sidebar-border: 0 1% 29%; /* abbey #49494a */
+    --sidebar-ring: 230 74% 66%;
     
-    /* Chart Colors - From RevenueCat Palette */
-    --chart-1: 142 69% 58%; /* Bright Green */
-    --chart-2: 264 83% 57%; /* Blue/Purple */
-    --chart-3: 38 92% 50%; /* Orange */
-    --chart-4: 346 87% 43%; /* Red */
-    --chart-5: 158 64% 52%; /* Dark Green */
+    /* Chart Colors - Using the exact palette */
+    --chart-1: 158 75% 45%; /* mountain-meadow #1fc78a */
+    --chart-2: 230 74% 66%; /* cornflower-blue #6a7de7 */
+    --chart-3: 150 67% 24%; /* jewel #146444 */
+    --chart-4: 155 30% 23%; /* stromboli #2c4b3c */
+    --chart-5: 232 22% 34%; /* gun-powder #474b64 */
     
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(264 83% 57%), hsl(264 83% 47%));
-    --gradient-success: linear-gradient(135deg, hsl(142 69% 58%), hsl(142 69% 48%));
+    --gradient-primary: linear-gradient(135deg, hsl(230 74% 66%), hsl(230 74% 56%));
+    --gradient-success: linear-gradient(135deg, hsl(158 75% 45%), hsl(158 75% 35%));
     
     /* Shadows */
     --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.05);
@@ -74,59 +74,59 @@
   }
 
   .dark {
-    /* Dark Theme - RevenueCat Dark Palette */
-    --background: 222.2 84% 4.9%; /* Dark charcoal from palette */
-    --foreground: 210 40% 98%;
+    /* Dark Theme - Using the exact palette */
+    --background: 240 1% 13%; /* shark #222223 */
+    --foreground: 285 13% 75%; /* chatelle #bfb8c7 */
     
-    /* Cards and Surfaces - Dark Purple/Blue */
-    --card: 217 32% 17%; /* Dark gray from palette */
-    --card-foreground: 210 40% 98%;
+    /* Cards and Surfaces */
+    --card: 225 8% 20%; /* tuna #383a45 */
+    --card-foreground: 285 13% 75%;
     
     /* Popover Elements */
-    --popover: 217 32% 17%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 225 8% 20%; /* tuna #383a45 */
+    --popover-foreground: 285 13% 75%;
     
-    /* Primary Brand Colors - Blue/Purple from palette */
-    --primary: 264 83% 57%;
+    /* Primary Brand Colors - cornflower-blue */
+    --primary: 230 74% 66%; /* cornflower-blue #6a7de7 */
     --primary-foreground: 0 0% 100%;
     
     /* Secondary Colors */
-    --secondary: 215 27.9% 16.9%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 0 1% 29%; /* abbey #49494a */
+    --secondary-foreground: 285 13% 75%;
     
     /* Muted Elements */
-    --muted: 215 27.9% 16.9%;
-    --muted-foreground: 217.9 10.6% 64.9%;
+    --muted: 0 1% 29%; /* abbey #49494a */
+    --muted-foreground: 0 1% 45%; /* jumbo #737375 */
     
-    /* Accent Colors - Bright Green from palette */
-    --accent: 142 69% 58%;
+    /* Accent Colors - mountain-meadow */
+    --accent: 158 75% 45%; /* mountain-meadow #1fc78a */
     --accent-foreground: 0 0% 100%;
     
     /* Destructive Actions */
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 285 13% 75%;
     
     /* Borders and Inputs */
-    --border: 215 27.9% 16.9%;
-    --input: 215 27.9% 16.9%;
-    --ring: 264 83% 57%;
+    --border: 0 1% 29%; /* abbey #49494a */
+    --input: 0 1% 29%;
+    --ring: 230 74% 66%;
     
-    /* Sidebar Colors - Dark theme matching RevenueCat */
-    --sidebar-background: 222.2 84% 4.9%; /* Dark charcoal */
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 264 83% 57%; /* Blue/Purple */
+    /* Sidebar Colors - Dark theme with exact colors */
+    --sidebar-background: 240 1% 13%; /* shark #222223 */
+    --sidebar-foreground: 285 13% 75%; /* chatelle #bfb8c7 */
+    --sidebar-primary: 230 74% 66%; /* cornflower-blue #6a7de7 */
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 215 27.9% 16.9%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 215 27.9% 16.9%;
-    --sidebar-ring: 264 83% 57%;
+    --sidebar-accent: 0 1% 29%; /* abbey #49494a */
+    --sidebar-accent-foreground: 285 13% 75%;
+    --sidebar-border: 0 1% 29%; /* abbey #49494a */
+    --sidebar-ring: 230 74% 66%;
     
-    /* Chart Colors - Dark theme with palette colors */
-    --chart-1: 142 69% 58%; /* Bright Green */
-    --chart-2: 264 83% 57%; /* Blue/Purple */
-    --chart-3: 38 92% 50%; /* Orange */
-    --chart-4: 346 87% 43%; /* Red */
-    --chart-5: 158 64% 52%; /* Dark Green */
+    /* Chart Colors - Dark theme with palette */
+    --chart-1: 158 75% 45%; /* mountain-meadow #1fc78a */
+    --chart-2: 230 74% 66%; /* cornflower-blue #6a7de7 */
+    --chart-3: 150 67% 24%; /* jewel #146444 */
+    --chart-4: 155 30% 23%; /* stromboli #2c4b3c */
+    --chart-5: 232 22% 34%; /* gun-powder #474b64 */
     
     /* Shadows for Dark Mode */
     --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.3);
