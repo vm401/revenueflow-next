@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { ProcessedCSVData, CampaignData, CreativeData } from '@/lib/realCSVProcessor';
+import { ProcessedCSVData, CampaignData, CreativeData, ExchangeData, InventoryData, AppData } from '@/lib/realCSVProcessor';
 import { useToast } from "@/hooks/use-toast";
 
 interface DataContextType {
@@ -48,68 +48,79 @@ export interface CampaignFilters {
 export interface CreativeFilters {
   search?: string;
   campaign?: string;
-  app?: string;
+  type?: string;
   format?: string;
-  dateFrom?: string;
-  dateTo?: string;
-  sortBy?: 'date' | 'spend' | 'installs' | 'cpi';
+  minSpend?: number;
+  maxSpend?: number;
+  sortBy?: 'spend' | 'installs' | 'cpi' | 'ctr';
   sortOrder?: 'asc' | 'desc';
+  page?: number;
+  limit?: number;
 }
 
 export interface DashboardSummary {
   totalSpend: number;
   totalInstalls: number;
-  totalActions: number;
-  avgCPI: number;
+  totalImpressions: number;
+  totalClicks: number;
   totalCampaigns: number;
   totalCreatives: number;
+  totalExchanges: number;
+  totalInventory: number;
   activeApps: number;
   activeCountries: number;
-  activeSources: number;
-  dateRange: { start: string; end: string };
-  lastUpdated: string;
+  avgCPI: number;
+  avgCTR: number;
+  avgCPC: number;
 }
 
 export interface AppSummary {
+  id: string;
   name: string;
+  platform: string;
   totalSpend: number;
   totalInstalls: number;
-  totalActions: number;
+  totalImpressions: number;
   avgCPI: number;
-  campaignCount: number;
-  countries: string[];
-  sources: string[];
-  lastActivity: string;
+  avgCTR: number;
+  campaignsCount: number;
+  creativesCount: number;
+  status: string;
 }
 
 export interface ExchangeSummary {
+  id: string;
   name: string;
   type: string;
   totalSpend: number;
   totalInstalls: number;
-  totalActions: number;
+  totalImpressions: number;
   avgCPI: number;
-  campaignCount: number;
-  countries: string[];
-  apps: string[];
+  avgCTR: number;
+  avgCPC: number;
+  campaignsCount: number;
+  creativesCount: number;
+  status: string;
 }
 
 export interface InventorySummary {
-  name: string;
-  source: string;
-  type: string;
-  totalSpend: number;
-  totalInstalls: number;
-  totalActions: number;
-  avgCPI: number;
-  countries: string[];
-  quality: 'High' | 'Medium' | 'Low';
-  fraudRate: number;
+  id: string;
+  appBundle: string;
+  appTitle: string;
+  trafficType: string;
+  impressions: number;
+  clicks: number;
+  installs: number;
+  spend: number;
+  ctr: number;
+  cpi: number;
+  quality: 'high' | 'medium' | 'low';
+  campaignsCount: number;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'moloco_crm_data';
+const STORAGE_KEY = 'revenueflow_csv_data';
 
 interface DataProviderProps {
   children: ReactNode;
@@ -132,8 +143,8 @@ export function DataProvider({ children }: DataProviderProps) {
     saveToStorage();
     
     toast({
-      title: "Data Updated",
-      description: `Processed ${newData.campaigns.length} campaigns and ${newData.creatives.length} creatives`,
+      title: "✅ CSV Processed Successfully",
+      description: `${newData.campaigns.length} campaigns, ${newData.creatives.length} creatives, ${newData.exchanges.length} exchanges, ${newData.inventory.length} inventory`,
     });
   };
 
@@ -143,7 +154,7 @@ export function DataProvider({ children }: DataProviderProps) {
     localStorage.removeItem(STORAGE_KEY);
     
     toast({
-      title: "Data Cleared",
+      title: "🗑️ Data Cleared",
       description: "All processed data has been removed",
     });
   };
@@ -152,8 +163,9 @@ export function DataProvider({ children }: DataProviderProps) {
     if (data) {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        console.log('💾 Data saved to localStorage');
       } catch (error) {
-        console.error('Failed to save data to localStorage:', error);
+        console.error('❌ Failed to save data to localStorage:', error);
         toast({
           title: "Storage Error",
           description: "Failed to save data locally",
@@ -167,81 +179,68 @@ export function DataProvider({ children }: DataProviderProps) {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        const parsedData = JSON.parse(stored) as ProcessedData;
+        const parsedData = JSON.parse(stored) as ProcessedCSVData;
         setDataState(parsedData);
+        console.log('📂 Data loaded from localStorage');
         return true;
       }
     } catch (error) {
-      console.error('Failed to load data from localStorage:', error);
+      console.error('❌ Failed to load data from localStorage:', error);
       setError('Failed to load stored data');
     }
     return false;
   };
 
-  // Filter campaigns with advanced filtering
-  const getFilteredCampaigns = (filters: CampaignFilters): CampaignRow[] => {
+  // 🎯 FILTER CAMPAIGNS
+  const getFilteredCampaigns = (filters: CampaignFilters): CampaignData[] => {
     if (!data) return [];
-
+    
     let filtered = [...data.campaigns];
-
-    // Text search
+    
+    // Apply filters
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
       filtered = filtered.filter(campaign => 
-        campaign.campaign_name.toLowerCase().includes(searchLower) ||
-        campaign.app_name.toLowerCase().includes(searchLower) ||
-        campaign.country.toLowerCase().includes(searchLower)
+        campaign.name.toLowerCase().includes(searchLower) ||
+        campaign.targetApp.toLowerCase().includes(searchLower) ||
+        campaign.countries.some(country => country.toLowerCase().includes(searchLower)) ||
+        campaign.campaignId.toLowerCase().includes(searchLower)
       );
     }
-
-    // Filters
+    
     if (filters.country && filters.country !== 'all') {
-      filtered = filtered.filter(campaign => campaign.country === filters.country);
+      filtered = filtered.filter(campaign => campaign.countries.includes(filters.country!));
     }
-
+    
     if (filters.app && filters.app !== 'all') {
-      filtered = filtered.filter(campaign => campaign.app_name === filters.app);
+      filtered = filtered.filter(campaign => campaign.targetApp === filters.app);
     }
-
-    if (filters.source && filters.source !== 'all') {
-      filtered = filtered.filter(campaign => campaign.source === filters.source);
-    }
-
-    // Date range
-    if (filters.dateFrom) {
-      filtered = filtered.filter(campaign => campaign.date >= filters.dateFrom!);
-    }
-
-    if (filters.dateTo) {
-      filtered = filtered.filter(campaign => campaign.date <= filters.dateTo!);
-    }
-
-    // Spend range
+    
     if (filters.minSpend !== undefined) {
-      filtered = filtered.filter(campaign => campaign.spend >= filters.minSpend!);
+      filtered = filtered.filter(campaign => campaign.totalSpend >= filters.minSpend!);
     }
-
+    
     if (filters.maxSpend !== undefined) {
-      filtered = filtered.filter(campaign => campaign.spend <= filters.maxSpend!);
+      filtered = filtered.filter(campaign => campaign.totalSpend <= filters.maxSpend!);
     }
-
-    // Sorting
+    
+    // Apply sorting
     if (filters.sortBy) {
       filtered.sort((a, b) => {
-        let aVal: any, bVal: any;
+        let aVal, bVal;
         
         switch (filters.sortBy) {
           case 'date':
-            aVal = new Date(a.date);
-            bVal = new Date(b.date);
+            aVal = new Date(a.startDate).getTime();
+            bVal = new Date(b.startDate).getTime();
             break;
           case 'spend':
-            aVal = a.spend;
-            bVal = b.spend;
+            aVal = a.totalSpend;
+            bVal = b.totalSpend;
             break;
           case 'installs':
-            aVal = a.installs;
-            bVal = b.installs;
+            aVal = a.totalInstalls;
+            bVal = b.totalInstalls;
             break;
           case 'cpi':
             aVal = a.cpi;
@@ -250,69 +249,62 @@ export function DataProvider({ children }: DataProviderProps) {
           default:
             return 0;
         }
-
-        if (filters.sortOrder === 'desc') {
-          return bVal > aVal ? 1 : -1;
-        } else {
-          return aVal > bVal ? 1 : -1;
-        }
+        
+        const result = aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+        return filters.sortOrder === 'desc' ? -result : result;
       });
     }
-
-    // Pagination
+    
+    // Apply pagination
     if (filters.page && filters.limit) {
-      const start = (filters.page - 1) * filters.limit;
-      filtered = filtered.slice(start, start + filters.limit);
+      const startIndex = (filters.page - 1) * filters.limit;
+      filtered = filtered.slice(startIndex, startIndex + filters.limit);
     }
-
+    
     return filtered;
   };
 
-  // Filter creatives
-  const getFilteredCreatives = (filters: CreativeFilters): CreativeRow[] => {
+  // 🎨 FILTER CREATIVES
+  const getFilteredCreatives = (filters: CreativeFilters): CreativeData[] => {
     if (!data) return [];
-
+    
     let filtered = [...data.creatives];
-
+    
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
       filtered = filtered.filter(creative => 
-        creative.creative_name.toLowerCase().includes(searchLower) ||
-        creative.campaign_name.toLowerCase().includes(searchLower) ||
-        creative.app_name.toLowerCase().includes(searchLower)
+        creative.name.toLowerCase().includes(searchLower) ||
+        creative.campaignName.toLowerCase().includes(searchLower) ||
+        creative.type.toLowerCase().includes(searchLower)
       );
     }
-
+    
     if (filters.campaign && filters.campaign !== 'all') {
-      filtered = filtered.filter(creative => creative.campaign_name === filters.campaign);
+      filtered = filtered.filter(creative => creative.campaignId === filters.campaign);
     }
-
-    if (filters.app && filters.app !== 'all') {
-      filtered = filtered.filter(creative => creative.app_name === filters.app);
+    
+    if (filters.type && filters.type !== 'all') {
+      filtered = filtered.filter(creative => creative.type === filters.type);
     }
-
+    
     if (filters.format && filters.format !== 'all') {
       filtered = filtered.filter(creative => creative.format === filters.format);
     }
-
-    if (filters.dateFrom) {
-      filtered = filtered.filter(creative => creative.date >= filters.dateFrom!);
+    
+    if (filters.minSpend !== undefined) {
+      filtered = filtered.filter(creative => creative.spend >= filters.minSpend!);
     }
-
-    if (filters.dateTo) {
-      filtered = filtered.filter(creative => creative.date <= filters.dateTo!);
+    
+    if (filters.maxSpend !== undefined) {
+      filtered = filtered.filter(creative => creative.spend <= filters.maxSpend!);
     }
-
-    // Sorting
+    
+    // Apply sorting
     if (filters.sortBy) {
       filtered.sort((a, b) => {
-        let aVal: any, bVal: any;
+        let aVal, bVal;
         
         switch (filters.sortBy) {
-          case 'date':
-            aVal = new Date(a.date);
-            bVal = new Date(b.date);
-            break;
           case 'spend':
             aVal = a.spend;
             bVal = b.spend;
@@ -325,218 +317,125 @@ export function DataProvider({ children }: DataProviderProps) {
             aVal = a.cpi;
             bVal = b.cpi;
             break;
+          case 'ctr':
+            aVal = a.ctr;
+            bVal = b.ctr;
+            break;
           default:
             return 0;
         }
-
-        if (filters.sortOrder === 'desc') {
-          return bVal > aVal ? 1 : -1;
-        } else {
-          return aVal > bVal ? 1 : -1;
-        }
+        
+        const result = aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+        return filters.sortOrder === 'desc' ? -result : result;
       });
     }
-
+    
+    // Apply pagination
+    if (filters.page && filters.limit) {
+      const startIndex = (filters.page - 1) * filters.limit;
+      filtered = filtered.slice(startIndex, startIndex + filters.limit);
+    }
+    
     return filtered;
   };
 
-  // Generate dashboard summary
+  // 📊 DASHBOARD SUMMARY
   const getDashboardSummary = (): DashboardSummary => {
     if (!data) {
       return {
         totalSpend: 0,
         totalInstalls: 0,
-        totalActions: 0,
-        avgCPI: 0,
+        totalImpressions: 0,
+        totalClicks: 0,
         totalCampaigns: 0,
         totalCreatives: 0,
+        totalExchanges: 0,
+        totalInventory: 0,
         activeApps: 0,
         activeCountries: 0,
-        activeSources: 0,
-        dateRange: { start: '', end: '' },
-        lastUpdated: ''
+        avgCPI: 0,
+        avgCTR: 0,
+        avgCPC: 0
       };
     }
 
     return {
-      totalSpend: data.totalSpend,
-      totalInstalls: data.totalInstalls,
-      totalActions: data.totalActions,
-      avgCPI: data.avgCPI,
-      totalCampaigns: data.campaigns.length,
-      totalCreatives: data.creatives.length,
-      activeApps: data.apps.length,
+      totalSpend: data.summary.totalSpend,
+      totalInstalls: data.summary.totalInstalls,
+      totalImpressions: data.summary.totalImpressions,
+      totalClicks: data.summary.totalClicks,
+      totalCampaigns: data.summary.totalCampaigns,
+      totalCreatives: data.summary.totalCreatives,
+      totalExchanges: data.summary.totalExchanges,
+      totalInventory: data.summary.totalInventory,
+      activeApps: data.summary.totalApps,
       activeCountries: data.countries.length,
-      activeSources: data.sources.length,
-      dateRange: data.dateRange,
-      lastUpdated: data.processedAt
+      avgCPI: data.summary.avgCPI,
+      avgCTR: data.summary.avgCTR,
+      avgCPC: data.summary.avgCPC
     };
   };
 
-  // Generate app summaries
+  // 📱 APP SUMMARIES
   const getAppSummaries = (): AppSummary[] => {
     if (!data) return [];
-
-    const appMap = new Map<string, AppSummary>();
-
-    [...data.campaigns, ...data.creatives].forEach(row => {
-      if (!appMap.has(row.app_name)) {
-        appMap.set(row.app_name, {
-          name: row.app_name,
-          totalSpend: 0,
-          totalInstalls: 0,
-          totalActions: 0,
-          avgCPI: 0,
-          campaignCount: 0,
-          countries: [],
-          sources: [],
-          lastActivity: row.date
-        });
-      }
-
-      const app = appMap.get(row.app_name)!;
-      app.totalSpend += row.spend;
-      app.totalInstalls += row.installs;
-      app.totalActions += row.actions || 0;
-      app.campaignCount++;
-      
-      if (!app.countries.includes(row.country)) {
-        app.countries.push(row.country);
-      }
-      
-      if (row.source && !app.sources.includes(row.source)) {
-        app.sources.push(row.source);
-      }
-
-      if (row.date > app.lastActivity) {
-        app.lastActivity = row.date;
-      }
-    });
-
-    // Calculate average CPI
-    appMap.forEach(app => {
-      app.avgCPI = app.totalInstalls > 0 ? app.totalSpend / app.totalInstalls : 0;
-    });
-
-    return Array.from(appMap.values()).sort((a, b) => b.totalSpend - a.totalSpend);
+    
+    return data.apps.map(app => ({
+      id: app.id,
+      name: app.name,
+      platform: app.platform,
+      totalSpend: app.totalSpend,
+      totalInstalls: app.totalInstalls,
+      totalImpressions: app.totalImpressions,
+      avgCPI: app.cpi,
+      avgCTR: app.ctr,
+      campaignsCount: app.campaignsCount,
+      creativesCount: app.creativesCount,
+      status: app.status
+    }));
   };
 
-  // Generate exchange summaries
+  // 🔄 EXCHANGE SUMMARIES
   const getExchangeSummaries = (): ExchangeSummary[] => {
     if (!data) return [];
-
-    const exchangeMap = new Map<string, ExchangeSummary>();
-
-    [...data.campaigns, ...data.creatives].forEach(row => {
-      const source = row.source || 'Unknown';
-      
-      if (!exchangeMap.has(source)) {
-        exchangeMap.set(source, {
-          name: source,
-          type: getExchangeType(source),
-          totalSpend: 0,
-          totalInstalls: 0,
-          totalActions: 0,
-          avgCPI: 0,
-          campaignCount: 0,
-          countries: [],
-          apps: []
-        });
-      }
-
-      const exchange = exchangeMap.get(source)!;
-      exchange.totalSpend += row.spend;
-      exchange.totalInstalls += row.installs;
-      exchange.totalActions += row.actions || 0;
-      exchange.campaignCount++;
-      
-      if (!exchange.countries.includes(row.country)) {
-        exchange.countries.push(row.country);
-      }
-      
-      if (!exchange.apps.includes(row.app_name)) {
-        exchange.apps.push(row.app_name);
-      }
-    });
-
-    // Calculate average CPI
-    exchangeMap.forEach(exchange => {
-      exchange.avgCPI = exchange.totalInstalls > 0 ? exchange.totalSpend / exchange.totalInstalls : 0;
-    });
-
-    return Array.from(exchangeMap.values()).sort((a, b) => b.totalSpend - a.totalSpend);
+    
+    return data.exchanges.map(exchange => ({
+      id: exchange.id,
+      name: exchange.name,
+      type: exchange.type,
+      totalSpend: exchange.totalSpend,
+      totalInstalls: exchange.totalInstalls,
+      totalImpressions: exchange.totalImpressions,
+      avgCPI: exchange.cpi,
+      avgCTR: exchange.ctr,
+      avgCPC: exchange.averageCpc,
+      campaignsCount: exchange.campaignsCount,
+      creativesCount: exchange.creativesCount,
+      status: exchange.status
+    }));
   };
 
-  // Generate inventory summaries
+  // 📦 INVENTORY SUMMARIES
   const getInventorySummaries = (): InventorySummary[] => {
     if (!data) return [];
-
-    const inventoryMap = new Map<string, InventorySummary>();
-
-    [...data.campaigns, ...data.creatives].forEach(row => {
-      const source = row.source || 'Unknown';
-      const key = `${source}_${row.app_name}`;
-      
-      if (!inventoryMap.has(key)) {
-        inventoryMap.set(key, {
-          name: `${row.app_name} - ${source}`,
-          source: source,
-          type: getExchangeType(source),
-          totalSpend: 0,
-          totalInstalls: 0,
-          totalActions: 0,
-          avgCPI: 0,
-          countries: [],
-          quality: 'Medium',
-          fraudRate: Math.random() * 5 // Mock fraud rate
-        });
-      }
-
-      const inventory = inventoryMap.get(key)!;
-      inventory.totalSpend += row.spend;
-      inventory.totalInstalls += row.installs;
-      inventory.totalActions += row.actions || 0;
-      
-      if (!inventory.countries.includes(row.country)) {
-        inventory.countries.push(row.country);
-      }
-    });
-
-    // Calculate CPI and quality
-    inventoryMap.forEach(inventory => {
-      inventory.avgCPI = inventory.totalInstalls > 0 ? inventory.totalSpend / inventory.totalInstalls : 0;
-      
-      // Quality based on CPI and fraud rate
-      if (inventory.avgCPI < 8.0 && inventory.fraudRate < 3.0) {
-        inventory.quality = 'High';
-      } else if (inventory.avgCPI < 10.0 && inventory.fraudRate < 5.0) {
-        inventory.quality = 'Medium';
-      } else {
-        inventory.quality = 'Low';
-      }
-    });
-
-    return Array.from(inventoryMap.values()).sort((a, b) => b.totalSpend - a.totalSpend);
+    
+    return data.inventory.map(item => ({
+      id: item.id,
+      appBundle: item.appBundle,
+      appTitle: item.appTitle,
+      trafficType: item.trafficType,
+      impressions: item.impressions,
+      clicks: item.clicks,
+      installs: item.installs,
+      spend: item.spend,
+      ctr: item.ctr,
+      cpi: item.cpi,
+      quality: item.quality,
+      campaignsCount: item.campaignsCount
+    }));
   };
 
-  // Helper function to determine exchange type
-  const getExchangeType = (source: string): string => {
-    const sourceLower = source.toLowerCase();
-    if (sourceLower.includes('meta') || sourceLower.includes('facebook') || sourceLower.includes('instagram')) {
-      return 'Social Media';
-    } else if (sourceLower.includes('google')) {
-      return 'Search & Display';
-    } else if (sourceLower.includes('tiktok')) {
-      return 'Social Media';
-    } else if (sourceLower.includes('unity')) {
-      return 'Gaming';
-    } else if (sourceLower.includes('snapchat')) {
-      return 'Social Media';
-    }
-    return 'Unknown';
-  };
-
-  // Export data
+  // 📤 EXPORT DATA
   const exportData = (format: 'csv' | 'json') => {
     if (!data) {
       toast({
@@ -552,22 +451,30 @@ export function DataProvider({ children }: DataProviderProps) {
       let filename: string;
       let mimeType: string;
 
-      if (format === 'csv') {
-        // Export as CSV
-        const campaignHeaders = ['Date', 'Campaign', 'App', 'Country', 'Spend', 'Installs', 'CPI', 'Source'];
-        const campaignRows = data.campaigns.map(c => [
-          c.date, c.campaign_name, c.app_name, c.country, c.spend.toString(), 
-          c.installs.toString(), c.cpi.toFixed(2), c.source || ''
+      if (format === 'json') {
+        content = JSON.stringify(data, null, 2);
+        filename = `revenueflow-data-${new Date().toISOString().split('T')[0]}.json`;
+        mimeType = 'application/json';
+      } else {
+        // CSV export for campaigns
+        const csvHeaders = ['Campaign ID', 'Campaign Name', 'Type', 'Countries', 'Target App', 'Total Spend', 'Total Installs', 'Total Impressions', 'CPI', 'CTR', 'Status'];
+        const csvRows = data.campaigns.map(campaign => [
+          campaign.campaignId,
+          campaign.name,
+          campaign.type,
+          campaign.countries.join(';'),
+          campaign.targetApp,
+          campaign.totalSpend.toString(),
+          campaign.totalInstalls.toString(),
+          campaign.totalImpressions.toString(),
+          campaign.cpi.toFixed(2),
+          campaign.ctr.toFixed(2),
+          campaign.status
         ]);
         
-        content = [campaignHeaders, ...campaignRows].map(row => row.join(',')).join('\n');
-        filename = `moloco_crm_export_${new Date().toISOString().split('T')[0]}.csv`;
+        content = [csvHeaders, ...csvRows].map(row => row.join(',')).join('\n');
+        filename = `revenueflow-campaigns-${new Date().toISOString().split('T')[0]}.csv`;
         mimeType = 'text/csv';
-      } else {
-        // Export as JSON
-        content = JSON.stringify(data, null, 2);
-        filename = `moloco_crm_export_${new Date().toISOString().split('T')[0]}.json`;
-        mimeType = 'application/json';
       }
 
       // Create download
@@ -576,27 +483,26 @@ export function DataProvider({ children }: DataProviderProps) {
       const link = document.createElement('a');
       link.href = url;
       link.download = filename;
-      link.style.display = 'none';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
       toast({
-        title: "Export Complete",
+        title: "📥 Export Complete",
         description: `Data exported as ${filename}`,
       });
-
     } catch (error) {
+      console.error('❌ Export failed:', error);
       toast({
-        title: "Export Failed",
+        title: "Export Error",
         description: "Failed to export data",
         variant: "destructive",
       });
     }
   };
 
-  const value: DataContextType = {
+  const contextValue: DataContextType = {
     data,
     isLoading,
     error,
@@ -614,7 +520,7 @@ export function DataProvider({ children }: DataProviderProps) {
   };
 
   return (
-    <DataContext.Provider value={value}>
+    <DataContext.Provider value={contextValue}>
       {children}
     </DataContext.Provider>
   );
