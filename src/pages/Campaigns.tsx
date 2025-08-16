@@ -160,7 +160,7 @@ export default function Campaigns() {
             </p>
           </div>
           <Button 
-            variant="outline" 
+            variant="accent" 
             onClick={handleRefresh}
             disabled={isLoading}
             className="flex items-center gap-2"
@@ -231,7 +231,7 @@ export default function Campaigns() {
                 </SelectContent>
               </Select>
               
-              <Button variant="outline">
+              <Button variant="accent">
                 <Filter className="w-4 h-4 mr-2" />
                 More Filters
               </Button>
@@ -387,7 +387,7 @@ export default function Campaigns() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" className="hover:bg-accent/10 hover:text-accent">
                           <Eye className="w-4 h-4" />
                         </Button>
                       </TableCell>
