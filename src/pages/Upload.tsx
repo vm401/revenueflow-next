@@ -9,8 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Upload as UploadIcon, X, Trash2, AlertTriangle, Loader2, FileText, CheckCircle, Eye, Download, Database } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { validateRealCSV, processRealCSV, ProcessedCSVData, CSVValidation } from "@/lib/realCSVProcessor";
-import { useData } from "@/contexts/DataContext";
+import { UltraCSVProcessor, UltraProcessedCSVData, CSVValidation } from "@/lib/ultraCSVProcessor";
+import { useUltraData } from "@/contexts/UltraDataContext";
 
 interface FileUpload {
   id: string;
@@ -27,7 +27,7 @@ export default function Upload() {
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
-  const { setData, clearData, data } = useData();
+  const { setData, clearData, data } = useUltraData();
 
   // Handle file selection and validation
   const handleFiles = async (newFiles: File[]) => {
@@ -79,7 +79,7 @@ export default function Upload() {
     // Validate files
     for (const fileUpload of fileUploads) {
       try {
-        const validation = await validateRealCSV(fileUpload.file);
+        const validation = await UltraCSVProcessor.validateUltraCSV(fileUpload.file);
         
         setFiles(prev => prev.map(f => 
           f.id === fileUpload.id 
@@ -157,14 +157,13 @@ export default function Upload() {
         ));
       }, 500);
 
-      // Process files with real processor
-      let allProcessedData: ProcessedCSVData = {
+      // Process files with ultra processor
+      let allProcessedData: UltraProcessedCSVData = {
         campaigns: [],
         creatives: [],
         apps: [],
         exchanges: [],
         inventory: [],
-        countries: [],
         summary: { 
           totalCampaigns: 0, 
           totalCreatives: 0,
@@ -175,27 +174,59 @@ export default function Upload() {
           totalInstalls: 0, 
           totalImpressions: 0,
           totalClicks: 0,
+          totalActions: 0,
           avgCPI: 0,
           avgCTR: 0,
-          avgCPC: 0
+          avgCPC: 0,
+          avgIPM: 0,
+          avgVTR: 0,
+          totalRevenue: 0,
+          avgROAS: 0,
+          avgRetention: 0
         },
         processedAt: new Date().toISOString(),
         fileCount: 0,
-        recordCount: 0
+        recordCount: 0,
+        availableCountries: [],
+        availableApps: [],
+        availableExchanges: [],
+        availableOS: [],
+        dateRange: {
+          min: new Date().toISOString(),
+          max: new Date().toISOString()
+        }
       };
 
       for (const fileUpload of validFiles) {
-        const fileData = await processRealCSV(fileUpload.file);
+        const fileData = await UltraCSVProcessor.processUltraCSV(fileUpload.file);
         allProcessedData.campaigns.push(...fileData.campaigns);
         allProcessedData.creatives.push(...fileData.creatives);
         allProcessedData.apps.push(...fileData.apps);
         allProcessedData.exchanges.push(...fileData.exchanges);
         allProcessedData.inventory.push(...fileData.inventory);
         
-        // Merge countries (avoid duplicates)
-        fileData.countries.forEach(country => {
-          if (!allProcessedData.countries.includes(country)) {
-            allProcessedData.countries.push(country);
+        // Update available countries, apps, exchanges, OS
+        fileData.availableCountries.forEach(country => {
+          if (!allProcessedData.availableCountries.includes(country)) {
+            allProcessedData.availableCountries.push(country);
+          }
+        });
+        
+        fileData.availableApps.forEach(app => {
+          if (!allProcessedData.availableApps.includes(app)) {
+            allProcessedData.availableApps.push(app);
+          }
+        });
+        
+        fileData.availableExchanges.forEach(exchange => {
+          if (!allProcessedData.availableExchanges.includes(exchange)) {
+            allProcessedData.availableExchanges.push(exchange);
+          }
+        });
+        
+        fileData.availableOS.forEach(os => {
+          if (!allProcessedData.availableOS.includes(os)) {
+            allProcessedData.availableOS.push(os);
           }
         });
         
@@ -211,6 +242,7 @@ export default function Upload() {
       const totalInstalls = allProcessedData.campaigns.reduce((sum, c) => sum + c.totalInstalls, 0);
       const totalImpressions = allProcessedData.campaigns.reduce((sum, c) => sum + c.totalImpressions, 0);
       const totalClicks = allProcessedData.campaigns.reduce((sum, c) => sum + c.totalClicks, 0);
+      const totalActions = allProcessedData.campaigns.reduce((sum, c) => sum + c.totalActions, 0);
       
       allProcessedData.summary = {
         totalCampaigns: allProcessedData.campaigns.length,
@@ -222,9 +254,15 @@ export default function Upload() {
         totalInstalls,
         totalImpressions,
         totalClicks,
+        totalActions,
         avgCPI: totalInstalls > 0 ? totalSpend / totalInstalls : 0,
         avgCTR: totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0,
-        avgCPC: totalClicks > 0 ? totalSpend / totalClicks : 0
+        avgCPC: totalClicks > 0 ? totalSpend / totalClicks : 0,
+        avgIPM: totalImpressions > 0 ? (totalInstalls / totalImpressions) * 1000 : 0,
+        avgVTR: 0,
+        totalRevenue: 0,
+        avgROAS: 0,
+        avgRetention: 0
       };
 
       const processedData = allProcessedData;
@@ -624,8 +662,8 @@ export default function Upload() {
                         <div className="text-sm text-muted-foreground">Apps</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-2xl font-bold">{data.countries.length}</div>
-                        <div className="text-sm text-muted-foreground">Countries</div>
+                                        <div className="text-2xl font-bold">{data.availableCountries.length}</div>
+                <div className="text-sm text-muted-foreground">Countries</div>
                       </div>
                     </div>
 

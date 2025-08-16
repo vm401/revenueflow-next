@@ -4,11 +4,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useData } from "@/contexts/DataContext";
+import { useUltraData } from "@/contexts/UltraDataContext";
 import { TrendingUp, TrendingDown, Activity, Target, DollarSign, Users, MousePointer, Smartphone, Calendar } from "lucide-react";
 
 export default function Overview() {
-  const { data, getDashboardSummary, getFilteredCampaigns } = useData();
+  const { data, getUltraSummary, getFilteredCampaigns } = useUltraData();
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   
@@ -22,7 +22,7 @@ export default function Overview() {
   // Calculate summary from filtered data
   const summary = useMemo(() => {
     if (!data || filteredCampaigns.length === 0) {
-      return getDashboardSummary();
+      return getUltraSummary();
     }
     
     // Calculate summary from filtered campaigns
@@ -46,7 +46,7 @@ export default function Overview() {
       avgCTR: totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0,
       avgCPC: totalClicks > 0 ? totalSpend / totalClicks : 0
     };
-  }, [data, filteredCampaigns, getDashboardSummary]);
+  }, [data, filteredCampaigns, getUltraSummary]);
   
   // Calculate additional metrics
   const avgCTR = summary.avgCTR;

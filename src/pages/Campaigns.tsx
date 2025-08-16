@@ -11,7 +11,7 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Search, Filter, Download, FileSpreadsheet, Printer, Mail, Eye, Loader2, RefreshCw, Calendar, ChevronDown, ArrowUpDown, ArrowUp, ArrowDown, ExternalLink, AlertTriangle, Database, GripVertical, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useData } from "@/contexts/DataContext";
+import { useUltraData } from "@/contexts/UltraDataContext";
 import { format } from "date-fns";
 import {
   DndContext,
@@ -34,7 +34,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 
 export default function Campaigns() {
-  const { data, getFilteredCampaigns, exportData } = useData();
+  const { data, getFilteredCampaigns, exportData } = useUltraData();
   const { toast } = useToast();
   
   // State
@@ -48,7 +48,7 @@ export default function Campaigns() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [columnOrder, setColumnOrder] = useState([
-    'name', 'targetApp', 'countries', 'spend', 'installs', 'cpi', 'ctr', 'impressions', 'clicks', 'moves'
+    'name', 'targetApp', 'spend', 'installs', 'cpi', 'ctr', 'impressions', 'clicks', 'moves'
   ]);
   const [showDetails, setShowDetails] = useState<{[key: string]: boolean}>({});
   
@@ -218,7 +218,7 @@ export default function Campaigns() {
             <CardDescription>Filter campaigns by various criteria</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
                 <div className="relative">
                   <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -258,7 +258,9 @@ export default function Campaigns() {
                   ))}
                 </SelectContent>
               </Select>
-              
+            </div>
+            
+            <div className="mt-4 flex items-center gap-4">
               <div className="flex gap-2">
                 <Input
                   type="date"
@@ -275,6 +277,32 @@ export default function Campaigns() {
                   className="w-auto"
                 />
               </div>
+              
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setSearchTerm("");
+                  setSelectedCountry("all");
+                  setSelectedApp("all");
+                  setDateFrom("");
+                  setDateTo("");
+                }}
+                size="sm"
+              >
+                Clear
+              </Button>
+              
+              <Button 
+                variant="default" 
+                onClick={() => {
+                  // Filters are applied automatically via useMemo
+                  console.log('Applying filters:', { searchTerm, selectedCountry, selectedApp, dateFrom, dateTo });
+                }}
+                size="sm"
+                className="bg-green-600 hover:bg-green-700"
+              >
+                Apply
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -326,11 +354,7 @@ export default function Campaigns() {
                               </SortableColumnHeader>
                             )}
                             
-                            {columnOrder.includes('countries') && (
-                              <SortableColumnHeader id="countries">
-                                Countries
-                              </SortableColumnHeader>
-                            )}
+
                             
                             {columnOrder.includes('spend') && (
                               <SortableColumnHeader 
@@ -426,23 +450,7 @@ export default function Campaigns() {
                                 <TableCell>{campaign.targetApp}</TableCell>
                               )}
                               
-                              {columnOrder.includes('countries') && (
-                                <TableCell>
-                                  <div className="flex flex-wrap gap-1">
-                                    {campaign.countries.slice(0, 2).map(country => (
-                                      <div key={country} className="flex items-center gap-1">
-                                        <span>{getCountryFlag(country)}</span>
-                                        <span className="text-xs">{country}</span>
-                                      </div>
-                                    ))}
-                                    {campaign.countries.length > 2 && (
-                                      <span className="text-xs text-muted-foreground">
-                                        +{campaign.countries.length - 2} more
-                                      </span>
-                                    )}
-                                  </div>
-                                </TableCell>
-                              )}
+
                               
                               {columnOrder.includes('spend') && (
                                 <TableCell className="text-right font-semibold">
