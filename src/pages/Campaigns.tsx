@@ -6,11 +6,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Search, Filter, Download, FileSpreadsheet, Printer, Mail, Eye, Loader2, RefreshCw, Calendar } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { Search, Filter, Download, FileSpreadsheet, Printer, Mail, Eye, Loader2, RefreshCw, Calendar, ChevronDown, ArrowUpDown, ArrowUp, ArrowDown, ExternalLink, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, type CampaignData } from "@/lib/api";
 import { format } from "date-fns";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const mockCampaigns = [
   {
@@ -55,26 +59,33 @@ export default function Campaigns() {
   const [selectedCampaign, setSelectedCampaign] = useState<CampaignData | null>(null);
   const [sortBy, setSortBy] = useState("date");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
+  const [selectedCampaigns, setSelectedCampaigns] = useState<string[]>([]);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  // Fetch campaigns with filters
+  // Fetch campaigns with filters and pagination
   const { 
     data: campaignsResponse, 
     isLoading, 
     error,
-    refetch 
+    refetch,
+    isFetching 
   } = useQuery({
-    queryKey: ['campaigns', searchTerm, selectedCountry, selectedApp, sortBy, sortOrder],
+    queryKey: ['campaigns', searchTerm, selectedCountry, selectedApp, sortBy, sortOrder, currentPage, pageSize],
     queryFn: () => api.getCampaigns({
       search: searchTerm || undefined,
       country: selectedCountry !== "all" ? selectedCountry : undefined,
       app_name: selectedApp !== "all" ? selectedApp : undefined,
       sort_by: sortBy,
       sort_order: sortOrder,
-      limit: 100
+      page: currentPage,
+      limit: pageSize
     }),
     refetchInterval: 30000,
     retry: 2,
+    keepPreviousData: true, // Keep previous data while fetching new page
   });
 
   // Fetch available countries for filter
@@ -127,6 +138,97 @@ export default function Campaigns() {
       setSortBy(field);
       setSortOrder("desc");
     }
+  };
+
+  // Export functions
+  const exportToCSV = async (campaigns: any[], filename: string = 'campaigns') => {
+    try {
+      const headers = ['Campaign Name', 'App Name', 'Country', 'Date', 'Spend', 'Installs', 'CPI', 'Status'];
+      const csvContent = [
+        headers.join(','),
+        ...campaigns.map(campaign => [
+          `"${campaign.campaign_name || campaign.name}"`,
+          `"${campaign.app_name || campaign.app}"`,
+          campaign.country,
+          campaign.date,
+          campaign.spend,
+          campaign.installs,
+          campaign.cpi,
+          campaign.status
+        ].join(','))
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `${filename}_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast({
+        title: "Export Successful",
+        description: `${campaigns.length} campaigns exported to CSV`,
+      });
+    } catch (error) {
+      toast({
+        title: "Export Failed",
+        description: "Unable to export data. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const exportSelectedCampaigns = () => {
+    const selected = campaigns.filter(campaign => 
+      selectedCampaigns.includes(campaign.id?.toString() || campaign.campaign_id)
+    );
+    exportToCSV(selected, 'selected_campaigns');
+  };
+
+  const exportAllCampaigns = async () => {
+    try {
+      // Fetch all campaigns without pagination
+      const allCampaignsResponse = await api.getCampaigns({
+        search: searchTerm || undefined,
+        country: selectedCountry !== "all" ? selectedCountry : undefined,
+        app_name: selectedApp !== "all" ? selectedApp : undefined,
+        sort_by: sortBy,
+        sort_order: sortOrder,
+        limit: 10000 // Large limit to get all
+      });
+      
+      const allCampaigns = allCampaignsResponse.data?.data || campaigns;
+      exportToCSV(allCampaigns, 'all_campaigns');
+    } catch (error) {
+      toast({
+        title: "Export Failed",
+        description: "Unable to fetch all campaigns for export",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Bulk actions
+  const toggleCampaignSelection = (campaignId: string) => {
+    setSelectedCampaigns(prev => 
+      prev.includes(campaignId) 
+        ? prev.filter(id => id !== campaignId)
+        : [...prev, campaignId]
+    );
+  };
+
+  const selectAllCampaigns = () => {
+    const allIds = campaigns.map(campaign => 
+      campaign.id?.toString() || campaign.campaign_id
+    );
+    setSelectedCampaigns(allIds);
+  };
+
+  const clearSelection = () => {
+    setSelectedCampaigns([]);
   };
 
   const handleRefresh = () => {

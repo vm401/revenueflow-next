@@ -3,7 +3,7 @@ import axios, { type AxiosResponse } from 'axios';
 // API Configuration
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://tech-staked-crm-backend.onrender.com';
 
-// Create axios instance
+// Create axios instance with enhanced configuration
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: 30000,
@@ -12,6 +12,78 @@ export const apiClient = axios.create({
   },
   withCredentials: false,
 });
+
+// Request interceptor for auth and logging
+apiClient.interceptors.request.use(
+  (config) => {
+    // Add auth token if available
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    // Log requests in development
+    if (import.meta.env.DEV) {
+      console.log(`🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`, {
+        params: config.params,
+        data: config.data
+      });
+    }
+
+    return config;
+  },
+  (error) => {
+    console.error('🚨 Request interceptor error:', error);
+    return Promise.reject(error);
+  }
+);
+
+// Response interceptor for error handling and logging
+apiClient.interceptors.response.use(
+  (response) => {
+    // Log successful responses in development
+    if (import.meta.env.DEV) {
+      console.log(`✅ API Response: ${response.config.method?.toUpperCase()} ${response.config.url}`, {
+        status: response.status,
+        data: response.data
+      });
+    }
+
+    return response;
+  },
+  (error) => {
+    // Enhanced error logging
+    console.error('🚨 API Error:', {
+      url: error.config?.url,
+      method: error.config?.method,
+      status: error.response?.status,
+      message: error.response?.data?.message || error.message,
+      data: error.response?.data
+    });
+
+    // Handle specific error cases
+    if (error.response?.status === 401) {
+      // Clear auth token on 401
+      localStorage.removeItem('auth_token');
+      
+      // Redirect to login if not already there
+      if (!window.location.pathname.includes('/signin')) {
+        window.location.href = '/signin';
+      }
+    }
+
+    // Transform error for better handling
+    const enhancedError = {
+      ...error,
+      isNetworkError: !error.response,
+      isServerError: error.response?.status >= 500,
+      isClientError: error.response?.status >= 400 && error.response?.status < 500,
+      message: error.response?.data?.message || error.message || 'An unexpected error occurred'
+    };
+
+    return Promise.reject(enhancedError);
+  }
+);
 
 // API Response types
 export interface APIResponse<T = any> {
