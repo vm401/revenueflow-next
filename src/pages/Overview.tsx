@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,12 +8,45 @@ import { useData } from "@/contexts/DataContext";
 import { TrendingUp, TrendingDown, Activity, Target, DollarSign, Users, MousePointer, Smartphone, Calendar } from "lucide-react";
 
 export default function Overview() {
-  const { data, getDashboardSummary } = useData();
+  const { data, getDashboardSummary, getFilteredCampaigns } = useData();
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   
   // Get filtered summary based on date range
-  const summary = getDashboardSummary();
+  const filteredCampaigns = getFilteredCampaigns({
+    dateFrom,
+    dateTo,
+    limit: 1000 // Get all campaigns for summary calculation
+  });
+  
+  // Calculate summary from filtered data
+  const summary = useMemo(() => {
+    if (!data || filteredCampaigns.length === 0) {
+      return getDashboardSummary();
+    }
+    
+    // Calculate summary from filtered campaigns
+    const totalSpend = filteredCampaigns.reduce((sum, c) => sum + c.totalSpend, 0);
+    const totalInstalls = filteredCampaigns.reduce((sum, c) => sum + c.totalInstalls, 0);
+    const totalImpressions = filteredCampaigns.reduce((sum, c) => sum + c.totalImpressions, 0);
+    const totalClicks = filteredCampaigns.reduce((sum, c) => sum + c.totalClicks, 0);
+    
+    return {
+      totalSpend,
+      totalInstalls,
+      totalImpressions,
+      totalClicks,
+      totalCampaigns: filteredCampaigns.length,
+      totalCreatives: data.creatives.length,
+      totalExchanges: data.exchanges.length,
+      totalInventory: data.inventory.length,
+      activeApps: new Set(filteredCampaigns.map(c => c.targetApp)).size,
+      activeCountries: new Set(filteredCampaigns.flatMap(c => c.countries)).size,
+      avgCPI: totalInstalls > 0 ? totalSpend / totalInstalls : 0,
+      avgCTR: totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0,
+      avgCPC: totalClicks > 0 ? totalSpend / totalClicks : 0
+    };
+  }, [data, filteredCampaigns, getDashboardSummary]);
   
   // Calculate additional metrics
   const avgCTR = summary.avgCTR;
@@ -73,7 +106,8 @@ export default function Overview() {
                 <Button 
                   variant="default" 
                   onClick={() => {
-                    // TODO: Implement date filtering logic
+                    // Date filtering is now automatic via useMemo
+                    // Just log for debugging
                     console.log('Filtering by dates:', dateFrom, dateTo);
                   }}
                   size="sm"

@@ -39,7 +39,7 @@ export interface CampaignFilters {
   dateTo?: string;
   minSpend?: number;
   maxSpend?: number;
-  sortBy?: 'date' | 'spend' | 'installs' | 'cpi';
+  sortBy?: 'date' | 'spend' | 'installs' | 'cpi' | 'ctr' | 'name';
   sortOrder?: 'asc' | 'desc';
   page?: number;
   limit?: number;
@@ -216,6 +216,23 @@ export function DataProvider({ children }: DataProviderProps) {
       filtered = filtered.filter(campaign => campaign.targetApp === filters.app);
     }
     
+    // Date filtering
+    if (filters.dateFrom) {
+      const fromDate = new Date(filters.dateFrom);
+      filtered = filtered.filter(campaign => {
+        const campaignDate = new Date(campaign.startDate || campaign.endDate || campaign.lastUpdated);
+        return campaignDate >= fromDate;
+      });
+    }
+    
+    if (filters.dateTo) {
+      const toDate = new Date(filters.dateTo);
+      filtered = filtered.filter(campaign => {
+        const campaignDate = new Date(campaign.startDate || campaign.endDate || campaign.lastUpdated);
+        return campaignDate <= toDate;
+      });
+    }
+    
     if (filters.minSpend !== undefined) {
       filtered = filtered.filter(campaign => campaign.totalSpend >= filters.minSpend!);
     }
@@ -231,8 +248,8 @@ export function DataProvider({ children }: DataProviderProps) {
         
         switch (filters.sortBy) {
           case 'date':
-            aVal = new Date(a.startDate).getTime();
-            bVal = new Date(b.startDate).getTime();
+            aVal = new Date(a.startDate || a.endDate || a.lastUpdated).getTime();
+            bVal = new Date(b.startDate || b.endDate || b.lastUpdated).getTime();
             break;
           case 'spend':
             aVal = a.totalSpend;
@@ -245,6 +262,14 @@ export function DataProvider({ children }: DataProviderProps) {
           case 'cpi':
             aVal = a.cpi;
             bVal = b.cpi;
+            break;
+          case 'ctr':
+            aVal = a.ctr;
+            bVal = b.ctr;
+            break;
+          case 'name':
+            aVal = a.name.toLowerCase();
+            bVal = b.name.toLowerCase();
             break;
           default:
             return 0;
