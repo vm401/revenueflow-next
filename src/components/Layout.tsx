@@ -27,9 +27,9 @@ export function Layout({ children }: LayoutProps) {
               
               {/* Breadcrumb */}
               <nav className="flex items-center text-sm text-navbar-foreground/70">
-                <span>Moloco CRM</span>
+                <span className="font-heading font-medium">Moloco CRM</span>
                 <span className="mx-2">/</span>
-                <span className="text-navbar-foreground">Overview</span>
+                <span className="text-navbar-foreground font-heading">Overview</span>
               </nav>
             </div>
 

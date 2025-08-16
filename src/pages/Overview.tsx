@@ -6,8 +6,8 @@ export default function Overview() {
     <Layout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Overview</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-3xl font-bold font-heading">Overview</h1>
+          <p className="text-muted-foreground font-sans">
             Comprehensive overview of your advertising campaigns and performance metrics.
           </p>
         </div>
