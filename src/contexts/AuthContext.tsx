@@ -63,11 +63,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       // For now, simulate API call with mock data
       // In production, replace with real API call
-      if (email === 'demo@moloco.com' && password === 'demo123') {
+      if ((email === 'demo@moloco.com' && password === 'demo123') || 
+          (email === 'dawoodbloss@gmail.com' && password === 'Mybezxc7140')) {
         const mockUser: User = {
           id: '1',
-          email: 'demo@moloco.com',
-          name: 'Demo User',
+          email: email, // Use the actual email
+          name: email === 'dawoodbloss@gmail.com' ? 'Dawood' : 'Demo User',
           role: 'admin',
           avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face'
         };
@@ -117,12 +118,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     
     try {
       // Mock registration - replace with real API call
-      const mockUser: User = {
-        id: Date.now().toString(),
-        email,
-        name,
-        role: 'user'
-      };
+      // Allow registration for specific emails
+      if (email === 'dawoodbloss@gmail.com' || email === 'demo@moloco.com' || email.includes('@')) {
+        const mockUser: User = {
+          id: Date.now().toString(),
+          email,
+          name,
+          role: 'admin' // Give admin role
+        };
       
       const mockToken = 'mock-jwt-token-' + Date.now();
       
@@ -134,6 +137,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         title: "Account Created",
         description: "Welcome to Moloco CRM! Your account has been created successfully.",
       });
+      
+      } else {
+        throw new Error('Registration not allowed for this email');
+      }
       
     } catch (error: any) {
       toast({
