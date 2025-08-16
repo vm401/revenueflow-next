@@ -18,8 +18,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
     
-    /* Primary Brand Colors - RevenueCat Blue */
-    --primary: 234 89% 74%;
+    /* Primary Brand Colors - RevenueCat Blue/Purple */
+    --primary: 264 83% 57%;
     --primary-foreground: 0 0% 100%;
     
     /* Secondary Colors */
@@ -30,8 +30,8 @@
     --muted: 210 40% 96%;
     --muted-foreground: 215 16% 47%;
     
-    /* Accent Colors - RevenueCat Green */
-    --accent: 142 76% 36%;
+    /* Accent Colors - RevenueCat Bright Green */
+    --accent: 142 69% 58%;
     --accent-foreground: 0 0% 100%;
     
     /* Destructive Actions */
@@ -41,7 +41,7 @@
     /* Borders and Inputs */
     --border: 214 32% 91%;
     --input: 214 32% 91%;
-    --ring: 234 89% 74%;
+    --ring: 264 83% 57%;
     
     /* UI Elements */
     --radius: 0.5rem;
@@ -49,23 +49,23 @@
     /* Sidebar Colors */
     --sidebar-background: 222 84% 5%;
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 234 89% 74%;
+    --sidebar-primary: 264 83% 57%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 217 33% 18%;
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 217 33% 18%;
-    --sidebar-ring: 234 89% 74%;
+    --sidebar-ring: 264 83% 57%;
     
-    /* Chart Colors - RevenueCat Palette */
-    --chart-1: 234 89% 74%;
-    --chart-2: 142 76% 36%;
-    --chart-3: 38 92% 50%;
-    --chart-4: 346 87% 43%;
-    --chart-5: 43 74% 66%;
+    /* Chart Colors - From RevenueCat Palette */
+    --chart-1: 142 69% 58%; /* Bright Green */
+    --chart-2: 264 83% 57%; /* Blue/Purple */
+    --chart-3: 38 92% 50%; /* Orange */
+    --chart-4: 346 87% 43%; /* Red */
+    --chart-5: 158 64% 52%; /* Dark Green */
     
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(234 89% 74%), hsl(234 89% 64%));
-    --gradient-success: linear-gradient(135deg, hsl(142 76% 36%), hsl(142 76% 26%));
+    --gradient-primary: linear-gradient(135deg, hsl(264 83% 57%), hsl(264 83% 47%));
+    --gradient-success: linear-gradient(135deg, hsl(142 69% 58%), hsl(142 69% 48%));
     
     /* Shadows */
     --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.05);
@@ -74,21 +74,21 @@
   }
 
   .dark {
-    /* Dark Theme - RevenueCat Dark */
-    --background: 222.2 84% 4.9%;
+    /* Dark Theme - RevenueCat Dark Palette */
+    --background: 222.2 84% 4.9%; /* Dark charcoal from palette */
     --foreground: 210 40% 98%;
     
     /* Cards and Surfaces - Dark Purple/Blue */
-    --card: 224 71% 4%;
+    --card: 217 32% 17%; /* Dark gray from palette */
     --card-foreground: 210 40% 98%;
     
     /* Popover Elements */
-    --popover: 224 71% 4%;
+    --popover: 217 32% 17%;
     --popover-foreground: 210 40% 98%;
     
-    /* Primary Brand Colors - RevenueCat Blue */
-    --primary: 234 89% 74%;
-    --primary-foreground: 222.2 84% 4.9%;
+    /* Primary Brand Colors - Blue/Purple from palette */
+    --primary: 264 83% 57%;
+    --primary-foreground: 0 0% 100%;
     
     /* Secondary Colors */
     --secondary: 215 27.9% 16.9%;
@@ -98,9 +98,9 @@
     --muted: 215 27.9% 16.9%;
     --muted-foreground: 217.9 10.6% 64.9%;
     
-    /* Accent Colors - RevenueCat Green */
-    --accent: 142 76% 36%;
-    --accent-foreground: 210 40% 98%;
+    /* Accent Colors - Bright Green from palette */
+    --accent: 142 69% 58%;
+    --accent-foreground: 0 0% 100%;
     
     /* Destructive Actions */
     --destructive: 0 62.8% 30.6%;
@@ -109,24 +109,24 @@
     /* Borders and Inputs */
     --border: 215 27.9% 16.9%;
     --input: 215 27.9% 16.9%;
-    --ring: 234 89% 74%;
+    --ring: 264 83% 57%;
     
     /* Sidebar Colors - Dark theme matching RevenueCat */
-    --sidebar-background: 222.2 84% 4.9%;
+    --sidebar-background: 222.2 84% 4.9%; /* Dark charcoal */
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 234 89% 74%;
-    --sidebar-primary-foreground: 222.2 84% 4.9%;
+    --sidebar-primary: 264 83% 57%; /* Blue/Purple */
+    --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 215 27.9% 16.9%;
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 215 27.9% 16.9%;
-    --sidebar-ring: 234 89% 74%;
+    --sidebar-ring: 264 83% 57%;
     
-    /* Chart Colors - Dark theme */
-    --chart-1: 234 89% 74%;
-    --chart-2: 142 76% 36%;
-    --chart-3: 38 92% 50%;
-    --chart-4: 346 87% 43%;
-    --chart-5: 43 74% 66%;
+    /* Chart Colors - Dark theme with palette colors */
+    --chart-1: 142 69% 58%; /* Bright Green */
+    --chart-2: 264 83% 57%; /* Blue/Purple */
+    --chart-3: 38 92% 50%; /* Orange */
+    --chart-4: 346 87% 43%; /* Red */
+    --chart-5: 158 64% 52%; /* Dark Green */
     
     /* Shadows for Dark Mode */
     --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.3);
