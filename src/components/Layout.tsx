@@ -21,44 +21,44 @@ export function Layout({ children }: LayoutProps) {
         
         <div className="flex-1 flex flex-col">
           {/* Header */}
-          <header className="h-16 border-b border-border bg-background flex items-center justify-between px-6">
+          <header className="h-16 border-b border-border bg-navbar-background text-navbar-foreground flex items-center justify-between px-6">
             <div className="flex items-center gap-4">
-              <SidebarTrigger className="text-foreground" />
+              <SidebarTrigger className="text-navbar-foreground hover:text-primary" />
               
               {/* Breadcrumb */}
-              <nav className="flex items-center text-sm text-muted-foreground">
+              <nav className="flex items-center text-sm text-navbar-foreground/70">
                 <span>Moloco CRM</span>
                 <span className="mx-2">/</span>
-                <span className="text-foreground">Overview</span>
+                <span className="text-navbar-foreground">Overview</span>
               </nav>
             </div>
 
             <div className="flex items-center gap-4">
               {/* Actions */}
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className="border-navbar-foreground/20 text-navbar-foreground hover:bg-navbar-foreground/10">
                   Save chart
                 </Button>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className="border-navbar-foreground/20 text-navbar-foreground hover:bg-navbar-foreground/10">
                   Share
                 </Button>
-                <Button size="sm">
+                <Button size="sm" className="bg-primary hover:bg-primary/90">
                   Export
                 </Button>
               </div>
 
               {/* User Menu */}
               <div className="flex items-center gap-4">
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="text-navbar-foreground hover:bg-navbar-foreground/10">
                   <Bell className="w-4 h-4" />
                 </Button>
                 
-                <div className="flex items-center gap-2 cursor-pointer">
+                <div className="flex items-center gap-2 cursor-pointer hover:bg-navbar-foreground/10 rounded-lg px-2 py-1 transition-colors">
                   <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                     <User className="w-4 h-4 text-primary-foreground" />
                   </div>
-                  <span className="text-sm font-medium">Account</span>
-                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm font-medium text-navbar-foreground">Account</span>
+                  <ChevronDown className="w-4 h-4 text-navbar-foreground/70" />
                 </div>
               </div>
             </div>

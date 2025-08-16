@@ -403,16 +403,16 @@ export default function Campaigns() {
         {selectedCampaign && (
           <Card>
             <CardHeader>
-              <CardTitle>Campaign Details: {selectedCampaign.name}</CardTitle>
+              <CardTitle>Campaign Details: {selectedCampaign.campaign_name || (selectedCampaign as any).name}</CardTitle>
               <CardDescription>Detailed information about the selected campaign</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <p><strong>App:</strong> {selectedCampaign.app}</p>
+                  <p><strong>App:</strong> {selectedCampaign.app_name || (selectedCampaign as any).app}</p>
                   <p><strong>Country:</strong> {selectedCampaign.country}</p>
                   <p><strong>Date:</strong> {selectedCampaign.date}</p>
-                  <p><strong>Status:</strong> {selectedCampaign.status}</p>
+                  <p><strong>Status:</strong> {(selectedCampaign as any).status || 'Active'}</p>
                 </div>
                 <div>
                   <p><strong>Spend:</strong> ${selectedCampaign.spend.toFixed(2)}</p>

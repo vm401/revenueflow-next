@@ -8,12 +8,19 @@
 @layer base {
   :root {
     /* Light Theme - Primary Colors */
-    --background: 0 0% 100%;
+    --background: 0 0% 98%; /* subtle off-white for better contrast */
     --foreground: 240 1% 13%; /* shark #222223 */
     
     /* Cards and Surfaces */
-    --card: 0 0% 100%;
+    --card: 0 0% 100%; /* pure white for contrast */
     --card-foreground: 240 1% 13%;
+    
+    /* Navigation/Header Areas */
+    --navbar-background: 210 11% 11%; /* rgba(24,26,30,255) converted to HSL */
+    --navbar-foreground: 0 0% 95%;
+    
+    /* Accent Colors */
+    --accent-dark: 210 11% 11%; /* rgba(24,26,30,255) for emphasis */
     
     /* Popover Elements */
     --popover: 0 0% 100%;
@@ -80,8 +87,15 @@
     --foreground: 0 0% 95%; /* much brighter for better contrast */
     
     /* Cards and Surfaces */
-    --card: 225 8% 22%; /* tuna but lighter #424249 */
+    --card: 225 8% 22%; /* tuna but lighter #424249 for better contrast */
     --card-foreground: 0 0% 95%;
+    
+    /* Navigation/Header Areas - darker for contrast */
+    --navbar-background: 210 11% 8%; /* even darker than main bg */
+    --navbar-foreground: 0 0% 95%;
+    
+    /* Accent Colors */
+    --accent-dark: 210 11% 11%; /* rgba(24,26,30,255) for emphasis */
     
     /* Popover Elements */
     --popover: 225 8% 22%; /* tuna but lighter */
