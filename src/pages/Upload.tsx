@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Upload as UploadIcon, X, Trash2, AlertTriangle, Loader2, FileText, CheckCircle, Eye, Download, Database } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { csvProcessor, CSVValidationResult } from "@/lib/csvProcessor";
+import { validateRealCSV, processRealCSV } from "@/lib/realCSVProcessor";
 import { useData } from "@/contexts/DataContext";
 
 interface FileUpload {
@@ -79,7 +79,7 @@ export default function Upload() {
     // Validate files
     for (const fileUpload of fileUploads) {
       try {
-        const validation = await validateCSVQuick(fileUpload.file);
+        const validation = await validateRealCSV(fileUpload.file);
         
         setFiles(prev => prev.map(f => 
           f.id === fileUpload.id 
@@ -157,9 +157,35 @@ export default function Upload() {
         ));
       }, 500);
 
-      // Process files
-      const fileObjects = validFiles.map(f => f.file);
-      const processedData = await csvProcessor.processMultipleFiles(fileObjects);
+      // Process files with real processor
+      let allProcessedData = {
+        campaigns: [],
+        creatives: [],
+        apps: [],
+        exchanges: [],
+        inventory: [],
+        summary: { totalCampaigns: 0, totalSpend: 0, totalInstalls: 0, totalImpressions: 0, avgCPI: 0 }
+      };
+
+      for (const fileUpload of validFiles) {
+        const fileData = await processRealCSV(fileUpload.file);
+        allProcessedData.campaigns.push(...fileData.campaigns);
+        allProcessedData.creatives.push(...fileData.creatives);
+        allProcessedData.apps.push(...fileData.apps);
+        allProcessedData.exchanges.push(...fileData.exchanges);
+        allProcessedData.inventory.push(...fileData.inventory);
+      }
+
+      // Recalculate summary
+      allProcessedData.summary = {
+        totalCampaigns: allProcessedData.campaigns.length,
+        totalSpend: allProcessedData.campaigns.reduce((sum, c) => sum + c.spend, 0),
+        totalInstalls: allProcessedData.campaigns.reduce((sum, c) => sum + c.installs, 0),
+        totalImpressions: allProcessedData.campaigns.reduce((sum, c) => sum + c.impressions, 0),
+        avgCPI: allProcessedData.campaigns.reduce((sum, c) => sum + c.cpi, 0) / Math.max(allProcessedData.campaigns.length, 1)
+      };
+
+      const processedData = allProcessedData;
 
       clearInterval(progressInterval);
 
@@ -175,7 +201,7 @@ export default function Upload() {
 
       toast({
         title: "Processing Complete",
-        description: `Successfully processed ${processedData.campaigns.length + processedData.creatives.length} rows from ${processedData.fileNames.length} files`,
+        description: `Successfully processed ${processedData.campaigns.length} campaigns and ${processedData.creatives.length} creatives from ${validFiles.length} files`,
       });
 
     } catch (error) {
