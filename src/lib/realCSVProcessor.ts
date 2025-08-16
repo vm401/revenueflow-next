@@ -177,6 +177,8 @@ export interface CSVValidation {
   rowCount: number;
   expectedColumns: string[];
   actualColumns: string[];
+  detectedType?: string;
+  preview?: any[];
 }
 
 export async function validateRealCSV(file: File): Promise<CSVValidation> {
@@ -227,7 +229,9 @@ export async function validateRealCSV(file: File): Promise<CSVValidation> {
           warnings,
           rowCount: results.data.length,
           expectedColumns,
-          actualColumns: headers
+          actualColumns: headers,
+          detectedType: fileType,
+          preview: results.data.slice(0, 3) // First 3 rows as preview
         });
       },
       error: (error) => {

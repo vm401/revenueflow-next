@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Upload as UploadIcon, X, Trash2, AlertTriangle, Loader2, FileText, CheckCircle, Eye, Download, Database } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { validateRealCSV, processRealCSV } from "@/lib/realCSVProcessor";
+import { validateRealCSV, processRealCSV, ProcessedCSVData, CSVValidation } from "@/lib/realCSVProcessor";
 import { useData } from "@/contexts/DataContext";
 
 interface FileUpload {
@@ -17,7 +17,7 @@ interface FileUpload {
   file: File;
   status: "pending" | "validating" | "uploading" | "success" | "error";
   progress: number;
-  validation?: CSVValidationResult;
+  validation?: CSVValidation;
   errorMessage?: string;
 }
 
@@ -158,13 +158,30 @@ export default function Upload() {
       }, 500);
 
       // Process files with real processor
-      let allProcessedData = {
+      let allProcessedData: ProcessedCSVData = {
         campaigns: [],
         creatives: [],
         apps: [],
         exchanges: [],
         inventory: [],
-        summary: { totalCampaigns: 0, totalSpend: 0, totalInstalls: 0, totalImpressions: 0, avgCPI: 0 }
+        countries: [],
+        summary: { 
+          totalCampaigns: 0, 
+          totalCreatives: 0,
+          totalExchanges: 0,
+          totalInventory: 0,
+          totalApps: 0,
+          totalSpend: 0, 
+          totalInstalls: 0, 
+          totalImpressions: 0,
+          totalClicks: 0,
+          avgCPI: 0,
+          avgCTR: 0,
+          avgCPC: 0
+        },
+        processedAt: new Date().toISOString(),
+        fileCount: 0,
+        recordCount: 0
       };
 
       for (const fileUpload of validFiles) {
@@ -174,15 +191,40 @@ export default function Upload() {
         allProcessedData.apps.push(...fileData.apps);
         allProcessedData.exchanges.push(...fileData.exchanges);
         allProcessedData.inventory.push(...fileData.inventory);
+        
+        // Merge countries (avoid duplicates)
+        fileData.countries.forEach(country => {
+          if (!allProcessedData.countries.includes(country)) {
+            allProcessedData.countries.push(country);
+          }
+        });
+        
+        allProcessedData.recordCount += fileData.recordCount;
       }
 
+      // Update metadata
+      allProcessedData.fileCount = validFiles.length;
+      allProcessedData.processedAt = new Date().toISOString();
+
       // Recalculate summary
+      const totalSpend = allProcessedData.campaigns.reduce((sum, c) => sum + c.totalSpend, 0);
+      const totalInstalls = allProcessedData.campaigns.reduce((sum, c) => sum + c.totalInstalls, 0);
+      const totalImpressions = allProcessedData.campaigns.reduce((sum, c) => sum + c.totalImpressions, 0);
+      const totalClicks = allProcessedData.campaigns.reduce((sum, c) => sum + c.totalClicks, 0);
+      
       allProcessedData.summary = {
         totalCampaigns: allProcessedData.campaigns.length,
-        totalSpend: allProcessedData.campaigns.reduce((sum, c) => sum + c.spend, 0),
-        totalInstalls: allProcessedData.campaigns.reduce((sum, c) => sum + c.installs, 0),
-        totalImpressions: allProcessedData.campaigns.reduce((sum, c) => sum + c.impressions, 0),
-        avgCPI: allProcessedData.campaigns.reduce((sum, c) => sum + c.cpi, 0) / Math.max(allProcessedData.campaigns.length, 1)
+        totalCreatives: allProcessedData.creatives.length,
+        totalExchanges: allProcessedData.exchanges.length,
+        totalInventory: allProcessedData.inventory.length,
+        totalApps: allProcessedData.apps.length,
+        totalSpend,
+        totalInstalls,
+        totalImpressions,
+        totalClicks,
+        avgCPI: totalInstalls > 0 ? totalSpend / totalInstalls : 0,
+        avgCTR: totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0,
+        avgCPC: totalClicks > 0 ? totalSpend / totalClicks : 0
       };
 
       const processedData = allProcessedData;
@@ -589,15 +631,15 @@ export default function Upload() {
 
                     <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="text-center p-4 border rounded-lg">
-                        <div className="text-xl font-bold">${data.totalSpend.toLocaleString()}</div>
+                        <div className="text-xl font-bold">${data.summary.totalSpend.toLocaleString()}</div>
                         <div className="text-sm text-muted-foreground">Total Spend</div>
                       </div>
                       <div className="text-center p-4 border rounded-lg">
-                        <div className="text-xl font-bold">{data.totalInstalls.toLocaleString()}</div>
+                        <div className="text-xl font-bold">{data.summary.totalInstalls.toLocaleString()}</div>
                         <div className="text-sm text-muted-foreground">Total Installs</div>
                       </div>
                       <div className="text-center p-4 border rounded-lg">
-                        <div className="text-xl font-bold">${data.avgCPI.toFixed(2)}</div>
+                        <div className="text-xl font-bold">${data.summary.avgCPI.toFixed(2)}</div>
                         <div className="text-sm text-muted-foreground">Average CPI</div>
                       </div>
                     </div>
@@ -610,10 +652,10 @@ export default function Upload() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
-                      {data.fileNames.map((fileName, i) => (
+                      {files.filter(f => f.status === 'success').map((file, i) => (
                         <div key={i} className="flex items-center gap-2">
                           <CheckCircle className="h-4 w-4 text-green-600" />
-                          <span>{fileName}</span>
+                          <span>{file.file.name}</span>
                         </div>
                       ))}
                     </div>
