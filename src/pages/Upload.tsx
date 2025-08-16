@@ -79,7 +79,7 @@ export default function Upload() {
     // Validate files
     for (const fileUpload of fileUploads) {
       try {
-        const validation = await csvProcessor.validateCSV(fileUpload.file);
+        const validation = await validateCSVQuick(fileUpload.file);
         
         setFiles(prev => prev.map(f => 
           f.id === fileUpload.id 
