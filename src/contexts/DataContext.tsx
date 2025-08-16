@@ -1,20 +1,20 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { ProcessedData, CampaignRow, CreativeRow } from '@/lib/csvProcessor';
+import { ProcessedCSVData, CampaignData, CreativeData } from '@/lib/realCSVProcessor';
 import { useToast } from "@/hooks/use-toast";
 
 interface DataContextType {
   // Data state
-  data: ProcessedData | null;
+  data: ProcessedCSVData | null;
   isLoading: boolean;
   error: string | null;
   
   // Actions
-  setData: (data: ProcessedData) => void;
+  setData: (data: ProcessedCSVData) => void;
   clearData: () => void;
   
   // Filtered data
-  getFilteredCampaigns: (filters: CampaignFilters) => CampaignRow[];
-  getFilteredCreatives: (filters: CreativeFilters) => CreativeRow[];
+  getFilteredCampaigns: (filters: CampaignFilters) => CampaignData[];
+  getFilteredCreatives: (filters: CreativeFilters) => CreativeData[];
   
   // Aggregated data
   getDashboardSummary: () => DashboardSummary;
@@ -116,7 +116,7 @@ interface DataProviderProps {
 }
 
 export function DataProvider({ children }: DataProviderProps) {
-  const [data, setDataState] = useState<ProcessedData | null>(null);
+  const [data, setDataState] = useState<ProcessedCSVData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
@@ -126,14 +126,14 @@ export function DataProvider({ children }: DataProviderProps) {
     loadFromStorage();
   }, []);
 
-  const setData = (newData: ProcessedData) => {
+  const setData = (newData: ProcessedCSVData) => {
     setDataState(newData);
     setError(null);
     saveToStorage();
     
     toast({
       title: "Data Updated",
-      description: `Processed ${newData.campaigns.length + newData.creatives.length} rows from ${newData.fileNames.length} files`,
+      description: `Processed ${newData.campaigns.length} campaigns and ${newData.creatives.length} creatives`,
     });
   };
 
