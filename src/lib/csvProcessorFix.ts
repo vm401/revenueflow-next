@@ -30,20 +30,13 @@ export const validateCSVQuick = async (file: File) => {
     console.log('CSV Headers:', headers);
     console.log('Sample row:', rows[1]);
     
-    // Very flexible validation - just check if we have some basic columns
-    const hasDate = headers.some(h => h.includes('date') || h.includes('time'));
-    const hasNumericData = headers.some(h => 
-      h.includes('spend') || h.includes('cost') || h.includes('revenue') ||
-      h.includes('install') || h.includes('click') || h.includes('impression')
-    );
-    
-    if (!hasDate && !hasNumericData) {
+    // Super flexible validation - accept almost any CSV with data
+    if (headers.length < 2 || rows.length < 2) {
       return {
         isValid: false,
         errors: [
-          'Could not identify data format',
-          'Expected columns with date/time and numeric data (spend, installs, etc.)',
-          `Found: ${headers.join(', ')}`
+          'CSV file appears to be empty or has insufficient data',
+          `Found ${headers.length} columns and ${rows.length - 1} rows`
         ],
         preview: rows.slice(0, 5),
         rowCount: rows.length - 1
