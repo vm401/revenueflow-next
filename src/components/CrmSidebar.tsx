@@ -56,8 +56,8 @@ export function CrmSidebar() {
   const isActive = (path: string) => currentPath === path;
   const getNavCls = ({ isActive: active }: { isActive: boolean }) =>
     active 
-      ? "bg-sidebar-accent text-sidebar-primary font-medium" 
-      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground";
+      ? "bg-white/20 text-white font-medium" 
+      : "text-white/80 hover:bg-white/10 hover:text-white";
 
   return (
     <Sidebar className={collapsed ? "w-16" : "w-64"}>
@@ -70,7 +70,7 @@ export function CrmSidebar() {
             </div>
             {!collapsed && (
               <div>
-                <p className="text-sidebar-foreground font-display font-semibold">Moloco CRM</p>
+                <p className="text-white font-display font-semibold">Moloco CRM</p>
               </div>
             )}
           </div>
@@ -80,11 +80,11 @@ export function CrmSidebar() {
         {!collapsed && (
           <div className="p-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-sidebar-foreground/60" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-white/60" />
               <input
                 type="text"
                 placeholder="Search..."
-                className="w-full pl-10 pr-4 py-2 bg-sidebar-accent border border-sidebar-border rounded-md text-sidebar-foreground placeholder:text-sidebar-foreground/60 focus:outline-none focus:ring-2 focus:ring-sidebar-ring"
+                className="w-full pl-10 pr-4 py-2 bg-white/10 border border-white/20 rounded-md text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-white/30"
               />
             </div>
           </div>
@@ -129,7 +129,7 @@ export function CrmSidebar() {
 
           {/* Help */}
           <div className="p-4 border-t border-sidebar-border">
-            <div className="flex items-center gap-3 text-sidebar-foreground/60">
+            <div className="flex items-center gap-3 text-white/60">
               <HelpCircle className="w-4 h-4" />
               {!collapsed && <span className="text-sm font-mono">Help</span>}
             </div>
