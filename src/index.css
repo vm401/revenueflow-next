@@ -18,8 +18,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
     
-    /* Primary Brand Colors */
-    --primary: 224 76% 48%;
+    /* Primary Brand Colors - RevenueCat Blue */
+    --primary: 234 89% 74%;
     --primary-foreground: 0 0% 100%;
     
     /* Secondary Colors */
@@ -30,8 +30,8 @@
     --muted: 210 40% 96%;
     --muted-foreground: 215 16% 47%;
     
-    /* Accent Colors */
-    --accent: 142 86% 28%;
+    /* Accent Colors - RevenueCat Green */
+    --accent: 142 76% 36%;
     --accent-foreground: 0 0% 100%;
     
     /* Destructive Actions */
@@ -41,7 +41,7 @@
     /* Borders and Inputs */
     --border: 214 32% 91%;
     --input: 214 32% 91%;
-    --ring: 224 76% 48%;
+    --ring: 234 89% 74%;
     
     /* UI Elements */
     --radius: 0.5rem;
@@ -49,22 +49,23 @@
     /* Sidebar Colors */
     --sidebar-background: 222 84% 5%;
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 224 76% 48%;
+    --sidebar-primary: 234 89% 74%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 217 33% 18%;
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 217 33% 18%;
-    --sidebar-ring: 224 76% 48%;
+    --sidebar-ring: 234 89% 74%;
     
-    /* Chart Colors */
-    --chart-primary: 224 76% 48%;
-    --chart-secondary: 142 86% 28%;
-    --chart-tertiary: 38 92% 50%;
-    --chart-quaternary: 346 87% 43%;
+    /* Chart Colors - RevenueCat Palette */
+    --chart-1: 234 89% 74%;
+    --chart-2: 142 76% 36%;
+    --chart-3: 38 92% 50%;
+    --chart-4: 346 87% 43%;
+    --chart-5: 43 74% 66%;
     
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(224 76% 48%), hsl(224 76% 40%));
-    --gradient-success: linear-gradient(135deg, hsl(142 86% 28%), hsl(142 86% 20%));
+    --gradient-primary: linear-gradient(135deg, hsl(234 89% 74%), hsl(234 89% 64%));
+    --gradient-success: linear-gradient(135deg, hsl(142 76% 36%), hsl(142 76% 26%));
     
     /* Shadows */
     --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.05);
@@ -73,52 +74,59 @@
   }
 
   .dark {
-    /* Dark Theme - Primary Colors */
-    --background: 222 84% 5%;
+    /* Dark Theme - RevenueCat Dark */
+    --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
     
-    /* Cards and Surfaces */
-    --card: 217 33% 18%;
+    /* Cards and Surfaces - Dark Purple/Blue */
+    --card: 224 71% 4%;
     --card-foreground: 210 40% 98%;
     
     /* Popover Elements */
-    --popover: 217 33% 18%;
+    --popover: 224 71% 4%;
     --popover-foreground: 210 40% 98%;
     
-    /* Primary Brand Colors */
-    --primary: 224 76% 48%;
-    --primary-foreground: 0 0% 100%;
+    /* Primary Brand Colors - RevenueCat Blue */
+    --primary: 234 89% 74%;
+    --primary-foreground: 222.2 84% 4.9%;
     
     /* Secondary Colors */
-    --secondary: 217 33% 25%;
+    --secondary: 215 27.9% 16.9%;
     --secondary-foreground: 210 40% 98%;
     
     /* Muted Elements */
-    --muted: 217 33% 18%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 215 27.9% 16.9%;
+    --muted-foreground: 217.9 10.6% 64.9%;
     
-    /* Accent Colors */
-    --accent: 142 86% 28%;
-    --accent-foreground: 0 0% 100%;
+    /* Accent Colors - RevenueCat Green */
+    --accent: 142 76% 36%;
+    --accent-foreground: 210 40% 98%;
     
     /* Destructive Actions */
-    --destructive: 0 63% 31%;
+    --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
     
     /* Borders and Inputs */
-    --border: 217 33% 18%;
-    --input: 217 33% 18%;
-    --ring: 224 76% 48%;
+    --border: 215 27.9% 16.9%;
+    --input: 215 27.9% 16.9%;
+    --ring: 234 89% 74%;
     
-    /* Sidebar Colors */
-    --sidebar-background: 222 84% 5%;
+    /* Sidebar Colors - Dark theme matching RevenueCat */
+    --sidebar-background: 222.2 84% 4.9%;
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 224 76% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 33% 18%;
+    --sidebar-primary: 234 89% 74%;
+    --sidebar-primary-foreground: 222.2 84% 4.9%;
+    --sidebar-accent: 215 27.9% 16.9%;
     --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217 33% 18%;
-    --sidebar-ring: 224 76% 48%;
+    --sidebar-border: 215 27.9% 16.9%;
+    --sidebar-ring: 234 89% 74%;
+    
+    /* Chart Colors - Dark theme */
+    --chart-1: 234 89% 74%;
+    --chart-2: 142 76% 36%;
+    --chart-3: 38 92% 50%;
+    --chart-4: 346 87% 43%;
+    --chart-5: 43 74% 66%;
     
     /* Shadows for Dark Mode */
     --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.3);
