@@ -7,50 +7,67 @@ import { Switch } from "@/components/ui/switch";
 import { Plus, Settings, RefreshCw, TrendingUp, Activity } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
+// Mock exchanges based on real CSV data structure
 const mockExchanges = [
   {
     id: 1,
-    name: "Google Ads",
+    name: "Meta Ads (Facebook)",
     status: "Active",
     integration: "Connected",
-    spend: 15420.75,
-    impressions: 2450000,
-    clicks: 34580,
-    ctr: 1.41,
-    lastSync: "2024-01-15 10:30"
+    spend: 24850.75,
+    installs: 3120,
+    cpi: 7.96,
+    actions: 2340,
+    countries: ["US", "CA", "UK"],
+    lastSync: "2025-01-15 10:30"
   },
   {
     id: 2,
-    name: "Facebook Ads",
+    name: "Google Ads",
     status: "Active", 
     integration: "Connected",
-    spend: 12850.25,
-    impressions: 1980000,
-    clicks: 28450,
-    ctr: 1.44,
-    lastSync: "2024-01-15 10:25"
+    spend: 18750.25,
+    installs: 2245,
+    cpi: 8.35,
+    actions: 1890,
+    countries: ["US", "AU", "DE"],
+    lastSync: "2025-01-15 10:25"
   },
   {
     id: 3,
     name: "Unity Ads",
     status: "Paused",
     integration: "Connected",
-    spend: 8750.50,
-    impressions: 1250000,
-    clicks: 18750,
-    ctr: 1.50,
-    lastSync: "2024-01-14 15:20"
+    spend: 12230.50,
+    installs: 1520,
+    cpi: 8.04,
+    actions: 1120,
+    countries: ["US", "JP", "KR"],
+    lastSync: "2025-01-14 15:20"
   },
   {
     id: 4,
-    name: "AdMob",
+    name: "TikTok Ads",
     status: "Active",
-    integration: "Error",
-    spend: 5230.00,
-    impressions: 890000,
-    clicks: 12340,
-    ctr: 1.39,
-    lastSync: "2024-01-13 09:15"
+    integration: "Connected",
+    spend: 9450.00,
+    installs: 1180,
+    cpi: 8.01,
+    actions: 890,
+    countries: ["US", "UK", "FR"],
+    lastSync: "2025-01-15 09:15"
+  },
+  {
+    id: 5,
+    name: "Snapchat Ads",
+    status: "Testing",
+    integration: "Connected",
+    spend: 3250.00,
+    installs: 420,
+    cpi: 7.74,
+    actions: 315,
+    countries: ["US", "CA"],
+    lastSync: "2025-01-15 08:45"
   }
 ];
 
@@ -102,9 +119,9 @@ export default function Exchanges() {
   };
 
   const totalSpend = exchanges.reduce((sum, ex) => sum + ex.spend, 0);
-  const totalImpressions = exchanges.reduce((sum, ex) => sum + ex.impressions, 0);
-  const totalClicks = exchanges.reduce((sum, ex) => sum + ex.clicks, 0);
-  const avgCTR = totalClicks / totalImpressions * 100;
+  const totalInstalls = exchanges.reduce((sum, ex) => sum + ex.installs, 0);
+  const totalActions = exchanges.reduce((sum, ex) => sum + ex.actions, 0);
+  const avgCPI = totalSpend / totalInstalls;
 
   return (
     <Layout>
@@ -133,32 +150,32 @@ export default function Exchanges() {
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Impressions</CardTitle>
+              <CardTitle className="text-sm font-medium">Total Installs</CardTitle>
               <Activity className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{(totalImpressions / 1000000).toFixed(1)}M</div>
-              <p className="text-xs text-muted-foreground">Total ad impressions</p>
+              <div className="text-2xl font-bold">{totalInstalls.toLocaleString()}</div>
+              <p className="text-xs text-muted-foreground">Total app installs</p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Clicks</CardTitle>
+              <CardTitle className="text-sm font-medium">Total Actions</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{totalClicks.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground">Total ad clicks</p>
+              <div className="text-2xl font-bold">{totalActions.toLocaleString()}</div>
+              <p className="text-xs text-muted-foreground">Post-install actions</p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Average CTR</CardTitle>
+              <CardTitle className="text-sm font-medium">Average CPI</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{avgCTR.toFixed(2)}%</div>
-              <p className="text-xs text-muted-foreground">Click-through rate</p>
+              <div className="text-2xl font-bold">${avgCPI.toFixed(2)}</div>
+              <p className="text-xs text-muted-foreground">Cost per install</p>
             </CardContent>
           </Card>
         </div>
@@ -197,16 +214,28 @@ export default function Exchanges() {
                     <p className="text-lg font-semibold">${exchange.spend.toLocaleString()}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Impressions</p>
-                    <p className="text-lg font-semibold">{(exchange.impressions / 1000000).toFixed(1)}M</p>
+                    <p className="text-sm text-muted-foreground">Installs</p>
+                    <p className="text-lg font-semibold">{exchange.installs.toLocaleString()}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Clicks</p>
-                    <p className="text-lg font-semibold">{exchange.clicks.toLocaleString()}</p>
+                    <p className="text-sm text-muted-foreground">Actions</p>
+                    <p className="text-lg font-semibold">{exchange.actions.toLocaleString()}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">CTR</p>
-                    <p className="text-lg font-semibold">{exchange.ctr}%</p>
+                    <p className="text-sm text-muted-foreground">CPI</p>
+                    <p className="text-lg font-semibold">${exchange.cpi.toFixed(2)}</p>
+                  </div>
+                </div>
+                
+                {/* Countries */}
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">Active Countries</p>
+                  <div className="flex flex-wrap gap-1">
+                    {exchange.countries.map((country) => (
+                      <Badge key={country} variant="outline" className="text-xs">
+                        {country}
+                      </Badge>
+                    ))}
                   </div>
                 </div>
                 
@@ -288,8 +317,12 @@ export default function Exchanges() {
                       <p className="font-medium">${exchange.spend.toLocaleString()}</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-muted-foreground">CTR</p>
-                      <p className="font-medium">{exchange.ctr}%</p>
+                      <p className="text-muted-foreground">CPI</p>
+                      <p className="font-medium">${exchange.cpi.toFixed(2)}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-muted-foreground">Installs</p>
+                      <p className="font-medium">{exchange.installs.toLocaleString()}</p>
                     </div>
                     <div className="w-24 bg-muted rounded-full h-2">
                       <div 
@@ -306,4 +339,5 @@ export default function Exchanges() {
       </div>
     </Layout>
   );
+}
 }

@@ -9,54 +9,72 @@ import { Switch } from "@/components/ui/switch";
 import { Search, BarChart3, Shield, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
+// Mock inventory based on real advertising exchange data
 const mockInventory = [
   {
     id: 1,
-    source: "Premium Mobile Apps",
-    type: "App",
+    source: "Meta Audience Network",
+    type: "Mobile Apps",
     quality: "High",
-    impressions: 1250000,
-    clicks: 18750,
-    ctr: 1.50,
-    ecpm: 2.45,
+    spend: 15420.75,
+    installs: 1950,
+    actions: 1460,
+    cpi: 7.91,
+    countries: ["US", "CA", "UK"],
     blacklisted: false,
     whitelisted: true
   },
   {
     id: 2,
-    source: "Gaming Network",
-    type: "App",
-    quality: "Medium",
-    impressions: 890000,
-    clicks: 12460,
-    ctr: 1.40,
-    ecpm: 1.85,
+    source: "Google AdMob",
+    type: "Mobile Apps",
+    quality: "High",
+    spend: 12850.25,
+    installs: 1580,
+    actions: 1220,
+    cpi: 8.13,
+    countries: ["US", "AU", "DE"],
     blacklisted: false,
-    whitelisted: false
+    whitelisted: true
   },
   {
     id: 3,
-    source: "Ad Exchange XYZ",
-    type: "Website",
-    quality: "Low",
-    impressions: 2150000,
-    clicks: 21500,
-    ctr: 1.00,
-    ecpm: 0.95,
-    blacklisted: true,
+    source: "Unity Ads Network",
+    type: "Gaming Apps",
+    quality: "Medium",
+    spend: 8750.50,
+    installs: 1120,
+    actions: 850,
+    cpi: 7.81,
+    countries: ["US", "JP", "KR"],
+    blacklisted: false,
     whitelisted: false
   },
   {
     id: 4,
-    source: "Social Media Placements",
-    type: "App",
+    source: "TikTok For Business",
+    type: "Social Media",
     quality: "High",
-    impressions: 1680000,
-    clicks: 25200,
-    ctr: 1.50,
-    ecpm: 3.20,
+    spend: 9450.00,
+    installs: 1180,
+    actions: 890,
+    cpi: 8.01,
+    countries: ["US", "UK", "FR"],
     blacklisted: false,
     whitelisted: true
+  },
+  {
+    id: 5,
+    source: "Low Quality Exchange",
+    type: "Web Traffic",
+    quality: "Low",
+    spend: 2150.00,
+    installs: 280,
+    actions: 120,
+    cpi: 7.68,
+    countries: ["Various"],
+    blacklisted: true,
+    whitelisted: false
   }
 ];
 
@@ -121,10 +139,10 @@ export default function Inventory() {
     }
   };
 
-  const totalImpressions = inventory.reduce((sum, item) => sum + item.impressions, 0);
-  const totalClicks = inventory.reduce((sum, item) => sum + item.clicks, 0);
-  const avgCTR = totalClicks / totalImpressions * 100;
-  const avgECPM = inventory.reduce((sum, item) => sum + item.ecpm, 0) / inventory.length;
+  const totalSpend = inventory.reduce((sum, item) => sum + item.spend, 0);
+  const totalInstalls = inventory.reduce((sum, item) => sum + item.installs, 0);
+  const totalActions = inventory.reduce((sum, item) => sum + item.actions, 0);
+  const avgCPI = totalSpend / totalInstalls;
 
   return (
     <Layout>
@@ -153,31 +171,31 @@ export default function Inventory() {
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Impressions</CardTitle>
+              <CardTitle className="text-sm font-medium">Total Spend</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{(totalImpressions / 1000000).toFixed(1)}M</div>
+              <div className="text-2xl font-bold">${totalSpend.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground">Across all sources</p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Average CTR</CardTitle>
+              <CardTitle className="text-sm font-medium">Total Installs</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{avgCTR.toFixed(2)}%</div>
-              <p className="text-xs text-muted-foreground">Click-through rate</p>
+              <div className="text-2xl font-bold">{totalInstalls.toLocaleString()}</div>
+              <p className="text-xs text-muted-foreground">App installations</p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Average eCPM</CardTitle>
+              <CardTitle className="text-sm font-medium">Average CPI</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${avgECPM.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground">Effective cost per mile</p>
+              <div className="text-2xl font-bold">${avgCPI.toFixed(2)}</div>
+              <p className="text-xs text-muted-foreground">Cost per install</p>
             </CardContent>
           </Card>
         </div>
@@ -260,20 +278,32 @@ export default function Inventory() {
                   <div className="flex items-center gap-4">
                     <div className="grid grid-cols-4 gap-6 text-center">
                       <div>
-                        <p className="text-sm text-muted-foreground">Impressions</p>
-                        <p className="font-semibold">{(source.impressions / 1000000).toFixed(1)}M</p>
+                        <p className="text-sm text-muted-foreground">Spend</p>
+                        <p className="font-semibold">${source.spend.toLocaleString()}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Clicks</p>
-                        <p className="font-semibold">{source.clicks.toLocaleString()}</p>
+                        <p className="text-sm text-muted-foreground">Installs</p>
+                        <p className="font-semibold">{source.installs.toLocaleString()}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">CTR</p>
-                        <p className="font-semibold">{source.ctr}%</p>
+                        <p className="text-sm text-muted-foreground">Actions</p>
+                        <p className="font-semibold">{source.actions.toLocaleString()}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">eCPM</p>
-                        <p className="font-semibold">${source.ecpm}</p>
+                        <p className="text-sm text-muted-foreground">CPI</p>
+                        <p className="font-semibold">${source.cpi.toFixed(2)}</p>
+                      </div>
+                    </div>
+                    
+                    {/* Countries */}
+                    <div className="mt-4">
+                      <p className="text-sm text-muted-foreground mb-2">Active Countries</p>
+                      <div className="flex flex-wrap gap-1">
+                        {source.countries.map((country) => (
+                          <Badge key={country} variant="outline" className="text-xs">
+                            {country}
+                          </Badge>
+                        ))}
                       </div>
                     </div>
                     
@@ -323,28 +353,31 @@ export default function Inventory() {
               <div>
                 <h4 className="font-semibold mb-2 text-green-600">High Quality</h4>
                 <ul className="text-sm space-y-1">
-                  <li>• CTR greater than 1.4%</li>
-                  <li>• eCPM above $2.00</li>
+                  <li>• CPI below $8.50</li>
+                  <li>• High action rate (60%+)</li>
                   <li>• Low fraud rate</li>
-                  <li>• Good user engagement</li>
+                  <li>• Premium app inventory</li>
+                  <li>• Tier 1 countries</li>
                 </ul>
               </div>
               <div>
                 <h4 className="font-semibold mb-2 text-yellow-600">Medium Quality</h4>
                 <ul className="text-sm space-y-1">
-                  <li>• CTR 1.0% - 1.4%</li>
-                  <li>• eCPM $1.00 - $2.00</li>
-                  <li>• Moderate fraud rate</li>
-                  <li>• Average engagement</li>
+                  <li>• CPI $8.50 - $12.00</li>
+                  <li>• Moderate action rate (40-60%)</li>
+                  <li>• Some fraud detection</li>
+                  <li>• Mixed inventory quality</li>
+                  <li>• Tier 2 countries</li>
                 </ul>
               </div>
               <div>
                 <h4 className="font-semibold mb-2 text-red-600">Low Quality</h4>
                 <ul className="text-sm space-y-1">
-                  <li>• CTR below 1.0%</li>
-                  <li>• eCPM under $1.00</li>
+                  <li>• CPI above $12.00</li>
+                  <li>• Low action rate (below 40%)</li>
                   <li>• High fraud rate</li>
-                  <li>• Poor user engagement</li>
+                  <li>• Poor inventory quality</li>
+                  <li>• Tier 3+ countries</li>
                 </ul>
               </div>
             </div>

@@ -8,42 +8,82 @@ import { Badge } from "@/components/ui/badge";
 import { Search, Smartphone, Tablet, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
+// Mock apps based on real CSV campaign data
 const mockApps = [
   {
     id: 1,
-    name: "Puzzle Adventure",
-    bundleId: "com.moloco.puzzle",
+    name: "Puzzle Adventure Pro",
+    bundleId: "com.gamedev.puzzle",
     platform: "iOS",
     category: "Games",
     totalSpend: 24850.75,
     totalInstalls: 3120,
+    totalActions: 2340,
     avgCPI: 7.96,
     activeCampaigns: 12,
+    countries: ["US", "CA", "UK", "AU"],
+    exchanges: ["Meta Ads", "Google Ads", "Unity Ads"],
     status: "Active"
   },
   {
     id: 2,
-    name: "ShopEasy",
-    bundleId: "com.moloco.shop",
+    name: "ShopEasy Mobile",
+    bundleId: "com.retail.shopeasy",
     platform: "Android", 
     category: "Shopping",
     totalSpend: 18750.25,
     totalInstalls: 2245,
+    totalActions: 1890,
     avgCPI: 8.35,
     activeCampaigns: 8,
+    countries: ["US", "UK", "DE", "FR"],
+    exchanges: ["Google Ads", "TikTok Ads"],
     status: "Active"
   },
   {
     id: 3,
-    name: "FitLife Pro",
-    bundleId: "com.moloco.fitness",
+    name: "FitLife Tracker",
+    bundleId: "com.health.fitlife",
     platform: "iOS",
-    category: "Health",
+    category: "Health & Fitness",
     totalSpend: 31230.50,
     totalInstalls: 3890,
+    totalActions: 2950,
     avgCPI: 8.03,
     activeCampaigns: 5,
-    status: "Paused"
+    countries: ["US", "CA", "UK"],
+    exchanges: ["Meta Ads", "Snapchat Ads"],
+    status: "Active"
+  },
+  {
+    id: 4,
+    name: "TravelGuide Plus",
+    bundleId: "com.travel.guide",
+    platform: "Android",
+    category: "Travel",
+    totalSpend: 12450.00,
+    totalInstalls: 1580,
+    totalActions: 1120,
+    avgCPI: 7.88,
+    activeCampaigns: 6,
+    countries: ["US", "UK", "IT", "ES"],
+    exchanges: ["Google Ads", "Meta Ads"],
+    status: "Active"
+  },
+  {
+    id: 5,
+    name: "PhotoEditor Pro",
+    bundleId: "com.photo.editor",
+    platform: "iOS",
+    category: "Photography",
+    totalSpend: 8950.25,
+    totalInstalls: 1150,
+    totalActions: 890,
+    avgCPI: 7.78,
+    activeCampaigns: 3,
+    countries: ["US", "CA"],
+    exchanges: ["Meta Ads", "TikTok Ads"],
+    status: "Testing"
   }
 ];
 
@@ -174,12 +214,41 @@ export default function Apps() {
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
+                    <p className="text-sm text-muted-foreground">Actions</p>
+                    <p className="text-lg font-semibold">{app.totalActions.toLocaleString()}</p>
+                  </div>
+                  <div>
                     <p className="text-sm text-muted-foreground">Avg CPI</p>
                     <p className="text-lg font-semibold">${app.avgCPI.toFixed(2)}</p>
                   </div>
+                </div>
+                
+                {/* Countries & Exchanges */}
+                <div className="space-y-2">
                   <div>
-                    <p className="text-sm text-muted-foreground">Active Campaigns</p>
-                    <p className="text-lg font-semibold">{app.activeCampaigns}</p>
+                    <p className="text-sm text-muted-foreground mb-1">Active Countries</p>
+                    <div className="flex flex-wrap gap-1">
+                      {app.countries.slice(0, 3).map((country) => (
+                        <Badge key={country} variant="outline" className="text-xs">
+                          {country}
+                        </Badge>
+                      ))}
+                      {app.countries.length > 3 && (
+                        <Badge variant="outline" className="text-xs">
+                          +{app.countries.length - 3}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Exchanges</p>
+                    <div className="flex flex-wrap gap-1">
+                      {app.exchanges.map((exchange) => (
+                        <Badge key={exchange} variant="secondary" className="text-xs">
+                          {exchange}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
                 </div>
                 
@@ -216,17 +285,23 @@ export default function Apps() {
                 <p className="text-sm text-muted-foreground">Total Spend</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold">
-                  {mockApps.reduce((sum, app) => sum + app.totalInstalls, 0).toLocaleString()}
-                </p>
-                <p className="text-sm text-muted-foreground">Total Installs</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold">
-                  ${(mockApps.reduce((sum, app) => sum + (app.totalSpend / app.totalInstalls), 0) / mockApps.length).toFixed(2)}
-                </p>
-                <p className="text-sm text-muted-foreground">Avg CPI</p>
-              </div>
+                  <p className="text-2xl font-bold">
+                    {mockApps.reduce((sum, app) => sum + app.totalInstalls, 0).toLocaleString()}
+                  </p>
+                  <p className="text-sm text-muted-foreground">Total Installs</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold">
+                    {mockApps.reduce((sum, app) => sum + app.totalActions, 0).toLocaleString()}
+                  </p>
+                  <p className="text-sm text-muted-foreground">Total Actions</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-bold">
+                    ${(mockApps.reduce((sum, app) => sum + app.avgCPI, 0) / mockApps.length).toFixed(2)}
+                  </p>
+                  <p className="text-sm text-muted-foreground">Avg CPI</p>
+                </div>
             </div>
           </CardContent>
         </Card>
