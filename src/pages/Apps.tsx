@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Smartphone, Tablet } from "lucide-react";
+import { Search, Smartphone, Tablet, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const mockApps = [
@@ -15,20 +15,22 @@ const mockApps = [
     bundleId: "com.moloco.puzzle",
     platform: "iOS",
     category: "Games",
-    installs: 15420,
-    revenue: 12450.75,
-    retention: 85.5,
+    totalSpend: 24850.75,
+    totalInstalls: 3120,
+    avgCPI: 7.96,
+    activeCampaigns: 12,
     status: "Active"
   },
   {
     id: 2,
     name: "ShopEasy",
     bundleId: "com.moloco.shop",
-    platform: "Android",
+    platform: "Android", 
     category: "Shopping",
-    installs: 8930,
-    revenue: 8750.25,
-    retention: 72.3,
+    totalSpend: 18750.25,
+    totalInstalls: 2245,
+    avgCPI: 8.35,
+    activeCampaigns: 8,
     status: "Active"
   },
   {
@@ -37,9 +39,10 @@ const mockApps = [
     bundleId: "com.moloco.fitness",
     platform: "iOS",
     category: "Health",
-    installs: 12680,
-    revenue: 15230.50,
-    retention: 91.2,
+    totalSpend: 31230.50,
+    totalInstalls: 3890,
+    avgCPI: 8.03,
+    activeCampaigns: 5,
     status: "Paused"
   }
 ];
@@ -50,17 +53,10 @@ export default function Apps() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const { toast } = useToast();
 
-  const handleAddApp = () => {
-    toast({
-      title: "Add New App",
-      description: "App addition functionality will be available soon",
-    });
-  };
-
   const handleAppClick = (app: any) => {
     toast({
-      title: "App Details",
-      description: `Viewing details for ${app.name}`,
+      title: "App Performance",
+      description: `Viewing advertising performance for ${app.name}`,
     });
   };
 
@@ -80,13 +76,9 @@ export default function Apps() {
           <div>
             <h1 className="text-3xl font-bold">Apps</h1>
             <p className="text-muted-foreground">
-              Manage your mobile applications and track their performance
+              Track advertising performance across your mobile applications
             </p>
           </div>
-          <Button onClick={handleAddApp}>
-            <Plus className="w-4 h-4 mr-2" />
-            Add App
-          </Button>
         </div>
 
         {/* Filters */}
@@ -168,38 +160,36 @@ export default function Apps() {
                   <Badge variant="outline">{app.category}</Badge>
                 </div>
                 
-                {/* Metrics */}
+                {/* Advertising Metrics */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-muted-foreground">Installs</p>
-                    <p className="text-lg font-semibold">{app.installs.toLocaleString()}</p>
+                    <p className="text-sm text-muted-foreground">Total Spend</p>
+                    <p className="text-lg font-semibold">${app.totalSpend.toLocaleString()}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Revenue</p>
-                    <p className="text-lg font-semibold">${app.revenue.toLocaleString()}</p>
+                    <p className="text-sm text-muted-foreground">Total Installs</p>
+                    <p className="text-lg font-semibold">{app.totalInstalls.toLocaleString()}</p>
                   </div>
                 </div>
                 
-                <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-muted-foreground">Retention Rate</span>
-                    <span>{app.retention}%</span>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Avg CPI</p>
+                    <p className="text-lg font-semibold">${app.avgCPI.toFixed(2)}</p>
                   </div>
-                  <div className="w-full bg-muted rounded-full h-2">
-                    <div 
-                      className="bg-primary h-2 rounded-full" 
-                      style={{ width: `${app.retention}%` }}
-                    />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Active Campaigns</p>
+                    <p className="text-lg font-semibold">{app.activeCampaigns}</p>
                   </div>
                 </div>
                 
                 {/* Actions */}
                 <div className="flex gap-2 pt-2">
                   <Button variant="outline" size="sm" className="flex-1">
-                    View Details
+                    View Campaigns
                   </Button>
                   <Button variant="outline" size="sm" className="flex-1">
-                    Analytics
+                    Performance
                   </Button>
                 </div>
               </CardContent>
@@ -207,11 +197,11 @@ export default function Apps() {
           ))}
         </div>
 
-        {/* App Analytics Summary */}
+        {/* App Advertising Summary */}
         <Card>
           <CardHeader>
-            <CardTitle>App Performance Summary</CardTitle>
-            <CardDescription>Overview of all app metrics</CardDescription>
+            <CardTitle>Advertising Performance Summary</CardTitle>
+            <CardDescription>Overview of all app advertising metrics</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 md:grid-cols-4">
@@ -221,55 +211,27 @@ export default function Apps() {
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold">
-                  {mockApps.reduce((sum, app) => sum + app.installs, 0).toLocaleString()}
+                  ${mockApps.reduce((sum, app) => sum + app.totalSpend, 0).toLocaleString()}
+                </p>
+                <p className="text-sm text-muted-foreground">Total Spend</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold">
+                  {mockApps.reduce((sum, app) => sum + app.totalInstalls, 0).toLocaleString()}
                 </p>
                 <p className="text-sm text-muted-foreground">Total Installs</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold">
-                  ${mockApps.reduce((sum, app) => sum + app.revenue, 0).toLocaleString()}
+                  ${(mockApps.reduce((sum, app) => sum + (app.totalSpend / app.totalInstalls), 0) / mockApps.length).toFixed(2)}
                 </p>
-                <p className="text-sm text-muted-foreground">Total Revenue</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold">
-                  {(mockApps.reduce((sum, app) => sum + app.retention, 0) / mockApps.length).toFixed(1)}%
-                </p>
-                <p className="text-sm text-muted-foreground">Avg Retention</p>
+                <p className="text-sm text-muted-foreground">Avg CPI</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Add App Instructions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Adding New Apps</CardTitle>
-            <CardDescription>How to integrate new applications</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <h4 className="font-semibold mb-2">Required Information</h4>
-                <ul className="text-sm space-y-1">
-                  <li>• App name and description</li>
-                  <li>• Bundle ID / Package name</li>
-                  <li>• Platform (iOS/Android)</li>
-                  <li>• App Store/Google Play URL</li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-2">Auto-Integration</h4>
-                <ul className="text-sm space-y-1">
-                  <li>• Automatic metadata retrieval</li>
-                  <li>• App Store Connect integration</li>
-                  <li>• Google Play Console sync</li>
-                  <li>• Real-time performance tracking</li>
-                </ul>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+
       </div>
     </Layout>
   );

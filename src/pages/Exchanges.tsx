@@ -111,15 +111,11 @@ export default function Exchanges() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Exchanges</h1>
+            <h1 className="text-3xl font-bold">Ad Exchanges</h1>
             <p className="text-muted-foreground">
-              Manage ad exchange integrations and monitor performance
+              Monitor performance across different advertising exchanges
             </p>
           </div>
-          <Button onClick={handleAddExchange}>
-            <Plus className="w-4 h-4 mr-2" />
-            Add Exchange
-          </Button>
         </div>
 
         {/* Performance Overview */}
@@ -240,30 +236,30 @@ export default function Exchanges() {
           ))}
         </div>
 
-        {/* Integration Settings */}
+        {/* Data Sources Info */}
         <Card>
           <CardHeader>
-            <CardTitle>Integration Settings</CardTitle>
-            <CardDescription>Configure API connections and data synchronization</CardDescription>
+            <CardTitle>Data Sources</CardTitle>
+            <CardDescription>Information about advertising exchange data</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <h4 className="font-semibold mb-2">API Configuration</h4>
+                <h4 className="font-semibold mb-2">Available Exchanges</h4>
                 <ul className="text-sm space-y-1">
-                  <li>• Add API keys for each exchange</li>
-                  <li>• Configure data mapping rules</li>
-                  <li>• Set up webhook endpoints</li>
-                  <li>• Enable real-time synchronization</li>
+                  <li>• Google Ads - Search & Display campaigns</li>
+                  <li>• Facebook Ads - Social media advertising</li>
+                  <li>• Unity Ads - Mobile game advertising</li>
+                  <li>• AdMob - Mobile app monetization</li>
                 </ul>
               </div>
               <div>
-                <h4 className="font-semibold mb-2">Data Synchronization</h4>
+                <h4 className="font-semibold mb-2">Data Updates</h4>
                 <ul className="text-sm space-y-1">
-                  <li>• Automatic daily sync at 6 AM</li>
+                  <li>• Data refreshed every 4 hours</li>
                   <li>• Manual sync available anytime</li>
-                  <li>• Error handling and retry logic</li>
-                  <li>• Data validation and cleaning</li>
+                  <li>• Historical data up to 90 days</li>
+                  <li>• Real-time spend monitoring</li>
                 </ul>
               </div>
             </div>

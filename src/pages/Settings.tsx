@@ -123,11 +123,10 @@ export default function Settings() {
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="profile">Profile</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="profile">Account</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
-            <TabsTrigger value="system">System</TabsTrigger>
-            <TabsTrigger value="integrations">Integrations</TabsTrigger>
+            <TabsTrigger value="system">Preferences</TabsTrigger>
           </TabsList>
 
           {/* Profile Tab */}
@@ -244,8 +243,8 @@ export default function Settings() {
               <CardContent className="space-y-6">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label htmlFor="emailReports">Email Reports</Label>
-                    <p className="text-sm text-muted-foreground">Receive daily and weekly performance reports</p>
+                    <Label htmlFor="emailReports">Daily Performance Reports</Label>
+                    <p className="text-sm text-muted-foreground">Daily email with campaign spend, installs, and CPI summary</p>
                   </div>
                   <Switch
                     id="emailReports"
@@ -256,8 +255,8 @@ export default function Settings() {
                 <Separator />
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label htmlFor="campaignAlerts">Campaign Alerts</Label>
-                    <p className="text-sm text-muted-foreground">Get notified about campaign performance issues</p>
+                    <Label htmlFor="campaignAlerts">High CPI Alerts</Label>
+                    <p className="text-sm text-muted-foreground">Get notified when campaign CPI exceeds your target thresholds</p>
                   </div>
                   <Switch
                     id="campaignAlerts"
@@ -268,8 +267,8 @@ export default function Settings() {
                 <Separator />
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label htmlFor="systemUpdates">System Updates</Label>
-                    <p className="text-sm text-muted-foreground">Receive notifications about system maintenance</p>
+                    <Label htmlFor="systemUpdates">CSV Upload Notifications</Label>
+                    <p className="text-sm text-muted-foreground">Receive confirmations when CSV files are processed</p>
                   </div>
                   <Switch
                     id="systemUpdates"
@@ -280,8 +279,8 @@ export default function Settings() {
                 <Separator />
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label htmlFor="performanceAlerts">Performance Alerts</Label>
-                    <p className="text-sm text-muted-foreground">Get alerts when metrics exceed thresholds</p>
+                    <Label htmlFor="performanceAlerts">Budget Alerts</Label>
+                    <p className="text-sm text-muted-foreground">Get alerts when campaign spend approaches budget limits</p>
                   </div>
                   <Switch
                     id="performanceAlerts"
@@ -297,25 +296,11 @@ export default function Settings() {
           <TabsContent value="system" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>System Preferences</CardTitle>
+                <CardTitle>Display Preferences</CardTitle>
                 <CardDescription>Configure your display and regional settings</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="language">Language</Label>
-                    <Select value={systemSettings.language} onValueChange={(value) => setSystemSettings(prev => ({ ...prev, language: value }))}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="en">English</SelectItem>
-                        <SelectItem value="es">Spanish</SelectItem>
-                        <SelectItem value="fr">French</SelectItem>
-                        <SelectItem value="de">German</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
                   <div className="space-y-2">
                     <Label htmlFor="timezone">Timezone</Label>
                     <Select value={systemSettings.timezone} onValueChange={(value) => setSystemSettings(prev => ({ ...prev, timezone: value }))}>
@@ -323,10 +308,12 @@ export default function Settings() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="UTC">UTC</SelectItem>
-                        <SelectItem value="EST">Eastern Time</SelectItem>
-                        <SelectItem value="PST">Pacific Time</SelectItem>
-                        <SelectItem value="GMT">Greenwich Mean Time</SelectItem>
+                        <SelectItem value="UTC">UTC (Coordinated Universal Time)</SelectItem>
+                        <SelectItem value="America/New_York">EST (Eastern Time)</SelectItem>
+                        <SelectItem value="America/Los_Angeles">PST (Pacific Time)</SelectItem>
+                        <SelectItem value="Europe/London">GMT (Greenwich Mean Time)</SelectItem>
+                        <SelectItem value="Asia/Tokyo">JST (Japan Standard Time)</SelectItem>
+                        <SelectItem value="Europe/Berlin">CET (Central European Time)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -337,103 +324,53 @@ export default function Settings() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="MM/DD/YYYY">MM/DD/YYYY</SelectItem>
-                        <SelectItem value="DD/MM/YYYY">DD/MM/YYYY</SelectItem>
-                        <SelectItem value="YYYY-MM-DD">YYYY-MM-DD</SelectItem>
+                        <SelectItem value="YYYY-MM-DD">YYYY-MM-DD (2025-01-15)</SelectItem>
+                        <SelectItem value="MM/DD/YYYY">MM/DD/YYYY (01/15/2025)</SelectItem>
+                        <SelectItem value="DD/MM/YYYY">DD/MM/YYYY (15/01/2025)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="currency">Currency</Label>
+                    <Label htmlFor="currency">Currency Display</Label>
                     <Select value={systemSettings.currency} onValueChange={(value) => setSystemSettings(prev => ({ ...prev, currency: value }))}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="USD">USD ($)</SelectItem>
-                        <SelectItem value="EUR">EUR (€)</SelectItem>
-                        <SelectItem value="GBP">GBP (£)</SelectItem>
-                        <SelectItem value="JPY">JPY (¥)</SelectItem>
+                        <SelectItem value="USD">USD - US Dollar ($)</SelectItem>
+                        <SelectItem value="EUR">EUR - Euro (€)</SelectItem>
+                        <SelectItem value="GBP">GBP - British Pound (£)</SelectItem>
+                        <SelectItem value="JPY">JPY - Japanese Yen (¥)</SelectItem>
+                        <SelectItem value="CAD">CAD - Canadian Dollar (C$)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
-                <div className="flex gap-2 pt-4">
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Data & Privacy</CardTitle>
+                <CardDescription>Manage your data preferences and account actions</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex gap-2">
                   <Button onClick={handleExportSettings} variant="outline">
                     <Download className="w-4 h-4 mr-2" />
-                    Export Settings
+                    Export Account Data
                   </Button>
                   <Button onClick={handleResetSettings} variant="outline">
                     <RotateCcw className="w-4 h-4 mr-2" />
-                    Reset
+                    Reset Preferences
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Integrations Tab */}
-          <TabsContent value="integrations" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>API Keys</CardTitle>
-                <CardDescription>Manage your API keys for external integrations</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="googleAdsKey">Google Ads API Key</Label>
-                  <Input
-                    id="googleAdsKey"
-                    type="password"
-                    placeholder="Enter your Google Ads API key"
-                  />
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <p className="text-sm text-muted-foreground">
+                    Your campaign data is processed securely and never shared with third parties. 
+                    Export includes your settings, preferences, and account information (no sensitive campaign data).
+                  </p>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="facebookKey">Facebook API Key</Label>
-                  <Input
-                    id="facebookKey"
-                    type="password"
-                    placeholder="Enter your Facebook API key"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="unityKey">Unity Ads API Key</Label>
-                  <Input
-                    id="unityKey"
-                    type="password"
-                    placeholder="Enter your Unity Ads API key"
-                  />
-                </div>
-                <Button>
-                  Save API Keys
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Webhook Configuration</CardTitle>
-                <CardDescription>Set up webhooks for real-time data updates</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="webhookUrl">Webhook URL</Label>
-                  <Input
-                    id="webhookUrl"
-                    placeholder="https://your-app.com/webhook"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="secretKey">Secret Key</Label>
-                  <Input
-                    id="secretKey"
-                    type="password"
-                    placeholder="Enter webhook secret key"
-                  />
-                </div>
-                <Button>
-                  Configure Webhook
-                </Button>
               </CardContent>
             </Card>
           </TabsContent>
