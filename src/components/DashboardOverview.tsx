@@ -116,6 +116,11 @@ export function DashboardOverview() {
   const metrics = dashboardData?.data?.data?.summary || mockMetrics;
   const campaigns = campaignsData?.data?.data || mockCampaigns;
   
+  // Helper function to safely get metric values
+  const getMetricValue = (key: string) => {
+    return (metrics as any)[key] || 0;
+  };
+  
   const isLoading = isDashboardLoading || isCampaignsLoading;
   const hasError = dashboardError || campaignsError;
 
@@ -163,7 +168,7 @@ export function DashboardOverview() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-card-foreground">${(metrics.total_spend || metrics.totalSpend || 0).toLocaleString()}</div>
+            <div className="text-2xl font-bold text-card-foreground">${getMetricValue('total_spend') || getMetricValue('totalSpend') || 0}</div>
             <p className="text-xs text-muted-foreground">Last 30 days</p>
             <div className="mt-4 h-2 bg-muted rounded-full overflow-hidden">
               <div className="h-full w-3/4 bg-primary rounded-full"></div>
@@ -178,7 +183,7 @@ export function DashboardOverview() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-card-foreground">{(metrics.total_installs || metrics.totalInstalls || 0).toLocaleString()}</div>
+            <div className="text-2xl font-bold text-card-foreground">{(getMetricValue('total_installs') || getMetricValue('totalInstalls') || 0).toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">Last 30 days</p>
             <div className="mt-4 h-2 bg-muted rounded-full overflow-hidden">
               <div className="h-full w-4/5 bg-accent rounded-full"></div>
@@ -193,7 +198,7 @@ export function DashboardOverview() {
             <BarChart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-card-foreground">{metrics.total_campaigns || metrics.totalCampaigns || 0}</div>
+            <div className="text-2xl font-bold text-card-foreground">{getMetricValue('total_campaigns') || getMetricValue('totalCampaigns') || 0}</div>
             <p className="text-xs text-muted-foreground">Currently running</p>
             <div className="mt-4 h-2 bg-muted rounded-full overflow-hidden">
               <div className="h-full w-5/6 bg-accent rounded-full"></div>
@@ -208,7 +213,7 @@ export function DashboardOverview() {
             <RefreshCw className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-card-foreground">${(metrics.average_cpi || metrics.averageCPI || 0).toFixed(2)}</div>
+            <div className="text-2xl font-bold text-card-foreground">${(getMetricValue('average_cpi') || getMetricValue('averageCPI') || 0).toFixed(2)}</div>
             <p className="text-xs text-muted-foreground">Cost per install</p>
             <div className="mt-4 h-2 bg-muted rounded-full overflow-hidden">
               <div className="h-full w-2/3 bg-accent rounded-full"></div>
@@ -223,7 +228,7 @@ export function DashboardOverview() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-card-foreground">{metrics.activeApps || 0}</div>
+            <div className="text-2xl font-bold text-card-foreground">{getMetricValue('activeApps') || 0}</div>
             <p className="text-xs text-muted-foreground">In portfolio</p>
             <div className="mt-4 h-2 bg-muted rounded-full overflow-hidden">
               <div className="h-full w-3/5 bg-primary rounded-full"></div>
@@ -238,7 +243,7 @@ export function DashboardOverview() {
             <BarChart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-card-foreground">{metrics.activeCountries || 0}</div>
+            <div className="text-2xl font-bold text-card-foreground">{getMetricValue('activeCountries') || 0}</div>
             <p className="text-xs text-muted-foreground">Geographic reach</p>
             <div className="mt-4 h-2 bg-muted rounded-full overflow-hidden">
               <div className="h-full w-4/5 bg-accent rounded-full"></div>
