@@ -28,21 +28,18 @@ import {
 } from "@/components/ui/sidebar";
 
 const menuItems = [
-  { title: "Overview", url: "/", icon: LayoutDashboard },
-  { title: "Charts", url: "/charts", icon: BarChart3 },
-  { title: "Customers", url: "/customers", icon: Users },
-  { title: "Product catalog", url: "/product-catalog", icon: ShoppingBag },
-  { title: "Paywalls", url: "/paywalls", icon: FileText },
-  { title: "Targeting", url: "/targeting", icon: Target },
-  { title: "Experiments", url: "/experiments", icon: TrendingUp },
-  { title: "Customer center", url: "/customer-center", icon: User },
+  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+  { title: "Overview", url: "/overview", icon: TrendingUp },
+  { title: "Campaigns", url: "/campaigns", icon: Target },
+  { title: "Creatives", url: "/creatives", icon: FileText },
+  { title: "Apps", url: "/apps", icon: ShoppingBag },
+  { title: "Exchanges", url: "/exchanges", icon: Database },
+  { title: "Inventory", url: "/inventory", icon: Layers },
+  { title: "Upload", url: "/upload", icon: Upload },
 ];
 
 const bottomMenuItems = [
-  { title: "Apps & providers", url: "/apps", icon: Layers },
-  { title: "API keys", url: "/api-keys", icon: Database },
-  { title: "Integrations", url: "/integrations", icon: Upload },
-  { title: "Project settings", url: "/settings", icon: Settings },
+  { title: "Settings", url: "/settings", icon: Settings },
 ];
 
 export function CrmSidebar() {
