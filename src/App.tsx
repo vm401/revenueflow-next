@@ -16,6 +16,7 @@ import Creatives from "./pages/Creatives";
 import Apps from "./pages/Apps";
 import Exchanges from "./pages/Exchanges";
 import Inventory from "./pages/Inventory";
+import Integrations from "./pages/Integrations";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -76,6 +77,7 @@ const App = () => (
               <Route path="/apps" element={<Apps />} />
               <Route path="/exchanges" element={<Exchanges />} />
               <Route path="/inventory" element={<Inventory />} />
+              <Route path="/integrations" element={<Integrations />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

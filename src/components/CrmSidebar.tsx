@@ -20,7 +20,9 @@ import {
   Palette,
   Activity,
   PieChart,
-  Briefcase
+  Briefcase,
+  Plug,
+  Link
 } from "lucide-react";
 
 import {
@@ -42,6 +44,7 @@ const menuItems = [
   { title: "Exchanges", url: "/exchanges", icon: Globe, font: "font-sans" },
   { title: "Inventory", url: "/inventory", icon: Database, font: "font-mono" },
   { title: "Upload", url: "/upload", icon: Upload, font: "font-mono" },
+  { title: "Integrations", url: "/integrations", icon: Plug, font: "font-display" },
 ];
 
 const bottomMenuItems = [

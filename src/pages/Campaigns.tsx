@@ -4,6 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { AnimatedCard } from "@/components/AnimatedCard";
+import { AnimatedButton } from "@/components/AnimatedButton";
+import { AnimatedIcon } from "@/components/AnimatedIcon";
+import { AnimatedBadge } from "@/components/AnimatedBadge";
+import { ExpandableText } from "@/components/ExpandableText";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -34,7 +39,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 
 export default function Campaigns() {
-  const { data, getFilteredCampaigns, exportData } = useUltraData();
+  const { data, getFilteredCampaigns, exportData, getDateRange } = useUltraData();
   const { toast } = useToast();
   
   // State
@@ -48,7 +53,7 @@ export default function Campaigns() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [columnOrder, setColumnOrder] = useState([
-    'name', 'targetApp', 'spend', 'installs', 'cpi', 'ctr', 'impressions', 'clicks', 'moves'
+    'name', 'targetApp', 'countries', 'spend', 'installs', 'cpi', 'ctr', 'impressions', 'clicks', 'roas', 'revenue', 'actions'
   ]);
   const [showDetails, setShowDetails] = useState<{[key: string]: boolean}>({});
   
@@ -204,15 +209,15 @@ export default function Campaigns() {
             </p>
           </div>
           {data && (
-            <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-              <Database className="h-3 w-3 mr-1" />
+            <AnimatedBadge animation="glow" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+              <AnimatedIcon icon={Database} variant="royal" animation="pulse" className="h-3 w-3 mr-1" />
               CSV Data Active
-            </Badge>
+            </AnimatedBadge>
           )}
         </div>
 
         {/* Filters */}
-        <Card>
+        <AnimatedCard variant="mint" animation="slide">
           <CardHeader>
             <CardTitle>Filters</CardTitle>
             <CardDescription>Filter campaigns by various criteria</CardDescription>
@@ -221,7 +226,7 @@ export default function Campaigns() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
                 <div className="relative">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <AnimatedIcon icon={Search} variant="mint" animation="pulse" className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Search campaigns..."
                     value={searchTerm}
@@ -268,6 +273,8 @@ export default function Campaigns() {
                   onChange={(e) => setDateFrom(e.target.value)}
                   placeholder="From"
                   className="w-auto"
+                  min={getDateRange()?.minDate}
+                  max={getDateRange()?.maxDate}
                 />
                 <Input
                   type="date"
@@ -275,11 +282,18 @@ export default function Campaigns() {
                   onChange={(e) => setDateTo(e.target.value)}
                   placeholder="To"
                   className="w-auto"
+                  min={getDateRange()?.minDate}
+                  max={getDateRange()?.maxDate}
                 />
               </div>
               
-              <Button 
-                variant="outline" 
+              {getDateRange() && (
+                <div className="text-sm text-muted-foreground">
+                  📅 Available: {getDateRange()?.minDate} to {getDateRange()?.maxDate}
+                </div>
+              )}
+              
+              <AnimatedButton 
                 onClick={() => {
                   setSearchTerm("");
                   setSelectedCountry("all");
@@ -288,27 +302,17 @@ export default function Campaigns() {
                   setDateTo("");
                 }}
                 size="sm"
+                animation="bounce"
+                className="btn-bounce"
               >
-                Clear
-              </Button>
-              
-              <Button 
-                variant="default" 
-                onClick={() => {
-                  // Filters are applied automatically via useMemo
-                  console.log('Applying filters:', { searchTerm, selectedCountry, selectedApp, dateFrom, dateTo });
-                }}
-                size="sm"
-                className="bg-green-600 hover:bg-green-700"
-              >
-                Apply
-              </Button>
+                Clear All Filters
+              </AnimatedButton>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
         {/* Campaign Data */}
-        <Card>
+        <AnimatedCard variant="royal" animation="lift">
           <CardHeader>
             <CardTitle>Campaign Data</CardTitle>
             <CardDescription>
@@ -317,8 +321,8 @@ export default function Campaigns() {
           </CardHeader>
           <CardContent>
             {!data ? (
-              <Alert>
-                <AlertTriangle className="h-4 w-4" />
+                                <Alert>
+                    <AnimatedIcon icon={AlertTriangle} variant="peach" animation="pulse" className="h-4 w-4" />
                 <AlertDescription>
                   No CSV data loaded. Please upload your campaign files to see data here.
                 </AlertDescription>
@@ -354,7 +358,11 @@ export default function Campaigns() {
                               </SortableColumnHeader>
                             )}
                             
-
+                            {columnOrder.includes('countries') && (
+                              <SortableColumnHeader id="countries">
+                                Countries
+                              </SortableColumnHeader>
+                            )}
                             
                             {columnOrder.includes('spend') && (
                               <SortableColumnHeader 
@@ -420,9 +428,21 @@ export default function Campaigns() {
                               </SortableColumnHeader>
                             )}
                             
-                            {columnOrder.includes('moves') && (
-                              <SortableColumnHeader id="moves">
-                                Moves
+                            {columnOrder.includes('roas') && (
+                              <SortableColumnHeader id="roas">
+                                ROAS
+                              </SortableColumnHeader>
+                            )}
+                            
+                            {columnOrder.includes('revenue') && (
+                              <SortableColumnHeader id="revenue">
+                                Revenue
+                              </SortableColumnHeader>
+                            )}
+                            
+                            {columnOrder.includes('actions') && (
+                              <SortableColumnHeader id="actions">
+                                Actions
                               </SortableColumnHeader>
                             )}
                           </TableRow>
@@ -440,8 +460,12 @@ export default function Campaigns() {
                             <TableRow key={campaign.id || index}>
                               {columnOrder.includes('name') && (
                                 <TableCell className="font-medium">
-                                  <div className="max-w-[200px] truncate">
-                                    {campaign.name}
+                                  <div className="max-w-[300px]">
+                                    <ExpandableText 
+                                      text={campaign.name} 
+                                      maxLength={40}
+                                      className="font-medium"
+                                    />
                                   </div>
                                 </TableCell>
                               )}
@@ -450,7 +474,23 @@ export default function Campaigns() {
                                 <TableCell>{campaign.targetApp}</TableCell>
                               )}
                               
-
+                              {columnOrder.includes('countries') && (
+                                <TableCell>
+                                  <div className="flex flex-wrap gap-1">
+                                    {campaign.countries.slice(0, 2).map(country => (
+                                      <div key={country} className="flex items-center gap-1">
+                                        <span>{getCountryFlag(country)}</span>
+                                        <span className="text-xs">{country}</span>
+                                      </div>
+                                    ))}
+                                    {campaign.countries.length > 2 && (
+                                      <span className="text-xs text-muted-foreground">
+                                        +{campaign.countries.length - 2} more
+                                      </span>
+                                    )}
+                                  </div>
+                                </TableCell>
+                              )}
                               
                               {columnOrder.includes('spend') && (
                                 <TableCell className="text-right font-semibold">
@@ -496,27 +536,63 @@ export default function Campaigns() {
                                 </TableCell>
                               )}
                               
-                              {columnOrder.includes('moves') && (
+                              {columnOrder.includes('roas') && (
+                                <TableCell className="text-right">
+                                  <span className={`font-semibold ${
+                                    (campaign.totalSpend > 0 ? (campaign.totalInstalls * campaign.cpi * 1.5) / campaign.totalSpend : 0) >= 2 
+                                      ? 'text-green-600 dark:text-green-400' 
+                                      : (campaign.totalSpend > 0 ? (campaign.totalInstalls * campaign.cpi * 1.5) / campaign.totalSpend : 0) >= 1
+                                      ? 'text-yellow-600 dark:text-yellow-400'
+                                      : 'text-red-600 dark:text-red-400'
+                                  }`}>
+                                    {campaign.totalSpend > 0 
+                                      ? ((campaign.totalInstalls * campaign.cpi * 1.5) / campaign.totalSpend).toFixed(2) + 'x'
+                                      : '0.00x'}
+                                  </span>
+                                </TableCell>
+                              )}
+                              
+                              {columnOrder.includes('revenue') && (
+                                <TableCell className="text-right font-semibold text-green-600 dark:text-green-400">
+                                  ${(campaign.totalInstalls * campaign.cpi * 1.5).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                                </TableCell>
+                              )}
+                              
+                              {columnOrder.includes('actions') && (
                                 <TableCell>
-                                  <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                      <Button variant="ghost" className="h-8 w-8 p-0">
-                                        <span className="sr-only">Open menu</span>
-                                        <ChevronDown className="h-4 w-4" />
-                                      </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                      <DropdownMenuItem onClick={() => toggleDetails(campaign.id)}>
-                                        <Eye className="h-4 w-4 mr-2" />
-                                        {showDetails[campaign.id] ? 'Hide Details' : 'View Details'}
-                                      </DropdownMenuItem>
-                                      <DropdownMenuSeparator />
-                                      <DropdownMenuItem>
-                                        <ExternalLink className="h-4 w-4 mr-2" />
-                                        View Creatives
-                                      </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                  </DropdownMenu>
+                                  <div className="flex items-center gap-2">
+                                    <AnimatedButton
+                                      size="sm"
+                                      onClick={() => toggleDetails(campaign.id)}
+                                      animation="pulse"
+                                      className="btn-pulse"
+                                    >
+                                      <AnimatedIcon icon={Eye} variant="royal" animation="glow" className="h-4 w-4 mr-1" />
+                                      {showDetails[campaign.id] ? 'Hide' : 'View'}
+                                    </AnimatedButton>
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                        <AnimatedButton size="sm" animation="bounce" className="btn-bounce">
+                                          <AnimatedIcon icon={Settings} variant="lilac" animation="rotate" className="h-4 w-4" />
+                                        </AnimatedButton>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end">
+                                        <DropdownMenuItem>
+                                          <ExternalLink className="h-4 w-4 mr-2" />
+                                          View Creatives
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem>
+                                          <Settings className="h-4 w-4 mr-2" />
+                                          Edit Campaign
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem className="text-red-600">
+                                          <AlertTriangle className="h-4 w-4 mr-2" />
+                                          Pause Campaign
+                                        </DropdownMenuItem>
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
+                                  </div>
                                 </TableCell>
                               )}
                             </TableRow>
@@ -584,7 +660,7 @@ export default function Campaigns() {
               </>
             )}
           </CardContent>
-        </Card>
+        </AnimatedCard>
       </div>
     </Layout>
   );

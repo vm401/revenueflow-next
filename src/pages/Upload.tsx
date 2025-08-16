@@ -2,6 +2,10 @@ import { useState, useCallback } from "react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AnimatedCard } from "@/components/AnimatedCard";
+import { AnimatedButton } from "@/components/AnimatedButton";
+import { AnimatedIcon } from "@/components/AnimatedIcon";
+import { AnimatedBadge } from "@/components/AnimatedBadge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -12,9 +16,12 @@ import { useToast } from "@/hooks/use-toast";
 import { UltraCSVProcessor, UltraProcessedCSVData, CSVValidation } from "@/lib/ultraCSVProcessor";
 import { useUltraData } from "@/contexts/UltraDataContext";
 
+type CSVType = 'default' | 'inventory_overall' | 'inventory_daily';
+
 interface FileUpload {
   id: string;
   file: File;
+  type: CSVType;
   status: "pending" | "validating" | "uploading" | "success" | "error";
   progress: number;
   validation?: CSVValidation;
@@ -28,6 +35,26 @@ export default function Upload() {
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
   const { setData, clearData, data } = useUltraData();
+
+  // Determine CSV type from filename
+  const determineCSVType = (filename: string): CSVType => {
+    const lowerName = filename.toLowerCase();
+    if (lowerName.includes('inventory_overall')) return 'inventory_overall';
+    if (lowerName.includes('inventory_daily')) return 'inventory_daily';
+    return 'default';
+  };
+
+  // Get CSV type display info
+  const getCSVTypeInfo = (type: CSVType) => {
+    switch (type) {
+      case 'default':
+        return { name: 'Campaign Report', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200', icon: '📊' };
+      case 'inventory_overall':
+        return { name: 'Inventory Overall', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200', icon: '📦' };
+      case 'inventory_daily':
+        return { name: 'Inventory Daily', color: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200', icon: '📈' };
+    }
+  };
 
   // Handle file selection and validation
   const handleFiles = async (newFiles: File[]) => {
@@ -67,6 +94,7 @@ export default function Upload() {
       const fileUpload: FileUpload = {
         id: Math.random().toString(36).substr(2, 9),
         file,
+        type: determineCSVType(file.name),
         status: "validating",
         progress: 0,
       };
@@ -395,7 +423,7 @@ export default function Upload() {
 
           <TabsContent value="upload" className="space-y-6">
             {/* Upload Area */}
-            <Card>
+            <AnimatedCard variant="mint" animation="slide">
               <CardHeader>
                 <CardTitle>Upload CSV Files</CardTitle>
                 <CardDescription>
@@ -434,11 +462,11 @@ export default function Upload() {
                   </label>
                 </div>
               </CardContent>
-            </Card>
+            </AnimatedCard>
 
             {/* File List */}
             {files.length > 0 && (
-              <Card>
+              <AnimatedCard variant="mint" animation="slide">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
@@ -472,9 +500,15 @@ export default function Upload() {
                     {files.map((file) => (
                       <div key={file.id} className="flex items-center justify-between p-4 border rounded-lg">
                         <div className="flex items-center gap-3">
-                          <FileText className="h-5 w-5 text-muted-foreground" />
+                          <AnimatedIcon icon={FileText} variant="mint" animation="pulse" className="h-5 w-5 text-muted-foreground" />
                           <div>
-                            <p className="font-medium">{file.file.name}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium">{file.file.name}</p>
+                              <AnimatedBadge variant="mint" animation="glow" className={getCSVTypeInfo(file.type).color}>
+                                <span className="mr-1">{getCSVTypeInfo(file.type).icon}</span>
+                                {getCSVTypeInfo(file.type).name}
+                              </AnimatedBadge>
+                            </div>
                             <p className="text-sm text-muted-foreground">
                               {(file.file.size / 1024 / 1024).toFixed(2)} MB
                               {file.validation && (
@@ -529,11 +563,11 @@ export default function Upload() {
                     ))}
                   </div>
                 </CardContent>
-              </Card>
+              </AnimatedCard>
             )}
 
             {/* File Format Requirements */}
-            <Card>
+            <AnimatedCard variant="mint" animation="slide">
               <CardHeader>
                 <CardTitle>CSV Format Requirements</CardTitle>
                 <CardDescription>
@@ -577,12 +611,12 @@ export default function Upload() {
                   </AlertDescription>
                 </Alert>
               </CardContent>
-            </Card>
+            </AnimatedCard>
           </TabsContent>
 
           <TabsContent value="preview">
             {selectedFileData?.validation ? (
-              <Card>
+              <AnimatedCard variant="mint" animation="slide">
                 <CardHeader>
                   <CardTitle>File Preview: {selectedFileData.file.name}</CardTitle>
                   <CardDescription>
@@ -627,20 +661,20 @@ export default function Upload() {
                     </Table>
                   </div>
                 </CardContent>
-              </Card>
+              </AnimatedCard>
             ) : (
-              <Card>
+              <AnimatedCard variant="mint" animation="slide">
                 <CardContent className="text-center py-8">
                   <p className="text-muted-foreground">Select a file to preview its contents</p>
                 </CardContent>
-              </Card>
+              </AnimatedCard>
             )}
           </TabsContent>
 
           <TabsContent value="processed">
             {data ? (
               <div className="space-y-6">
-                <Card>
+                <AnimatedCard variant="mint" animation="slide">
                   <CardHeader>
                     <CardTitle>Processing Summary</CardTitle>
                     <CardDescription>
@@ -682,9 +716,9 @@ export default function Upload() {
                       </div>
                     </div>
                   </CardContent>
-                </Card>
+                </AnimatedCard>
 
-                <Card>
+                <AnimatedCard variant="mint" animation="slide">
                   <CardHeader>
                     <CardTitle>Processed Files</CardTitle>
                   </CardHeader>
@@ -698,17 +732,88 @@ export default function Upload() {
                       ))}
                     </div>
                   </CardContent>
-                </Card>
+                </AnimatedCard>
               </div>
             ) : (
-              <Card>
+              <AnimatedCard variant="mint" animation="slide">
                 <CardContent className="text-center py-8">
                   <p className="text-muted-foreground">No processed data available. Upload and process CSV files first.</p>
                 </CardContent>
-              </Card>
+              </AnimatedCard>
             )}
           </TabsContent>
         </Tabs>
+
+        {/* CSV Types Guide */}
+        <AnimatedCard variant="royal" animation="lift">
+          <CardHeader>
+            <CardTitle>CSV File Types Guide</CardTitle>
+            <CardDescription>
+              Understanding different CSV report types for optimal data processing
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="p-4 border rounded-lg">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-2xl">📊</span>
+                  <h3 className="font-semibold">Campaign Report</h3>
+                  <AnimatedBadge variant="royal" animation="glow" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                    Default
+                  </AnimatedBadge>
+                </div>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Standard campaign performance data with spend, installs, CPI, and other key metrics.
+                </p>
+                <div className="text-xs text-muted-foreground">
+                  <strong>Expected columns:</strong> campaign_name, app_name, spend, installs, impressions, clicks
+                </div>
+              </div>
+
+              <div className="p-4 border rounded-lg">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-2xl">📦</span>
+                  <h3 className="font-semibold">Inventory Overall</h3>
+                  <AnimatedBadge variant="mint" animation="glow" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                    Aggregated
+                  </AnimatedBadge>
+                </div>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Aggregated inventory data across all exchanges and traffic sources.
+                </p>
+                <div className="text-xs text-muted-foreground">
+                  <strong>File pattern:</strong> *inventory_overall*.csv
+                </div>
+              </div>
+
+              <div className="p-4 border rounded-lg">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-2xl">📈</span>
+                  <h3 className="font-semibold">Inventory Daily</h3>
+                  <AnimatedBadge variant="lilac" animation="glow" className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                    Time-series
+                  </AnimatedBadge>
+                </div>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Daily breakdown of inventory performance with time-based metrics.
+                </p>
+                <div className="text-xs text-muted-foreground">
+                  <strong>File pattern:</strong> *inventory_daily*.csv
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 p-4 bg-muted/50 rounded-lg">
+              <h4 className="font-medium mb-2">💡 Pro Tips</h4>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                <li>• You can upload multiple files of different types simultaneously</li>
+                <li>• File types are auto-detected based on filename patterns</li>
+                <li>• All data is processed and merged for comprehensive analysis</li>
+                <li>• Maximum file size: 50MB per file, up to 10 files total</li>
+              </ul>
+            </div>
+          </CardContent>
+        </AnimatedCard>
       </div>
     </Layout>
   );

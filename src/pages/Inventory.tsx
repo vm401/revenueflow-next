@@ -4,6 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { AnimatedCard } from "@/components/AnimatedCard";
+import { AnimatedButton } from "@/components/AnimatedButton";
+import { AnimatedIcon } from "@/components/AnimatedIcon";
+import { AnimatedBadge } from "@/components/AnimatedBadge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -230,7 +234,7 @@ export default function Inventory() {
         </div>
 
         {/* Filters */}
-        <Card>
+        <AnimatedCard variant="lilac" animation="slide">
           <CardHeader>
             <CardTitle>Filters</CardTitle>
             <CardDescription>Filter inventory by various criteria</CardDescription>
@@ -325,12 +329,10 @@ export default function Inventory() {
                 variant="default" 
                 onClick={() => {
                   // Filters are applied automatically via useMemo
-                  console.log('Applying filters:', { searchTerm, selectedTrafficType, selectedPlatform, selectedAppBundle, selectedExchange });
                 }}
                 size="sm"
                 className="bg-green-600 hover:bg-green-700"
               >
-                Apply
               </Button>
             </div>
           </CardContent>

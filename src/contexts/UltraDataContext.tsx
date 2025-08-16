@@ -35,6 +35,9 @@ interface UltraDataContextType {
   
   // Data export
   exportData: (format: 'csv' | 'json') => void;
+  
+  // Date range info
+  getDateRange: () => { minDate: string; maxDate: string } | null;
 }
 
 export interface UltraCampaignFilters {
@@ -854,6 +857,23 @@ export const UltraDataProvider: React.FC<UltraDataProviderProps> = ({ children }
     loadFromStorage();
   }, []);
 
+  // Get date range from data
+  const getDateRange = (): { minDate: string; maxDate: string } | null => {
+    if (!data?.campaigns?.length) return null;
+    
+    const dates = data.campaigns.flatMap(campaign => 
+      campaign.dailyData?.map(d => d.date) || []
+    ).filter(Boolean);
+    
+    if (dates.length === 0) return null;
+    
+    const sortedDates = dates.sort();
+    return {
+      minDate: sortedDates[0],
+      maxDate: sortedDates[sortedDates.length - 1]
+    };
+  };
+
   const value: UltraDataContextType = {
     data,
     isLoading,
@@ -868,7 +888,8 @@ export const UltraDataProvider: React.FC<UltraDataProviderProps> = ({ children }
     getUltraSummary,
     saveToStorage,
     loadFromStorage,
-    exportData
+    exportData,
+    getDateRange
   };
 
   return (
