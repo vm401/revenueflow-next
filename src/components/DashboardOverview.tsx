@@ -3,7 +3,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { TrendingUp, DollarSign, Users, BarChart, RefreshCw, Loader2, AlertTriangle, CheckCircle, ExternalLink } from "lucide-react";
+import { TrendingUp, DollarSign, Users, BarChart, RefreshCw, Loader2, AlertTriangle, CheckCircle, ExternalLink, Info } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
@@ -165,7 +166,7 @@ export function DashboardOverview() {
   // Use CSV data if available, fallback to API data, then mock data
   const csvSummary = getDashboardSummary();
   const recentCampaigns = getFilteredCampaigns({ 
-    sortBy: 'date', 
+    sortBy: 'spend', 
     sortOrder: 'desc', 
     limit: 5 
   });
@@ -354,7 +355,26 @@ export function DashboardOverview() {
         {/* Total Spend */}
         <Card className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-card-foreground">Total Spend</CardTitle>
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-sm font-medium text-card-foreground">Total Spend</CardTitle>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                      <Info className="h-3 w-3 text-white" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="space-y-1">
+                      <p className="font-semibold">Total Spend Breakdown</p>
+                      <p>Media Spend: ${(getMetricValue('total_spend') || getMetricValue('totalSpend') || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                      <p>Agency Commission (8%): ${((getMetricValue('total_spend') || getMetricValue('totalSpend') || 0) * 0.08).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                      <p className="font-semibold border-t pt-1">Spend with Commission: ${((getMetricValue('total_spend') || getMetricValue('totalSpend') || 0) * 1.08).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -411,15 +431,36 @@ export function DashboardOverview() {
           </CardContent>
         </Card>
 
-        {/* Active Apps */}
+        {/* Average IPM */}
         <Card className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-card-foreground">Active Apps</CardTitle>
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-sm font-medium text-card-foreground">Average IPM</CardTitle>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                      <Info className="h-3 w-3 text-white" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <div className="space-y-1">
+                      <p className="font-semibold">Installs Per Mille (IPM)</p>
+                      <p>Number of installs per 1000 impressions</p>
+                      <p>Formula: (Installs / Impressions) × 1000</p>
+                      <p>Current: {csvData ? (csvSummary.totalImpressions > 0 ? ((csvSummary.totalInstalls / csvSummary.totalImpressions) * 1000).toFixed(2) : '0.00') : '0.00'}‰</p>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-card-foreground">{getMetricValue('activeApps') || 0}</div>
-            <p className="text-xs text-muted-foreground">In portfolio</p>
+            <div className="text-2xl font-bold text-card-foreground">
+              {csvData ? (csvSummary.totalImpressions > 0 ? ((csvSummary.totalInstalls / csvSummary.totalImpressions) * 1000).toFixed(2) : '0.00') : '0.00'}‰
+            </div>
+            <p className="text-xs text-muted-foreground">Installs per 1000 impressions</p>
             <div className="mt-4 h-2 bg-muted rounded-full overflow-hidden">
               <div className="h-full w-3/5 bg-primary rounded-full"></div>
             </div>
@@ -465,7 +506,7 @@ export function DashboardOverview() {
                 <TableHead className="text-muted-foreground">Spend</TableHead>
                 <TableHead className="text-muted-foreground">Installs</TableHead>
                 <TableHead className="text-muted-foreground">CPI</TableHead>
-                <TableHead className="text-muted-foreground">Status</TableHead>
+                <TableHead className="text-muted-foreground">IPM</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -508,7 +549,9 @@ export function DashboardOverview() {
                   const cpi = typeof campaign.cpi === 'number' 
                     ? `$${campaign.cpi.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}` 
                     : '$0.00';
-                  const status = campaign.status?.toUpperCase() || 'ACTIVE';
+                  // Calculate IPM (Installs per Mille - installs per 1000 impressions)
+                  const totalImpressions = campaign.totalImpressions || 0;
+                  const ipm = totalImpressions > 0 ? ((installs / totalImpressions) * 1000).toFixed(2) : '0.00';
 
                   // Get country flag
                   const countryFlags: { [key: string]: string } = {
@@ -541,18 +584,8 @@ export function DashboardOverview() {
                       <TableCell className="text-foreground font-semibold">{spend}</TableCell>
                       <TableCell className="text-foreground">{installs.toLocaleString()}</TableCell>
                       <TableCell className="text-foreground">{cpi}</TableCell>
-                      <TableCell>
-                        <Badge 
-                          variant="secondary" 
-                          className={
-                            status === "ACTIVE" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" :
-                            status === "PAUSED" ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200" :
-                            status === "TESTING" ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" :
-                            "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
-                          }
-                        >
-                          {status}
-                        </Badge>
+                      <TableCell className="text-foreground font-semibold">
+                        {ipm}‰
                       </TableCell>
                     </TableRow>
                   );

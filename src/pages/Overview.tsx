@@ -1,34 +1,78 @@
+import { useState } from "react";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useData } from "@/contexts/DataContext";
-import { TrendingUp, TrendingDown, Activity, Target, DollarSign, Users, MousePointer, Smartphone } from "lucide-react";
+import { TrendingUp, TrendingDown, Activity, Target, DollarSign, Users, MousePointer, Smartphone, Calendar } from "lucide-react";
 
 export default function Overview() {
   const { data, getDashboardSummary } = useData();
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  
+  // Get filtered summary based on date range
   const summary = getDashboardSummary();
   
   // Calculate additional metrics
   const avgCTR = summary.avgCTR;
   const avgCPC = summary.avgCPC;
   const conversionRate = summary.totalImpressions > 0 ? (summary.totalInstalls / summary.totalImpressions) * 100 : 0;
-  const roi = summary.totalSpend > 0 ? ((summary.totalInstalls * 5 - summary.totalSpend) / summary.totalSpend) * 100 : 0; // Assuming $5 LTV per install
+  const avgIPM = summary.totalImpressions > 0 ? (summary.totalInstalls / summary.totalImpressions) * 1000 : 0; // IPM = Installs per Mille
   
   return (
     <Layout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold font-heading">Overview</h1>
-            <p className="text-muted-foreground font-sans">
-              Comprehensive overview of your advertising campaigns and performance metrics.
-            </p>
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold font-heading">Overview</h1>
+              <p className="text-muted-foreground font-sans">
+                Comprehensive overview of your advertising campaigns and performance metrics.
+              </p>
+            </div>
+            {data && (
+              <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                CSV Data Active
+              </Badge>
+            )}
           </div>
-          {data && (
-            <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-              CSV Data Active
-            </Badge>
-          )}
+          
+          {/* Date Filter */}
+          <Card className="p-4">
+            <div className="flex items-center gap-4">
+              <Calendar className="h-5 w-5 text-muted-foreground" />
+              <span className="text-sm font-medium">Date Range:</span>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                  className="w-auto"
+                  placeholder="From"
+                />
+                <span className="text-muted-foreground">to</span>
+                <Input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                  className="w-auto"
+                  placeholder="To"
+                />
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setDateFrom("");
+                    setDateTo("");
+                  }}
+                  size="sm"
+                >
+                  Clear
+                </Button>
+              </div>
+            </div>
+          </Card>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -125,18 +169,24 @@ export default function Overview() {
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Estimated ROI</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Average IPM</CardTitle>
+              <Target className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {roi > 0 ? '+' : ''}{roi.toFixed(0)}%
+                {avgIPM.toFixed(2)}‰
               </div>
               <p className="text-xs text-muted-foreground">
-                {roi > 0 ? (
-                  <span className="text-green-600">Profitable</span>
+                {avgIPM > 2 ? (
+                  <span className="text-green-600 flex items-center gap-1">
+                    <TrendingUp className="h-3 w-3" />
+                    Above average
+                  </span>
                 ) : (
-                  <span className="text-red-600">Loss making</span>
+                  <span className="text-yellow-600 flex items-center gap-1">
+                    <TrendingDown className="h-3 w-3" />
+                    Below average
+                  </span>
                 )}
               </p>
             </CardContent>
@@ -165,8 +215,10 @@ export default function Overview() {
                 <span className="font-semibold">{summary.totalExchanges}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm">Inventory Sources</span>
-                <span className="font-semibold">{summary.totalInventory}</span>
+                <span className="text-sm">Data Source</span>
+                <Badge variant="secondary" className="text-xs">
+                  {data ? 'CSV Files' : 'Demo Data'}
+                </Badge>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm">Active Countries</span>
