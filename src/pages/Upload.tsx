@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
-import { Upload as UploadIcon, X, Trash2, AlertTriangle } from "lucide-react";
+import { Upload as UploadIcon, X, Trash2, AlertTriangle, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/lib/api";
 
 interface FileUpload {
   id: string;
@@ -18,6 +20,64 @@ export default function Upload() {
   const [files, setFiles] = useState<FileUpload[]>([]);
   const [dragActive, setDragActive] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Upload mutation
+  const uploadMutation = useMutation({
+    mutationFn: async (files: File[]) => {
+      return api.uploadMultipleCSV(files);
+    },
+    onSuccess: (response) => {
+      toast({
+        title: "Upload Successful",
+        description: `${files.length} file(s) uploaded and processed successfully`,
+      });
+      
+      // Mark all files as successful
+      setFiles(prev => prev.map(f => ({ ...f, status: "success" as const, progress: 100 })));
+      
+      // Refresh dashboard data
+      queryClient.invalidateQueries({ queryKey: ['dashboard-data'] });
+      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+    },
+    onError: (error: any) => {
+      const errorMessage = error.response?.data?.message || error.message || 'Upload failed';
+      toast({
+        title: "Upload Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      
+      // Mark all files as error
+      setFiles(prev => prev.map(f => ({ ...f, status: "error" as const })));
+    },
+  });
+
+  // Clear data mutation
+  const clearDataMutation = useMutation({
+    mutationFn: () => api.clearUploadedData(),
+    onSuccess: () => {
+      toast({
+        title: "Data Cleared",
+        description: "All uploaded data has been permanently deleted",
+      });
+      
+      // Clear local files
+      setFiles([]);
+      
+      // Refresh dashboard data
+      queryClient.invalidateQueries({ queryKey: ['dashboard-data'] });
+      queryClient.invalidateQueries({ queryKey: ['campaigns'] });
+    },
+    onError: (error: any) => {
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to clear data';
+      toast({
+        title: "Clear Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -93,44 +153,30 @@ export default function Upload() {
       return;
     }
 
-    // Simulate upload process
-    for (const fileUpload of files) {
-      setFiles(prev => 
-        prev.map(f => f.id === fileUpload.id ? { ...f, status: "uploading" } : f)
-      );
+    // Mark all files as uploading
+    setFiles(prev => prev.map(f => ({ ...f, status: "uploading" as const, progress: 0 })));
 
-      // Simulate progress
-      for (let progress = 0; progress <= 100; progress += 10) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        setFiles(prev => 
-          prev.map(f => f.id === fileUpload.id ? { ...f, progress } : f)
-        );
-      }
+    // Start progress animation
+    const progressInterval = setInterval(() => {
+      setFiles(prev => prev.map(f => ({
+        ...f,
+        progress: f.status === "uploading" ? Math.min(f.progress + 5, 95) : f.progress
+      })));
+    }, 200);
 
-      // Simulate success/error
-      const success = Math.random() > 0.2; // 80% success rate
-      setFiles(prev => 
-        prev.map(f => 
-          f.id === fileUpload.id 
-            ? { ...f, status: success ? "success" : "error", progress: 100 } 
-            : f
-        )
-      );
+    try {
+      const fileList = files.map(f => f.file);
+      await uploadMutation.mutateAsync(fileList);
+    } catch (error) {
+      // Error handling is done in mutation
+    } finally {
+      clearInterval(progressInterval);
     }
-
-    toast({
-      title: "Upload Complete",
-      description: "Files have been processed successfully",
-    });
   };
 
   const clearAllData = () => {
     if (confirm("Are you sure you want to clear all uploaded data? This action cannot be undone.")) {
-      toast({
-        title: "Data Cleared",
-        description: "All uploaded data has been cleared",
-      });
-      setFiles([]);
+      clearDataMutation.mutate();
     }
   };
 
@@ -196,11 +242,25 @@ export default function Upload() {
                   <CardDescription>Files ready for upload</CardDescription>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="outline" onClick={clearAllFiles}>
+                  <Button 
+                    variant="outline" 
+                    onClick={clearAllFiles}
+                    disabled={uploadMutation.isPending}
+                  >
                     Clear All
                   </Button>
-                  <Button onClick={uploadFiles}>
-                    Upload Files
+                  <Button 
+                    onClick={uploadFiles}
+                    disabled={uploadMutation.isPending}
+                  >
+                    {uploadMutation.isPending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Uploading...
+                      </>
+                    ) : (
+                      'Upload Files'
+                    )}
                   </Button>
                 </div>
               </div>
@@ -253,41 +313,57 @@ export default function Upload() {
             <CardDescription>Ensure your CSV files follow these guidelines</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <h4 className="font-semibold mb-2">Campaign Reports</h4>
                 <p className="text-sm text-muted-foreground mb-2">Required columns:</p>
                 <ul className="text-xs space-y-1">
-                  <li>• Date</li>
-                  <li>• Campaign</li>
-                  <li>• Campaign ID</li>
-                  <li>• Countries</li>
-                  <li>• Spend</li>
-                  <li>• Installs</li>
-                  <li>• CPI</li>
+                  <li>• <code>date</code> - Campaign date (YYYY-MM-DD)</li>
+                  <li>• <code>campaign_name</code> - Campaign name</li>
+                  <li>• <code>app_name</code> - Application name</li>
+                  <li>• <code>country</code> - Target country (US, UK, etc.)</li>
+                  <li>• <code>spend</code> - Total spend amount</li>
+                  <li>• <code>installs</code> - Number of installs</li>
                 </ul>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-2">Inventory Reports</h4>
-                <p className="text-sm text-muted-foreground mb-2">Required columns:</p>
+                <p className="text-xs text-muted-foreground mt-2">Optional columns:</p>
                 <ul className="text-xs space-y-1">
-                  <li>• Inventory Traffic</li>
-                  <li>• App Bundle</li>
-                  <li>• App Title</li>
-                  <li>• Impressions</li>
-                  <li>• Clicks</li>
+                  <li>• <code>actions</code> - Post-install actions</li>
+                  <li>• <code>impressions</code> - Ad impressions</li>
+                  <li>• <code>clicks</code> - Ad clicks</li>
+                  <li>• <code>exchange</code> - Ad exchange</li>
+                  <li>• <code>inventory_type</code> - Inventory type</li>
                 </ul>
               </div>
               <div>
                 <h4 className="font-semibold mb-2">Creative Reports</h4>
                 <p className="text-sm text-muted-foreground mb-2">Required columns:</p>
                 <ul className="text-xs space-y-1">
-                  <li>• Creative ID</li>
-                  <li>• Creative Type</li>
-                  <li>• Creative Size</li>
-                  <li>• Performance</li>
+                  <li>• <code>date</code> - Campaign date</li>
+                  <li>• <code>creative_name</code> - Creative name</li>
+                  <li>• <code>campaign_name</code> - Associated campaign</li>
+                  <li>• <code>app_name</code> - Application name</li>
+                  <li>• <code>spend</code> - Creative spend</li>
+                  <li>• <code>installs</code> - Installs from creative</li>
+                </ul>
+                <p className="text-xs text-muted-foreground mt-2">Optional columns:</p>
+                <ul className="text-xs space-y-1">
+                  <li>• <code>creative_size</code> - Creative dimensions</li>
+                  <li>• <code>creative_type</code> - Image/Video/etc.</li>
+                  <li>• <code>country</code> - Target country</li>
+                  <li>• <code>actions</code> - Post-install actions</li>
                 </ul>
               </div>
+            </div>
+            
+            <div className="mt-4 p-4 bg-muted/50 rounded-lg">
+              <h5 className="font-semibold text-sm mb-2">📋 Important Notes:</h5>
+              <ul className="text-xs space-y-1 text-muted-foreground">
+                <li>• Column names are case-sensitive</li>
+                <li>• Date format: YYYY-MM-DD (e.g., 2025-01-15)</li>
+                <li>• Numeric values should not contain currency symbols</li>
+                <li>• Files are automatically processed and validated</li>
+                <li>• Duplicate data is automatically handled</li>
+              </ul>
             </div>
           </CardContent>
         </Card>
@@ -305,9 +381,22 @@ export default function Upload() {
                 This will permanently delete all uploaded data and cannot be undone.
               </AlertDescription>
             </Alert>
-            <Button variant="destructive" onClick={clearAllData}>
-              <Trash2 className="w-4 h-4 mr-2" />
-              Clear All Data
+            <Button 
+              variant="destructive" 
+              onClick={clearAllData}
+              disabled={clearDataMutation.isPending}
+            >
+              {clearDataMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Clearing...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Clear All Data
+                </>
+              )}
             </Button>
           </CardContent>
         </Card>
