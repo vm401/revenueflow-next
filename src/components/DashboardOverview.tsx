@@ -2,9 +2,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, DollarSign, Users, BarChart, RefreshCw, Loader2 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { TrendingUp, DollarSign, Users, BarChart, RefreshCw, Loader2, AlertTriangle, CheckCircle, ExternalLink } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from "react";
 
 // Mock data based on Moloco CRM specification
 const mockMetrics = {
@@ -88,17 +91,45 @@ const mockCampaigns = [
 ];
 
 export function DashboardOverview() {
-  // Fetch real data from API
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [connectionStatus, setConnectionStatus] = useState<'online' | 'offline' | 'checking'>('checking');
+
+  // Fetch real data from API with enhanced error handling
   const { 
     data: dashboardData, 
     isLoading: isDashboardLoading, 
     error: dashboardError,
-    refetch: refetchDashboard 
+    refetch: refetchDashboard,
+    isStale: isDashboardStale,
+    dataUpdatedAt: dashboardUpdatedAt
   } = useQuery({
     queryKey: ['dashboard-data'],
-    queryFn: api.getDashboardData,
-    refetchInterval: 30000, // Refetch every 30 seconds
-    retry: 2,
+    queryFn: async () => {
+      try {
+        setConnectionStatus('checking');
+        const result = await api.getDashboardData();
+        setConnectionStatus('online');
+        setLastUpdated(new Date());
+        return result;
+      } catch (error) {
+        setConnectionStatus('offline');
+        throw error;
+      }
+    },
+    refetchInterval: (data, query) => {
+      // Dynamic refetch interval based on connection status
+      if (connectionStatus === 'offline') return 60000; // 1 minute when offline
+      return 30000; // 30 seconds when online
+    },
+    retry: (failureCount, error: any) => {
+      // Custom retry logic
+      if (error?.response?.status === 401) return false; // Don't retry auth errors
+      return failureCount < 3;
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
+    staleTime: 25000, // Consider data stale after 25 seconds
   });
 
   const { 
@@ -106,57 +137,194 @@ export function DashboardOverview() {
     isLoading: isCampaignsLoading,
     error: campaignsError 
   } = useQuery({
-    queryKey: ['campaigns'],
-    queryFn: () => api.getCampaigns({ limit: 5 }),
-    refetchInterval: 30000,
-    retry: 2,
+    queryKey: ['campaigns', 'recent'],
+    queryFn: () => api.getCampaigns({ limit: 5, sort_by: 'date', sort_order: 'desc' }),
+    refetchInterval: connectionStatus === 'offline' ? 60000 : 30000,
+    retry: (failureCount, error: any) => {
+      if (error?.response?.status === 401) return false;
+      return failureCount < 3;
+    },
+    enabled: !!dashboardData, // Only fetch campaigns after dashboard data loads
   });
 
-  // Use real data if available, fallback to mock data
-  const metrics = dashboardData?.data?.data?.summary || mockMetrics;
+  // Data validation and processing
+  const validateMetrics = (data: any) => {
+    if (!data || typeof data !== 'object') return null;
+    
+    // Ensure all required fields exist and are numbers
+    const requiredFields = ['total_spend', 'total_installs', 'total_campaigns', 'average_cpi'];
+    for (const field of requiredFields) {
+      if (data[field] === undefined || data[field] === null) return null;
+    }
+    
+    return data;
+  };
+
+  // Use real data if available and valid, fallback to mock data
+  const rawMetrics = dashboardData?.data?.data?.summary;
+  const validatedMetrics = validateMetrics(rawMetrics);
+  const metrics = validatedMetrics || mockMetrics;
+  
   const campaigns = campaignsData?.data?.data || mockCampaigns;
   
-  // Helper function to safely get metric values
+  // Helper function to safely get metric values with fallbacks
   const getMetricValue = (key: string) => {
-    return (metrics as any)[key] || 0;
+    const value = (metrics as any)[key];
+    if (typeof value === 'number' && !isNaN(value)) return value;
+    
+    // Fallback to alternative key names
+    const alternativeKeys: { [key: string]: string[] } = {
+      total_spend: ['totalSpend', 'spend'],
+      total_installs: ['totalInstalls', 'installs'],
+      total_campaigns: ['totalCampaigns', 'campaigns'],
+      average_cpi: ['averageCPI', 'avgCPI', 'cpi']
+    };
+    
+    const alternatives = alternativeKeys[key] || [];
+    for (const altKey of alternatives) {
+      const altValue = (metrics as any)[altKey];
+      if (typeof altValue === 'number' && !isNaN(altValue)) return altValue;
+    }
+    
+    return 0;
   };
   
   const isLoading = isDashboardLoading || isCampaignsLoading;
   const hasError = dashboardError || campaignsError;
+  const isUsingFallbackData = !validatedMetrics;
 
-  const handleRefresh = () => {
-    refetchDashboard();
+  const handleRefresh = async () => {
+    try {
+      setConnectionStatus('checking');
+      
+      // Invalidate and refetch all dashboard queries
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['dashboard-data'] }),
+        queryClient.invalidateQueries({ queryKey: ['campaigns'] })
+      ]);
+      
+      toast({
+        title: "Data Refreshed",
+        description: "Dashboard data has been updated successfully.",
+      });
+      
+      setLastUpdated(new Date());
+      setConnectionStatus('online');
+    } catch (error) {
+      setConnectionStatus('offline');
+      toast({
+        title: "Refresh Failed",
+        description: "Unable to refresh data. Please check your connection.",
+        variant: "destructive",
+      });
+    }
   };
+
+  // Auto-refresh notification
+  useEffect(() => {
+    if (dashboardUpdatedAt && !isDashboardLoading && !hasError) {
+      const timeSinceUpdate = Date.now() - dashboardUpdatedAt;
+      if (timeSinceUpdate > 60000) { // Show notification if data is older than 1 minute
+        toast({
+          title: "Data Updated",
+          description: "Dashboard metrics have been refreshed.",
+        });
+      }
+    }
+  }, [dashboardUpdatedAt, isDashboardLoading, hasError, toast]);
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
+      {/* Page Header with Status */}
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-foreground">Overview</h1>
-        <Button 
-          variant="outline" 
-          onClick={handleRefresh}
-          disabled={isLoading}
-          className="flex items-center gap-2"
-        >
-          {isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <RefreshCw className="h-4 w-4" />
-          )}
-          Refresh
-        </Button>
+        <div className="flex items-center gap-4">
+          <h1 className="text-3xl font-bold text-foreground">Overview</h1>
+          <div className="flex items-center gap-2">
+            {connectionStatus === 'online' && (
+              <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Live
+              </Badge>
+            )}
+            {connectionStatus === 'offline' && (
+              <Badge variant="secondary" className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                <AlertTriangle className="h-3 w-3 mr-1" />
+                Offline
+              </Badge>
+            )}
+            {connectionStatus === 'checking' && (
+              <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                Connecting
+              </Badge>
+            )}
+            {isUsingFallbackData && (
+              <Badge variant="outline" className="text-xs">
+                Demo Data
+              </Badge>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="text-xs text-muted-foreground">
+            Updated: {lastUpdated.toLocaleTimeString()}
+          </div>
+          <Button 
+            variant="outline" 
+            onClick={handleRefresh}
+            disabled={isLoading}
+            className="flex items-center gap-2"
+          >
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4" />
+            )}
+            Refresh
+          </Button>
+        </div>
       </div>
 
-      {/* Error Alert */}
-      {hasError && (
-        <Card className="bg-destructive/10 border-destructive/20">
-          <CardContent className="pt-6">
-            <p className="text-sm text-destructive">
-              Failed to load data. Using cached data. Please check your connection.
-            </p>
-          </CardContent>
-        </Card>
+      {/* Connection Status Alerts */}
+      {hasError && connectionStatus === 'offline' && (
+        <Alert className="border-destructive/20 bg-destructive/10">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription className="text-destructive">
+            <strong>Connection Lost:</strong> Unable to fetch live data. Showing cached data from {lastUpdated.toLocaleString()}.
+            <Button 
+              variant="link" 
+              className="p-0 h-auto text-destructive underline ml-2"
+              onClick={handleRefresh}
+            >
+              Try reconnecting
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {isUsingFallbackData && connectionStatus === 'online' && (
+        <Alert className="border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription className="text-yellow-800 dark:text-yellow-200">
+            <strong>Demo Mode:</strong> API returned invalid data. Showing demonstration data for preview purposes.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {isDashboardStale && connectionStatus === 'online' && (
+        <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Data may be outdated. 
+            <Button 
+              variant="link" 
+              className="p-0 h-auto underline ml-1"
+              onClick={handleRefresh}
+            >
+              Refresh now
+            </Button>
+          </AlertDescription>
+        </Alert>
       )}
 
       {/* Metrics Grid */}
@@ -279,41 +447,123 @@ export function DashboardOverview() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mockCampaigns.map((campaign, index) => (
-                <TableRow key={index} className="border-border hover:bg-muted/50">
-                  <TableCell className="font-medium text-sm">
-                    <div className="max-w-[200px] truncate">
-                      <span className="text-foreground">{campaign.campaignName}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-foreground">{campaign.appName}</TableCell>
-                  <TableCell className="text-foreground">
-                    <div className="flex items-center gap-2">
-                      <span>{campaign.flag}</span>
-                      <span>{campaign.country}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">{campaign.date}</TableCell>
-                  <TableCell className="text-foreground font-semibold">{campaign.spend}</TableCell>
-                  <TableCell className="text-foreground">{campaign.installs.toLocaleString()}</TableCell>
-                  <TableCell className="text-foreground">{campaign.cpi}</TableCell>
-                  <TableCell>
-                    <Badge 
-                      variant="secondary" 
-                      className={
-                        campaign.status === "ACTIVE" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" :
-                        campaign.status === "PAUSED" ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200" :
-                        campaign.status === "TESTING" ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" :
-                        "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
-                      }
-                    >
-                      {campaign.status}
-                    </Badge>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+                    <p className="text-muted-foreground">Loading recent campaigns...</p>
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : campaigns.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-8">
+                    <p className="text-muted-foreground">No recent campaigns found</p>
+                    <Button variant="link" className="mt-2" asChild>
+                      <a href="/upload">
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        Upload campaign data
+                      </a>
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                campaigns.slice(0, 5).map((campaign: any, index: number) => {
+                  // Handle both API data format and mock data format
+                  const campaignName = campaign.campaign_name || campaign.campaignName || 'Unknown Campaign';
+                  const appName = campaign.app_name || campaign.appName || 'Unknown App';
+                  const country = campaign.country || 'Unknown';
+                  const date = campaign.date || '';
+                  const spend = typeof campaign.spend === 'number' 
+                    ? `$${campaign.spend.toLocaleString()}` 
+                    : campaign.spend || '$0';
+                  const installs = typeof campaign.installs === 'number' 
+                    ? campaign.installs 
+                    : parseInt(campaign.installs?.toString() || '0');
+                  const cpi = typeof campaign.cpi === 'number' 
+                    ? `$${campaign.cpi.toFixed(2)}` 
+                    : campaign.cpi || '$0.00';
+                  const status = campaign.status || 'UNKNOWN';
+
+                  // Get country flag
+                  const countryFlags: { [key: string]: string } = {
+                    'US': '🇺🇸', 'UK': '🇬🇧', 'DE': '🇩🇪', 'CA': '🇨🇦', 'AU': '🇦🇺',
+                    'FR': '🇫🇷', 'IT': '🇮🇹', 'ES': '🇪🇸', 'JP': '🇯🇵', 'KR': '🇰🇷'
+                  };
+                  const flag = countryFlags[country] || '🌍';
+
+                  return (
+                    <TableRow key={campaign.id || index} className="border-border hover:bg-muted/50 cursor-pointer group">
+                      <TableCell className="font-medium text-sm">
+                        <div className="max-w-[200px] truncate">
+                          <span className="text-foreground group-hover:text-primary transition-colors">
+                            {campaignName}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-foreground">{appName}</TableCell>
+                      <TableCell className="text-foreground">
+                        <div className="flex items-center gap-2">
+                          <span>{flag}</span>
+                          <span>{country}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {date ? new Date(date).toLocaleDateString() : 'N/A'}
+                      </TableCell>
+                      <TableCell className="text-foreground font-semibold">{spend}</TableCell>
+                      <TableCell className="text-foreground">{installs.toLocaleString()}</TableCell>
+                      <TableCell className="text-foreground">{cpi}</TableCell>
+                      <TableCell>
+                        <Badge 
+                          variant="secondary" 
+                          className={
+                            status === "ACTIVE" ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" :
+                            status === "PAUSED" ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200" :
+                            status === "TESTING" ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200" :
+                            "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
+                          }
+                        >
+                          {status}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
             </TableBody>
           </Table>
+        </CardContent>
+      </Card>
+
+      {/* Quick Actions Footer */}
+      <Card className="bg-card border-border">
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-card-foreground">Quick Actions</h3>
+              <p className="text-sm text-muted-foreground">Common tasks and navigation</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" asChild>
+                <a href="/upload">
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Upload CSV
+                </a>
+              </Button>
+              <Button variant="outline" asChild>
+                <a href="/campaigns">
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  View All Campaigns
+                </a>
+              </Button>
+              <Button variant="outline" asChild>
+                <a href="/apps">
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Manage Apps
+                </a>
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>

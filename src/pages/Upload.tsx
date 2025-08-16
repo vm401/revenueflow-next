@@ -1,10 +1,13 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
-import { Upload as UploadIcon, X, Trash2, AlertTriangle, Loader2 } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Upload as UploadIcon, X, Trash2, AlertTriangle, Loader2, FileText, CheckCircle, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -14,13 +17,163 @@ interface FileUpload {
   file: File;
   status: "pending" | "uploading" | "success" | "error";
   progress: number;
+  preview?: string[][];
+  validationErrors?: string[];
+  rowCount?: number;
+  columnCount?: number;
+}
+
+interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
+  preview: string[][];
+  rowCount: number;
+  columnCount: number;
 }
 
 export default function Upload() {
   const [files, setFiles] = useState<FileUpload[]>([]);
   const [dragActive, setDragActive] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // CSV validation function
+  const validateCSV = async (file: File): Promise<ValidationResult> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const csv = e.target?.result as string;
+          const lines = csv.split('\n').filter(line => line.trim());
+          
+          if (lines.length === 0) {
+            resolve({
+              isValid: false,
+              errors: ['File is empty'],
+              warnings: [],
+              preview: [],
+              rowCount: 0,
+              columnCount: 0
+            });
+            return;
+          }
+
+          // Parse CSV (simple parser - could be enhanced)
+          const rows = lines.map(line => {
+            // Handle quoted values and commas
+            const result: string[] = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+              const char = line[i];
+              if (char === '"') {
+                inQuotes = !inQuotes;
+              } else if (char === ',' && !inQuotes) {
+                result.push(current.trim());
+                current = '';
+              } else {
+                current += char;
+              }
+            }
+            result.push(current.trim());
+            return result;
+          });
+
+          const headers = rows[0]?.map(h => h.toLowerCase().replace(/['"]/g, '')) || [];
+          const dataRows = rows.slice(1);
+          
+          // Validation rules
+          const errors: string[] = [];
+          const warnings: string[] = [];
+
+          // Check required columns for campaign data
+          const requiredCampaignColumns = ['date', 'campaign_name', 'app_name', 'country', 'spend', 'installs'];
+          const requiredCreativeColumns = ['date', 'creative_name', 'campaign_name', 'app_name', 'spend', 'installs'];
+          
+          const hasRequiredCampaignColumns = requiredCampaignColumns.every(col => 
+            headers.some(header => header.includes(col.replace('_', '')))
+          );
+          
+          const hasRequiredCreativeColumns = requiredCreativeColumns.every(col => 
+            headers.some(header => header.includes(col.replace('_', '')))
+          );
+
+          if (!hasRequiredCampaignColumns && !hasRequiredCreativeColumns) {
+            errors.push('Missing required columns. Expected either campaign or creative data format.');
+          }
+
+          // Check data types in sample rows
+          if (dataRows.length > 0) {
+            const sampleRows = dataRows.slice(0, 5);
+            
+            sampleRows.forEach((row, idx) => {
+              if (row.length !== headers.length) {
+                warnings.push(`Row ${idx + 2}: Column count mismatch (${row.length} vs ${headers.length})`);
+              }
+
+              // Check spend column (should be numeric)
+              const spendIndex = headers.findIndex(h => h.includes('spend'));
+              if (spendIndex >= 0 && row[spendIndex]) {
+                const spendValue = parseFloat(row[spendIndex].replace(/[$,]/g, ''));
+                if (isNaN(spendValue)) {
+                  warnings.push(`Row ${idx + 2}: Invalid spend value "${row[spendIndex]}"`);
+                }
+              }
+
+              // Check installs column (should be numeric)
+              const installsIndex = headers.findIndex(h => h.includes('installs'));
+              if (installsIndex >= 0 && row[installsIndex]) {
+                const installsValue = parseInt(row[installsIndex].replace(/[,]/g, ''));
+                if (isNaN(installsValue)) {
+                  warnings.push(`Row ${idx + 2}: Invalid installs value "${row[installsIndex]}"`);
+                }
+              }
+
+              // Check date format
+              const dateIndex = headers.findIndex(h => h.includes('date'));
+              if (dateIndex >= 0 && row[dateIndex]) {
+                const dateValue = new Date(row[dateIndex]);
+                if (isNaN(dateValue.getTime())) {
+                  warnings.push(`Row ${idx + 2}: Invalid date format "${row[dateIndex]}"`);
+                }
+              }
+            });
+          }
+
+          // Size warnings
+          if (dataRows.length > 10000) {
+            warnings.push(`Large file: ${dataRows.length} rows. Processing may take longer.`);
+          }
+
+          if (dataRows.length === 0) {
+            errors.push('No data rows found (only headers)');
+          }
+
+          resolve({
+            isValid: errors.length === 0,
+            errors,
+            warnings,
+            preview: rows.slice(0, 6), // First 5 data rows + header
+            rowCount: dataRows.length,
+            columnCount: headers.length
+          });
+        } catch (error) {
+          resolve({
+            isValid: false,
+            errors: ['Failed to parse CSV file'],
+            warnings: [],
+            preview: [],
+            rowCount: 0,
+            columnCount: 0
+          });
+        }
+      };
+      reader.readAsText(file);
+    });
+  };
 
   // Upload mutation
   const uploadMutation = useMutation({
@@ -105,7 +258,7 @@ export default function Upload() {
     }
   };
 
-  const handleFiles = (newFiles: File[]) => {
+  const handleFiles = async (newFiles: File[]) => {
     const csvFiles = newFiles.filter(file => file.type === "text/csv" || file.name.endsWith(".csv"));
     
     if (csvFiles.length !== newFiles.length) {
@@ -125,14 +278,62 @@ export default function Upload() {
       return;
     }
 
-    const fileUploads: FileUpload[] = csvFiles.map(file => ({
-      id: Math.random().toString(36).substr(2, 9),
-      file,
-      status: "pending",
-      progress: 0,
-    }));
+    // Create file uploads with validation
+    const fileUploads: FileUpload[] = [];
+    
+    for (const file of csvFiles) {
+      // Check file size (50MB limit)
+      if (file.size > 50 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: `${file.name} exceeds 50MB limit`,
+          variant: "destructive",
+        });
+        continue;
+      }
+
+      const fileUpload: FileUpload = {
+        id: Math.random().toString(36).substr(2, 9),
+        file,
+        status: "pending",
+        progress: 0,
+      };
+
+      // Validate CSV in background
+      try {
+        const validation = await validateCSV(file);
+        fileUpload.preview = validation.preview;
+        fileUpload.validationErrors = validation.errors;
+        fileUpload.rowCount = validation.rowCount;
+        fileUpload.columnCount = validation.columnCount;
+
+        if (!validation.isValid) {
+          toast({
+            title: "Validation Warning",
+            description: `${file.name} has validation issues. Check the preview.`,
+            variant: "destructive",
+          });
+        } else if (validation.warnings.length > 0) {
+          toast({
+            title: "File Warning",
+            description: `${file.name} has ${validation.warnings.length} warning(s). Check the preview.`,
+          });
+        }
+      } catch (error) {
+        fileUpload.validationErrors = ['Failed to validate file'];
+      }
+
+      fileUploads.push(fileUpload);
+    }
 
     setFiles(prev => [...prev, ...fileUploads]);
+
+    if (fileUploads.length > 0) {
+      toast({
+        title: "Files Added",
+        description: `${fileUploads.length} file(s) ready for upload`,
+      });
+    }
   };
 
   const removeFile = (id: string) => {
