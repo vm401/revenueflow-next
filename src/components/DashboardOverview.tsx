@@ -535,31 +535,25 @@ export function DashboardOverview() {
         </CardContent>
       </Card>
 
-      {/* Quick Actions Footer */}
+      {/* CSV Data Actions */}
       <Card className="bg-card border-border">
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-semibold text-card-foreground">Quick Actions</h3>
-              <p className="text-sm text-muted-foreground">Common tasks and navigation</p>
+              <h3 className="font-semibold text-card-foreground">CSV Data Management</h3>
+              <p className="text-sm text-muted-foreground">Upload and analyze your campaign data</p>
             </div>
             <div className="flex items-center gap-2">
               <Button variant="outline" asChild>
                 <a href="/upload">
                   <ExternalLink className="h-4 w-4 mr-2" />
-                  Upload CSV
+                  Upload CSV Files
                 </a>
               </Button>
               <Button variant="outline" asChild>
                 <a href="/campaigns">
                   <ExternalLink className="h-4 w-4 mr-2" />
-                  View All Campaigns
-                </a>
-              </Button>
-              <Button variant="outline" asChild>
-                <a href="/apps">
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  Manage Apps
+                  View Campaign Data
                 </a>
               </Button>
             </div>

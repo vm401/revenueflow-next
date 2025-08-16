@@ -8,108 +8,72 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { Save, Download, RotateCcw, Eye, EyeOff } from "lucide-react";
+import { Save, Download, RotateCcw, FileSpreadsheet, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Settings() {
-  const [showPassword, setShowPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
   const [profileData, setProfileData] = useState({
-    firstName: "John",
-    lastName: "Doe",
-    email: "john.doe@moloco.com",
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: ""
+    firstName: "Demo",
+    lastName: "User",
+    email: "demo@moloco.com",
+    company: "Moloco CRM"
   });
+  
   const [notifications, setNotifications] = useState({
-    emailReports: true,
-    campaignAlerts: true,
-    systemUpdates: false,
-    performanceAlerts: true
+    csvProcessing: true,
+    dataUpdates: true,
+    campaignAlerts: false,
+    errorReports: true
   });
-  const [systemSettings, setSystemSettings] = useState({
-    language: "en",
+  
+  const [preferences, setPreferences] = useState({
     timezone: "UTC",
     dateFormat: "MM/DD/YYYY",
-    currency: "USD"
+    currency: "USD",
+    csvDelimiter: "comma"
   });
+  
   const { toast } = useToast();
 
   const handleSaveProfile = () => {
-    if (profileData.newPassword && profileData.newPassword !== profileData.confirmPassword) {
-      toast({
-        title: "Error",
-        description: "New passwords do not match",
-        variant: "destructive",
-      });
-      return;
-    }
-
     toast({
       title: "Profile Updated",
-      description: "Your profile has been saved successfully",
+      description: "Your profile information has been saved successfully",
     });
   };
 
-  const handleChangePassword = () => {
-    if (!profileData.currentPassword) {
-      toast({
-        title: "Error",
-        description: "Please enter your current password",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (profileData.newPassword.length < 8) {
-      toast({
-        title: "Error",
-        description: "New password must be at least 8 characters",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const handleSaveNotifications = () => {
     toast({
-      title: "Password Changed",
-      description: "Your password has been updated successfully",
+      title: "Notification Settings Saved",
+      description: "Your notification preferences have been updated",
     });
-    
-    setProfileData(prev => ({
-      ...prev,
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: ""
-    }));
   };
 
-  const handleExportSettings = () => {
+  const handleSavePreferences = () => {
+    toast({
+      title: "Preferences Updated",
+      description: "Your system preferences have been saved",
+    });
+  };
+
+  const handleExportData = () => {
     toast({
       title: "Export Started",
-      description: "Downloading settings configuration...",
+      description: "Your CSV data export is being prepared",
     });
   };
 
-  const handleResetSettings = () => {
-    if (confirm("Are you sure you want to reset all settings to default values?")) {
-      setSystemSettings({
-        language: "en",
-        timezone: "UTC",
-        dateFormat: "MM/DD/YYYY",
-        currency: "USD"
-      });
-      setNotifications({
-        emailReports: true,
-        campaignAlerts: true,
-        systemUpdates: false,
-        performanceAlerts: true
-      });
-      toast({
-        title: "Settings Reset",
-        description: "All settings have been reset to default values",
-      });
-    }
+  const handleResetPreferences = () => {
+    setPreferences({
+      timezone: "UTC",
+      dateFormat: "MM/DD/YYYY",
+      currency: "USD",
+      csvDelimiter: "comma"
+    });
+    toast({
+      title: "Preferences Reset",
+      description: "All preferences have been reset to default values",
+    });
   };
 
   return (
@@ -118,23 +82,27 @@ export default function Settings() {
         <div>
           <h1 className="text-3xl font-bold">Settings</h1>
           <p className="text-muted-foreground">
-            Manage your account settings and preferences
+            Manage your account and CSV processing preferences
           </p>
         </div>
 
-        <Tabs defaultValue="profile" className="space-y-6">
+        <Tabs defaultValue="account" className="space-y-6">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="profile">Account</TabsTrigger>
+            <TabsTrigger value="account">Account</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
-            <TabsTrigger value="system">Preferences</TabsTrigger>
+            <TabsTrigger value="preferences">CSV & Data</TabsTrigger>
           </TabsList>
 
-          {/* Profile Tab */}
-          <TabsContent value="profile" className="space-y-6">
+          <TabsContent value="account" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Profile Information</CardTitle>
-                <CardDescription>Update your personal information and contact details</CardDescription>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Profile Information
+                </CardTitle>
+                <CardDescription>
+                  Update your account details and contact information
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
@@ -143,7 +111,7 @@ export default function Settings() {
                     <Input
                       id="firstName"
                       value={profileData.firstName}
-                      onChange={(e) => setProfileData(prev => ({ ...prev, firstName: e.target.value }))}
+                      onChange={(e) => setProfileData({...profileData, firstName: e.target.value})}
                     />
                   </div>
                   <div className="space-y-2">
@@ -151,225 +119,213 @@ export default function Settings() {
                     <Input
                       id="lastName"
                       value={profileData.lastName}
-                      onChange={(e) => setProfileData(prev => ({ ...prev, lastName: e.target.value }))}
+                      onChange={(e) => setProfileData({...profileData, lastName: e.target.value})}
                     />
                   </div>
                 </div>
+                
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">Email Address</Label>
                   <Input
                     id="email"
                     type="email"
                     value={profileData.email}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
+                    onChange={(e) => setProfileData({...profileData, email: e.target.value})}
                   />
                 </div>
-                <Button onClick={handleSaveProfile}>
-                  <Save className="w-4 h-4 mr-2" />
+
+                <div className="space-y-2">
+                  <Label htmlFor="company">Company</Label>
+                  <Input
+                    id="company"
+                    value={profileData.company}
+                    onChange={(e) => setProfileData({...profileData, company: e.target.value})}
+                  />
+                </div>
+
+                <Separator />
+                <Button onClick={handleSaveProfile} className="flex items-center gap-2">
+                  <Save className="h-4 w-4" />
                   Save Profile
                 </Button>
               </CardContent>
             </Card>
+          </TabsContent>
 
+          <TabsContent value="notifications" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Change Password</CardTitle>
-                <CardDescription>Update your password to keep your account secure</CardDescription>
+                <CardTitle>Notification Preferences</CardTitle>
+                <CardDescription>
+                  Choose what notifications you want to receive about your CSV data processing
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="currentPassword">Current Password</Label>
-                  <div className="relative">
-                    <Input
-                      id="currentPassword"
-                      type={showPassword ? "text" : "password"}
-                      value={profileData.currentPassword}
-                      onChange={(e) => setProfileData(prev => ({ ...prev, currentPassword: e.target.value }))}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </Button>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>CSV Processing Notifications</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Get notified when CSV files are uploaded and processed
+                    </p>
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="newPassword">New Password</Label>
-                  <div className="relative">
-                    <Input
-                      id="newPassword"
-                      type={showNewPassword ? "text" : "password"}
-                      value={profileData.newPassword}
-                      onChange={(e) => setProfileData(prev => ({ ...prev, newPassword: e.target.value }))}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                      onClick={() => setShowNewPassword(!showNewPassword)}
-                    >
-                      {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </Button>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    value={profileData.confirmPassword}
-                    onChange={(e) => setProfileData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                  <Switch
+                    checked={notifications.csvProcessing}
+                    onCheckedChange={(checked) => setNotifications({...notifications, csvProcessing: checked})}
                   />
                 </div>
-                <Button onClick={handleChangePassword}>
-                  Change Password
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Data Update Alerts</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Receive alerts when new campaign data is available
+                    </p>
+                  </div>
+                  <Switch
+                    checked={notifications.dataUpdates}
+                    onCheckedChange={(checked) => setNotifications({...notifications, dataUpdates: checked})}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Campaign Performance Alerts</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Get notified about significant changes in campaign performance
+                    </p>
+                  </div>
+                  <Switch
+                    checked={notifications.campaignAlerts}
+                    onCheckedChange={(checked) => setNotifications({...notifications, campaignAlerts: checked})}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Error Reports</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Receive notifications about CSV processing errors
+                    </p>
+                  </div>
+                  <Switch
+                    checked={notifications.errorReports}
+                    onCheckedChange={(checked) => setNotifications({...notifications, errorReports: checked})}
+                  />
+                </div>
+
+                <Separator />
+                <Button onClick={handleSaveNotifications} className="flex items-center gap-2">
+                  <Save className="h-4 w-4" />
+                  Save Notification Settings
                 </Button>
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* Notifications Tab */}
-          <TabsContent value="notifications" className="space-y-6">
+          <TabsContent value="preferences" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Email Preferences</CardTitle>
-                <CardDescription>Choose what notifications you want to receive</CardDescription>
+                <CardTitle className="flex items-center gap-2">
+                  <FileSpreadsheet className="h-5 w-5" />
+                  CSV & Data Preferences
+                </CardTitle>
+                <CardDescription>
+                  Configure how CSV files are processed and data is displayed
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="emailReports">Daily Performance Reports</Label>
-                    <p className="text-sm text-muted-foreground">Daily email with campaign spend, installs, and CPI summary</p>
-                  </div>
-                  <Switch
-                    id="emailReports"
-                    checked={notifications.emailReports}
-                    onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, emailReports: checked }))}
-                  />
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="campaignAlerts">High CPI Alerts</Label>
-                    <p className="text-sm text-muted-foreground">Get notified when campaign CPI exceeds your target thresholds</p>
-                  </div>
-                  <Switch
-                    id="campaignAlerts"
-                    checked={notifications.campaignAlerts}
-                    onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, campaignAlerts: checked }))}
-                  />
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="systemUpdates">CSV Upload Notifications</Label>
-                    <p className="text-sm text-muted-foreground">Receive confirmations when CSV files are processed</p>
-                  </div>
-                  <Switch
-                    id="systemUpdates"
-                    checked={notifications.systemUpdates}
-                    onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, systemUpdates: checked }))}
-                  />
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="performanceAlerts">Budget Alerts</Label>
-                    <p className="text-sm text-muted-foreground">Get alerts when campaign spend approaches budget limits</p>
-                  </div>
-                  <Switch
-                    id="performanceAlerts"
-                    checked={notifications.performanceAlerts}
-                    onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, performanceAlerts: checked }))}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* System Tab */}
-          <TabsContent value="system" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Display Preferences</CardTitle>
-                <CardDescription>Configure your display and regional settings</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="timezone">Timezone</Label>
-                    <Select value={systemSettings.timezone} onValueChange={(value) => setSystemSettings(prev => ({ ...prev, timezone: value }))}>
+                    <Select value={preferences.timezone} onValueChange={(value) => setPreferences({...preferences, timezone: value})}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="UTC">UTC (Coordinated Universal Time)</SelectItem>
-                        <SelectItem value="America/New_York">EST (Eastern Time)</SelectItem>
-                        <SelectItem value="America/Los_Angeles">PST (Pacific Time)</SelectItem>
-                        <SelectItem value="Europe/London">GMT (Greenwich Mean Time)</SelectItem>
-                        <SelectItem value="Asia/Tokyo">JST (Japan Standard Time)</SelectItem>
-                        <SelectItem value="Europe/Berlin">CET (Central European Time)</SelectItem>
+                        <SelectItem value="UTC">UTC</SelectItem>
+                        <SelectItem value="PST">Pacific Time (PST)</SelectItem>
+                        <SelectItem value="EST">Eastern Time (EST)</SelectItem>
+                        <SelectItem value="GMT">Greenwich Mean Time (GMT)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
+
                   <div className="space-y-2">
                     <Label htmlFor="dateFormat">Date Format</Label>
-                    <Select value={systemSettings.dateFormat} onValueChange={(value) => setSystemSettings(prev => ({ ...prev, dateFormat: value }))}>
+                    <Select value={preferences.dateFormat} onValueChange={(value) => setPreferences({...preferences, dateFormat: value})}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="YYYY-MM-DD">YYYY-MM-DD (2025-01-15)</SelectItem>
-                        <SelectItem value="MM/DD/YYYY">MM/DD/YYYY (01/15/2025)</SelectItem>
-                        <SelectItem value="DD/MM/YYYY">DD/MM/YYYY (15/01/2025)</SelectItem>
+                        <SelectItem value="MM/DD/YYYY">MM/DD/YYYY</SelectItem>
+                        <SelectItem value="DD/MM/YYYY">DD/MM/YYYY</SelectItem>
+                        <SelectItem value="YYYY-MM-DD">YYYY-MM-DD</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
+
                   <div className="space-y-2">
-                    <Label htmlFor="currency">Currency Display</Label>
-                    <Select value={systemSettings.currency} onValueChange={(value) => setSystemSettings(prev => ({ ...prev, currency: value }))}>
+                    <Label htmlFor="currency">Currency</Label>
+                    <Select value={preferences.currency} onValueChange={(value) => setPreferences({...preferences, currency: value})}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="USD">USD - US Dollar ($)</SelectItem>
-                        <SelectItem value="EUR">EUR - Euro (€)</SelectItem>
-                        <SelectItem value="GBP">GBP - British Pound (£)</SelectItem>
-                        <SelectItem value="JPY">JPY - Japanese Yen (¥)</SelectItem>
-                        <SelectItem value="CAD">CAD - Canadian Dollar (C$)</SelectItem>
+                        <SelectItem value="USD">USD ($)</SelectItem>
+                        <SelectItem value="EUR">EUR (€)</SelectItem>
+                        <SelectItem value="GBP">GBP (£)</SelectItem>
+                        <SelectItem value="JPY">JPY (¥)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="csvDelimiter">CSV Delimiter</Label>
+                    <Select value={preferences.csvDelimiter} onValueChange={(value) => setPreferences({...preferences, csvDelimiter: value})}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="comma">Comma (,)</SelectItem>
+                        <SelectItem value="semicolon">Semicolon (;)</SelectItem>
+                        <SelectItem value="tab">Tab</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <Separator />
+                
+                <div className="flex items-center gap-3">
+                  <Button onClick={handleSavePreferences} className="flex items-center gap-2">
+                    <Save className="h-4 w-4" />
+                    Save Preferences
+                  </Button>
+                  <Button variant="outline" onClick={handleResetPreferences} className="flex items-center gap-2">
+                    <RotateCcw className="h-4 w-4" />
+                    Reset to Defaults
+                  </Button>
                 </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>Data & Privacy</CardTitle>
-                <CardDescription>Manage your data preferences and account actions</CardDescription>
+                <CardTitle>Data Export</CardTitle>
+                <CardDescription>
+                  Export your processed CSV data and campaign information
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex gap-2">
-                  <Button onClick={handleExportSettings} variant="outline">
-                    <Download className="w-4 h-4 mr-2" />
-                    Export Account Data
-                  </Button>
-                  <Button onClick={handleResetSettings} variant="outline">
-                    <RotateCcw className="w-4 h-4 mr-2" />
-                    Reset Preferences
-                  </Button>
-                </div>
-                <div className="p-4 bg-muted/50 rounded-lg">
+              <CardContent>
+                <div className="space-y-4">
                   <p className="text-sm text-muted-foreground">
-                    Your campaign data is processed securely and never shared with third parties. 
-                    Export includes your settings, preferences, and account information (no sensitive campaign data).
+                    Export all your campaign data, performance metrics, and processed CSV information 
+                    in a consolidated format for external analysis or backup purposes.
                   </p>
+                  <Button onClick={handleExportData} className="flex items-center gap-2">
+                    <Download className="h-4 w-4" />
+                    Export All Data
+                  </Button>
                 </div>
               </CardContent>
             </Card>

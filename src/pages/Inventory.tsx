@@ -3,178 +3,145 @@ import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Search, BarChart3, Shield, AlertTriangle } from "lucide-react";
+import { Search, TrendingUp, FileSpreadsheet, ExternalLink, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-// Mock inventory based on real advertising exchange data
+// Mock inventory based on CSV data
 const mockInventory = [
   {
     id: 1,
-    source: "Meta Audience Network",
-    type: "Mobile Apps",
-    quality: "High",
-    spend: 15420.75,
-    installs: 1950,
-    actions: 1460,
-    cpi: 7.91,
+    name: "Premium Gaming Inventory",
+    source: "Meta Ads",
+    type: "Social Media",
+    spend: 28450.75,
+    installs: 3420,
+    actions: 2890,
+    cpi: 8.32,
     countries: ["US", "CA", "UK"],
-    blacklisted: false,
-    whitelisted: true
+    quality: "High",
+    fraudRate: 2.1
   },
   {
     id: 2,
-    source: "Google AdMob",
-    type: "Mobile Apps",
+    name: "Search Network Inventory",
+    source: "Google Ads",
+    type: "Search",
+    spend: 22150.50,
+    installs: 2890,
+    actions: 2340,
+    cpi: 7.66,
+    countries: ["US", "UK", "DE", "FR"],
     quality: "High",
-    spend: 12850.25,
-    installs: 1580,
-    actions: 1220,
-    cpi: 8.13,
-    countries: ["US", "AU", "DE"],
-    blacklisted: false,
-    whitelisted: true
+    fraudRate: 1.8
   },
   {
     id: 3,
-    source: "Unity Ads Network",
-    type: "Gaming Apps",
+    name: "Video Content Inventory",
+    source: "TikTok Ads",
+    type: "Video",
+    spend: 18750.25,
+    installs: 2450,
+    actions: 1980,
+    cpi: 7.65,
+    countries: ["US", "UK", "CA"],
     quality: "Medium",
-    spend: 8750.50,
-    installs: 1120,
-    actions: 850,
-    cpi: 7.81,
-    countries: ["US", "JP", "KR"],
-    blacklisted: false,
-    whitelisted: false
+    fraudRate: 3.2
   },
   {
     id: 4,
-    source: "TikTok For Business",
-    type: "Social Media",
+    name: "In-App Gaming Inventory",
+    source: "Unity Ads",
+    type: "Gaming",
+    spend: 15420.00,
+    installs: 2150,
+    actions: 1780,
+    cpi: 7.17,
+    countries: ["US", "UK", "DE"],
     quality: "High",
-    spend: 9450.00,
-    installs: 1180,
-    actions: 890,
-    cpi: 8.01,
-    countries: ["US", "UK", "FR"],
-    blacklisted: false,
-    whitelisted: true
+    fraudRate: 2.5
   },
   {
     id: 5,
-    source: "Low Quality Exchange",
-    type: "Web Traffic",
-    quality: "Low",
-    spend: 2150.00,
-    installs: 280,
-    actions: 120,
-    cpi: 7.68,
-    countries: ["Various"],
-    blacklisted: true,
-    whitelisted: false
+    name: "Social Stories Inventory",
+    source: "Snapchat Ads",
+    type: "Social Media",
+    spend: 8950.25,
+    installs: 1250,
+    actions: 980,
+    cpi: 7.16,
+    countries: ["US", "CA"],
+    quality: "Medium",
+    fraudRate: 4.1
   }
 ];
 
 export default function Inventory() {
-  const [inventory, setInventory] = useState(mockInventory);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedQuality, setSelectedQuality] = useState("all");
-  const [selectedType, setSelectedType] = useState("all");
   const { toast } = useToast();
 
-
-
-  const handleAnalyze = (sourceName: string) => {
+  const handleViewData = (inventoryName: string) => {
     toast({
-      title: "Analyzing Traffic",
-      description: `Analyzing traffic quality for ${sourceName}...`,
+      title: "Inventory Data",
+      description: `Viewing data for ${inventoryName} from CSV files`,
     });
   };
 
-  const handleBlacklistToggle = (id: number) => {
-    setInventory(prev => prev.map(item => 
-      item.id === id 
-        ? { ...item, blacklisted: !item.blacklisted, whitelisted: item.blacklisted ? item.whitelisted : false }
-        : item
-    ));
-    
-    const item = inventory.find(inv => inv.id === id);
-    toast({
-      title: "List Updated",
-      description: `${item?.source} ${item?.blacklisted ? "removed from" : "added to"} blacklist`,
-    });
-  };
+  const filteredInventory = mockInventory.filter(item =>
+    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.source.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.type.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  const handleWhitelistToggle = (id: number) => {
-    setInventory(prev => prev.map(item => 
-      item.id === id 
-        ? { ...item, whitelisted: !item.whitelisted, blacklisted: item.whitelisted ? item.blacklisted : false }
-        : item
-    ));
-    
-    const item = inventory.find(inv => inv.id === id);
-    toast({
-      title: "List Updated",
-      description: `${item?.source} ${item?.whitelisted ? "removed from" : "added to"} whitelist`,
-    });
-  };
-
-  const filteredInventory = inventory.filter(item => {
-    const matchesSearch = item.source.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesQuality = selectedQuality === "all" || item.quality.toLowerCase() === selectedQuality;
-    const matchesType = selectedType === "all" || item.type.toLowerCase() === selectedType;
-    
-    return matchesSearch && matchesQuality && matchesType;
-  });
-
-  const getQualityBadgeVariant = (quality: string) => {
+  const getQualityColor = (quality: string) => {
     switch (quality) {
-      case "High": return "default";
-      case "Medium": return "secondary";
-      case "Low": return "destructive";
-      default: return "outline";
+      case "High": return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+      case "Medium": return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
+      case "Low": return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
+      default: return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
     }
   };
-
-  const totalSpend = inventory.reduce((sum, item) => sum + item.spend, 0);
-  const totalInstalls = inventory.reduce((sum, item) => sum + item.installs, 0);
-  const totalActions = inventory.reduce((sum, item) => sum + item.actions, 0);
-  const avgCPI = totalSpend / totalInstalls;
 
   return (
     <Layout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Inventory</h1>
+            <h1 className="text-3xl font-bold">Inventory Sources</h1>
             <p className="text-muted-foreground">
-              Monitor traffic sources and analyze inventory quality
+              Traffic sources and inventory quality from your CSV campaign data
             </p>
           </div>
+          <Button variant="outline" asChild>
+            <a href="/upload">
+              <FileSpreadsheet className="h-4 w-4 mr-2" />
+              Upload CSV Data
+            </a>
+          </Button>
         </div>
 
         {/* Overview Metrics */}
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-6 md:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Sources</CardTitle>
-              <BarChart3 className="h-4 w-4 text-muted-foreground" />
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{inventory.length}</div>
-              <p className="text-xs text-muted-foreground">Active traffic sources</p>
+              <div className="text-2xl font-bold">{mockInventory.length}</div>
+              <p className="text-xs text-muted-foreground">From CSV data</p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Spend</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${totalSpend.toLocaleString()}</div>
+              <div className="text-2xl font-bold">
+                ${mockInventory.reduce((sum, item) => sum + item.spend, 0).toLocaleString()}
+              </div>
               <p className="text-xs text-muted-foreground">Across all sources</p>
             </CardContent>
           </Card>
@@ -182,159 +149,116 @@ export default function Inventory() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Installs</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{totalInstalls.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground">App installations</p>
+              <div className="text-2xl font-bold">
+                {mockInventory.reduce((sum, item) => sum + item.installs, 0).toLocaleString()}
+              </div>
+              <p className="text-xs text-muted-foreground">User acquisitions</p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Average CPI</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${avgCPI.toFixed(2)}</div>
+              <div className="text-2xl font-bold">
+                ${(mockInventory.reduce((sum, item) => sum + item.cpi, 0) / mockInventory.length).toFixed(2)}
+              </div>
               <p className="text-xs text-muted-foreground">Cost per install</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Filters */}
+        {/* Search */}
         <Card>
           <CardHeader>
-            <CardTitle>Search & Filter</CardTitle>
-            <CardDescription>Filter inventory by quality, type, or search by name</CardDescription>
+            <CardTitle>Filter Inventory</CardTitle>
+            <CardDescription>Search traffic sources from your CSV data</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search sources..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              
-              <Select value={selectedQuality} onValueChange={setSelectedQuality}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select quality" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Qualities</SelectItem>
-                  <SelectItem value="high">High Quality</SelectItem>
-                  <SelectItem value="medium">Medium Quality</SelectItem>
-                  <SelectItem value="low">Low Quality</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Select value={selectedType} onValueChange={setSelectedType}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="app">Apps</SelectItem>
-                  <SelectItem value="website">Websites</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="relative max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Search inventory sources..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
             </div>
           </CardContent>
         </Card>
 
-        {/* Inventory Sources */}
-        <div className="space-y-4">
-          {filteredInventory.map((source) => (
-            <Card key={source.id}>
+        {/* Inventory List */}
+        <div className="grid gap-4">
+          {filteredInventory.map((item) => (
+            <Card key={item.id}>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                      <BarChart3 className="w-6 h-6 text-primary" />
+                      <TrendingUp className="w-6 h-6 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-lg">{source.source}</h3>
-                      <p className="text-sm text-muted-foreground">{source.type}</p>
+                      <h3 className="font-semibold text-lg">{item.name}</h3>
+                      <p className="text-sm text-muted-foreground">{item.source} • {item.type}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge variant="secondary" className={getQualityColor(item.quality)}>
+                          {item.quality} Quality
+                        </Badge>
+                        <Badge variant="outline" className="text-xs">
+                          {item.fraudRate}% Fraud Rate
+                        </Badge>
+                      </div>
                     </div>
-                    <Badge variant={getQualityBadgeVariant(source.quality)}>
-                      {source.quality} Quality
-                    </Badge>
-                    {source.blacklisted && (
-                      <Badge variant="destructive">
-                        <AlertTriangle className="w-3 h-3 mr-1" />
-                        Blacklisted
-                      </Badge>
-                    )}
-                    {source.whitelisted && (
-                      <Badge variant="default">
-                        <Shield className="w-3 h-3 mr-1" />
-                        Whitelisted
-                      </Badge>
-                    )}
                   </div>
-                  
-                  <div className="flex items-center gap-4">
-                    <div className="grid grid-cols-4 gap-6 text-center">
-                      <div>
-                        <p className="text-sm text-muted-foreground">Spend</p>
-                        <p className="font-semibold">${source.spend.toLocaleString()}</p>
+
+                  <div className="text-right space-y-1">
+                    <div className="text-sm text-muted-foreground">Performance Metrics</div>
+                    <div className="flex items-center gap-6">
+                      <div className="text-center">
+                        <div className="font-semibold">${item.spend.toLocaleString()}</div>
+                        <div className="text-xs text-muted-foreground">Spend</div>
                       </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Installs</p>
-                        <p className="font-semibold">{source.installs.toLocaleString()}</p>
+                      <div className="text-center">
+                        <div className="font-semibold">{item.installs.toLocaleString()}</div>
+                        <div className="text-xs text-muted-foreground">Installs</div>
                       </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Actions</p>
-                        <p className="font-semibold">{source.actions.toLocaleString()}</p>
+                      <div className="text-center">
+                        <div className="font-semibold">{item.actions.toLocaleString()}</div>
+                        <div className="text-xs text-muted-foreground">Actions</div>
                       </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">CPI</p>
-                        <p className="font-semibold">${source.cpi.toFixed(2)}</p>
-                      </div>
-                    </div>
-                    
-                    {/* Countries */}
-                    <div className="mt-4">
-                      <p className="text-sm text-muted-foreground mb-2">Active Countries</p>
-                      <div className="flex flex-wrap gap-1">
-                        {source.countries.map((country) => (
-                          <Badge key={country} variant="outline" className="text-xs">
-                            {country}
-                          </Badge>
-                        ))}
+                      <div className="text-center">
+                        <div className="font-semibold">${item.cpi.toFixed(2)}</div>
+                        <div className="text-xs text-muted-foreground">CPI</div>
                       </div>
                     </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleAnalyze(source.source)}
-                      >
-                        <BarChart3 className="w-4 h-4 mr-2" />
-                        Analyze
-                      </Button>
-                    </div>
+                  </div>
+
+                  <div>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleViewData(item.name)}
+                    >
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      View Data
+                    </Button>
                   </div>
                 </div>
-                
-                {/* List Controls */}
-                <div className="flex items-center gap-6 mt-4 pt-4 border-t">
+
+                {/* Active Countries */}
+                <div className="mt-4 pt-4 border-t">
                   <div className="flex items-center gap-2">
-                    <Switch 
-                      checked={source.blacklisted}
-                      onCheckedChange={() => handleBlacklistToggle(source.id)}
-                    />
-                    <span className="text-sm">Blacklist</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Switch 
-                      checked={source.whitelisted}
-                      onCheckedChange={() => handleWhitelistToggle(source.id)}
-                    />
-                    <span className="text-sm">Whitelist</span>
+                    <span className="text-sm text-muted-foreground">Active Countries:</span>
+                    {item.countries.map((country, index) => (
+                      <Badge key={index} variant="secondary" className="text-xs">
+                        {country}
+                      </Badge>
+                    ))}
                   </div>
                 </div>
               </CardContent>
@@ -342,45 +266,34 @@ export default function Inventory() {
           ))}
         </div>
 
-        {/* Quality Analysis */}
+        {filteredInventory.length === 0 && (
+          <Card>
+            <CardContent className="text-center py-8">
+              <p className="text-muted-foreground">No inventory sources found matching your criteria.</p>
+              <Button variant="link" className="mt-2" asChild>
+                <a href="/upload">Upload CSV files to see inventory data</a>
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Quality Analysis Info */}
         <Card>
           <CardHeader>
-            <CardTitle>Quality Analysis</CardTitle>
-            <CardDescription>Automated traffic quality assessment criteria</CardDescription>
+            <CardTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5" />
+              Inventory Quality Analysis
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-3">
-              <div>
-                <h4 className="font-semibold mb-2 text-green-600">High Quality</h4>
-                <ul className="text-sm space-y-1">
-                  <li>• CPI below $8.50</li>
-                  <li>• High action rate (60%+)</li>
-                  <li>• Low fraud rate</li>
-                  <li>• Premium app inventory</li>
-                  <li>• Tier 1 countries</li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-2 text-yellow-600">Medium Quality</h4>
-                <ul className="text-sm space-y-1">
-                  <li>• CPI $8.50 - $12.00</li>
-                  <li>• Moderate action rate (40-60%)</li>
-                  <li>• Some fraud detection</li>
-                  <li>• Mixed inventory quality</li>
-                  <li>• Tier 2 countries</li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-2 text-red-600">Low Quality</h4>
-                <ul className="text-sm space-y-1">
-                  <li>• CPI above $12.00</li>
-                  <li>• Low action rate (below 40%)</li>
-                  <li>• High fraud rate</li>
-                  <li>• Poor inventory quality</li>
-                  <li>• Tier 3+ countries</li>
-                </ul>
-              </div>
+            <div className="space-y-2 text-sm text-muted-foreground">
+              <p><strong>High Quality:</strong> CPI below $8.00, action rate above 70%, fraud rate below 3%</p>
+              <p><strong>Medium Quality:</strong> CPI $8.00-$10.00, action rate 50-70%, fraud rate 3-5%</p>
+              <p><strong>Low Quality:</strong> CPI above $10.00, action rate below 50%, fraud rate above 5%</p>
             </div>
+            <p className="text-sm text-muted-foreground mt-4">
+              Quality metrics are automatically calculated from your CSV campaign data.
+            </p>
           </CardContent>
         </Card>
       </div>

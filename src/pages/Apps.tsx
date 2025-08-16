@@ -5,10 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Search, Smartphone, Tablet, TrendingUp } from "lucide-react";
+import { Search, Smartphone, TrendingUp, FileSpreadsheet, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-// Mock apps based on real CSV campaign data
+// Mock apps based on CSV campaign data
 const mockApps = [
   {
     id: 1,
@@ -22,7 +22,6 @@ const mockApps = [
     avgCPI: 7.96,
     activeCampaigns: 12,
     countries: ["US", "CA", "UK", "AU"],
-    exchanges: ["Meta Ads", "Google Ads", "Unity Ads"],
     status: "Active"
   },
   {
@@ -37,7 +36,6 @@ const mockApps = [
     avgCPI: 8.35,
     activeCampaigns: 8,
     countries: ["US", "UK", "DE", "FR"],
-    exchanges: ["Google Ads", "TikTok Ads"],
     status: "Active"
   },
   {
@@ -52,7 +50,6 @@ const mockApps = [
     avgCPI: 8.03,
     activeCampaigns: 5,
     countries: ["US", "CA", "UK"],
-    exchanges: ["Meta Ads", "Snapchat Ads"],
     status: "Active"
   },
   {
@@ -67,36 +64,19 @@ const mockApps = [
     avgCPI: 7.88,
     activeCampaigns: 6,
     countries: ["US", "UK", "IT", "ES"],
-    exchanges: ["Google Ads", "Meta Ads"],
     status: "Active"
-  },
-  {
-    id: 5,
-    name: "PhotoEditor Pro",
-    bundleId: "com.photo.editor",
-    platform: "iOS",
-    category: "Photography",
-    totalSpend: 8950.25,
-    totalInstalls: 1150,
-    totalActions: 890,
-    avgCPI: 7.78,
-    activeCampaigns: 3,
-    countries: ["US", "CA"],
-    exchanges: ["Meta Ads", "TikTok Ads"],
-    status: "Testing"
   }
 ];
 
 export default function Apps() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPlatform, setSelectedPlatform] = useState("all");
-  const [selectedCategory, setSelectedCategory] = useState("all");
   const { toast } = useToast();
 
-  const handleAppClick = (app: any) => {
+  const handleViewCampaigns = (appName: string) => {
     toast({
-      title: "App Performance",
-      description: `Viewing advertising performance for ${app.name}`,
+      title: "App Campaigns",
+      description: `Viewing campaigns for ${appName} from CSV data`,
     });
   };
 
@@ -104,9 +84,8 @@ export default function Apps() {
     const matchesSearch = app.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          app.bundleId.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesPlatform = selectedPlatform === "all" || app.platform.toLowerCase() === selectedPlatform;
-    const matchesCategory = selectedCategory === "all" || app.category === selectedCategory;
     
-    return matchesSearch && matchesPlatform && matchesCategory;
+    return matchesSearch && matchesPlatform;
   });
 
   return (
@@ -116,19 +95,65 @@ export default function Apps() {
           <div>
             <h1 className="text-3xl font-bold">Apps</h1>
             <p className="text-muted-foreground">
-              Track advertising performance across your mobile applications
+              Mobile applications found in your CSV campaign data
             </p>
           </div>
+          <Button variant="outline" asChild>
+            <a href="/upload">
+              <FileSpreadsheet className="h-4 w-4 mr-2" />
+              Upload CSV Data
+            </a>
+          </Button>
         </div>
 
-        {/* Filters */}
+        {/* Summary Stats */}
+        <div className="grid gap-6 md:grid-cols-3">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Apps in Data</CardTitle>
+              <Smartphone className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{mockApps.length}</div>
+              <p className="text-xs text-muted-foreground">From CSV files</p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Spend</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                ${mockApps.reduce((sum, app) => sum + app.totalSpend, 0).toLocaleString()}
+              </div>
+              <p className="text-xs text-muted-foreground">Across all campaigns</p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active Campaigns</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {mockApps.reduce((sum, app) => sum + app.activeCampaigns, 0)}
+              </div>
+              <p className="text-xs text-muted-foreground">From CSV data</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Search & Filter */}
         <Card>
           <CardHeader>
-            <CardTitle>Search & Filter</CardTitle>
-            <CardDescription>Filter apps by platform, category, or search by name</CardDescription>
+            <CardTitle>Filter Apps</CardTitle>
+            <CardDescription>Search and filter apps from your CSV data</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -149,164 +174,92 @@ export default function Apps() {
                   <SelectItem value="android">Android</SelectItem>
                 </SelectContent>
               </Select>
-              
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="Games">Games</SelectItem>
-                  <SelectItem value="Shopping">Shopping</SelectItem>
-                  <SelectItem value="Health">Health</SelectItem>
-                  <SelectItem value="Social">Social</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </CardContent>
         </Card>
 
-        {/* Apps Grid */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {/* Apps List */}
+        <div className="grid gap-4">
           {filteredApps.map((app) => (
-            <Card 
-              key={app.id} 
-              className="cursor-pointer hover:shadow-lg transition-shadow"
-              onClick={() => handleAppClick(app)}
-            >
-              <CardHeader className="pb-3">
+            <Card key={app.id}>
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                      {app.platform === "iOS" ? (
-                        <Smartphone className="w-6 h-6 text-primary" />
-                      ) : (
-                        <Tablet className="w-6 h-6 text-primary" />
-                      )}
+                      <Smartphone className="w-6 h-6 text-primary" />
                     </div>
                     <div>
-                      <CardTitle className="text-lg">{app.name}</CardTitle>
+                      <h3 className="font-semibold text-lg">{app.name}</h3>
                       <p className="text-sm text-muted-foreground">{app.bundleId}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge variant="outline">{app.platform}</Badge>
+                        <Badge variant={app.status === "Active" ? "default" : "secondary"}>
+                          {app.status}
+                        </Badge>
+                      </div>
                     </div>
                   </div>
-                  <Badge variant={app.status === "Active" ? "default" : "secondary"}>
-                    {app.status}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Badge variant="outline">{app.platform}</Badge>
-                  <Badge variant="outline">{app.category}</Badge>
-                </div>
-                
-                {/* Advertising Metrics */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Total Spend</p>
-                    <p className="text-lg font-semibold">${app.totalSpend.toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Total Installs</p>
-                    <p className="text-lg font-semibold">{app.totalInstalls.toLocaleString()}</p>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Actions</p>
-                    <p className="text-lg font-semibold">{app.totalActions.toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Avg CPI</p>
-                    <p className="text-lg font-semibold">${app.avgCPI.toFixed(2)}</p>
-                  </div>
-                </div>
-                
-                {/* Countries & Exchanges */}
-                <div className="space-y-2">
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">Active Countries</p>
-                    <div className="flex flex-wrap gap-1">
-                      {app.countries.slice(0, 3).map((country) => (
-                        <Badge key={country} variant="outline" className="text-xs">
-                          {country}
-                        </Badge>
-                      ))}
-                      {app.countries.length > 3 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{app.countries.length - 3}
-                        </Badge>
-                      )}
+
+                  <div className="text-right space-y-1">
+                    <div className="text-sm text-muted-foreground">Campaign Performance</div>
+                    <div className="flex items-center gap-6">
+                      <div className="text-center">
+                        <div className="font-semibold">${app.totalSpend.toLocaleString()}</div>
+                        <div className="text-xs text-muted-foreground">Spend</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="font-semibold">{app.totalInstalls.toLocaleString()}</div>
+                        <div className="text-xs text-muted-foreground">Installs</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="font-semibold">${app.avgCPI.toFixed(2)}</div>
+                        <div className="text-xs text-muted-foreground">Avg CPI</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="font-semibold">{app.activeCampaigns}</div>
+                        <div className="text-xs text-muted-foreground">Campaigns</div>
+                      </div>
                     </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">Exchanges</p>
-                    <div className="flex flex-wrap gap-1">
-                      {app.exchanges.map((exchange) => (
-                        <Badge key={exchange} variant="secondary" className="text-xs">
-                          {exchange}
-                        </Badge>
-                      ))}
-                    </div>
+
+                  <div className="flex flex-col gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleViewCampaigns(app.name)}
+                    >
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      View Campaigns
+                    </Button>
                   </div>
                 </div>
-                
-                {/* Actions */}
-                <div className="flex gap-2 pt-2">
-                  <Button variant="outline" size="sm" className="flex-1">
-                    View Campaigns
-                  </Button>
-                  <Button variant="outline" size="sm" className="flex-1">
-                    Performance
-                  </Button>
+
+                {/* Countries */}
+                <div className="mt-4 pt-4 border-t">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">Active Countries:</span>
+                    {app.countries.map((country, index) => (
+                      <Badge key={index} variant="secondary" className="text-xs">
+                        {country}
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
 
-        {/* App Advertising Summary */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Advertising Performance Summary</CardTitle>
-            <CardDescription>Overview of all app advertising metrics</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-4">
-              <div className="text-center">
-                <p className="text-2xl font-bold">{mockApps.length}</p>
-                <p className="text-sm text-muted-foreground">Total Apps</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold">
-                  ${mockApps.reduce((sum, app) => sum + app.totalSpend, 0).toLocaleString()}
-                </p>
-                <p className="text-sm text-muted-foreground">Total Spend</p>
-              </div>
-              <div className="text-center">
-                  <p className="text-2xl font-bold">
-                    {mockApps.reduce((sum, app) => sum + app.totalInstalls, 0).toLocaleString()}
-                  </p>
-                  <p className="text-sm text-muted-foreground">Total Installs</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-2xl font-bold">
-                    {mockApps.reduce((sum, app) => sum + app.totalActions, 0).toLocaleString()}
-                  </p>
-                  <p className="text-sm text-muted-foreground">Total Actions</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-2xl font-bold">
-                    ${(mockApps.reduce((sum, app) => sum + app.avgCPI, 0) / mockApps.length).toFixed(2)}
-                  </p>
-                  <p className="text-sm text-muted-foreground">Avg CPI</p>
-                </div>
-            </div>
-          </CardContent>
-        </Card>
-
-
+        {filteredApps.length === 0 && (
+          <Card>
+            <CardContent className="text-center py-8">
+              <p className="text-muted-foreground">No apps found matching your criteria.</p>
+              <Button variant="link" className="mt-2" asChild>
+                <a href="/upload">Upload CSV files to see app data</a>
+              </Button>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </Layout>
   );
