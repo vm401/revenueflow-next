@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useUltraData } from "@/contexts/UltraDataContext";
 import { TrendingUp, TrendingDown, Activity, Target, DollarSign, Users, MousePointer, Smartphone, Calendar } from "lucide-react";
+import { AnimatedCard } from "@/components/AnimatedCard";
+import { AnimatedIcon } from "@/components/AnimatedIcon";
+import { AnimatedButton } from "@/components/AnimatedButton";
 
 export default function Overview() {
   const { data, getUltraSummary, getFilteredCampaigns } = useUltraData();
@@ -73,16 +76,16 @@ export default function Overview() {
           </div>
           
           {/* Date Filter */}
-          <Card className="p-4">
+          <AnimatedCard variant="mint" animation="slide" className="p-4">
             <div className="flex items-center gap-4">
-              <Calendar className="h-5 w-5 text-muted-foreground" />
+              <AnimatedIcon icon={Calendar} variant="mint" animation="pulse" />
               <span className="text-sm font-medium">Date Range:</span>
               <div className="flex items-center gap-2">
                 <Input
                   type="date"
                   value={dateFrom}
                   onChange={(e) => setDateFrom(e.target.value)}
-                  className="w-auto"
+                  className="w-auto filter-slide"
                   placeholder="From"
                 />
                 <span className="text-muted-foreground">to</span>
@@ -90,21 +93,20 @@ export default function Overview() {
                   type="date"
                   value={dateTo}
                   onChange={(e) => setDateTo(e.target.value)}
-                  className="w-auto"
+                  className="w-auto filter-slide"
                   placeholder="To"
                 />
-                <Button 
-                  variant="outline" 
+                <AnimatedButton 
                   onClick={() => {
                     setDateFrom("");
                     setDateTo("");
                   }}
                   size="sm"
+                  animation="bounce"
                 >
                   Clear
-                </Button>
-                <Button 
-                  variant="default" 
+                </AnimatedButton>
+                <AnimatedButton 
                   onClick={() => {
                     // Date filtering is now automatic via useMemo
                     // Just log for debugging
@@ -112,58 +114,59 @@ export default function Overview() {
                   }}
                   size="sm"
                   className="bg-green-600 hover:bg-green-700"
+                  animation="pulse"
                 >
                   Apply
-                </Button>
+                </AnimatedButton>
               </div>
             </div>
-          </Card>
+          </AnimatedCard>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
+          <AnimatedCard variant="royal" animation="lift">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Campaigns</CardTitle>
-              <Activity className="h-4 w-4 text-muted-foreground" />
+              <AnimatedIcon icon={Activity} variant="royal" animation="pulse" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{summary.totalCampaigns}</div>
               <p className="text-xs text-muted-foreground">Active campaigns running</p>
             </CardContent>
-          </Card>
+          </AnimatedCard>
           
-          <Card>
+          <AnimatedCard variant="mint" animation="lift">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Spend</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <AnimatedIcon icon={DollarSign} variant="mint" animation="glow" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">${summary.totalSpend.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
               <p className="text-xs text-muted-foreground">Across all campaigns</p>
             </CardContent>
-          </Card>
+          </AnimatedCard>
           
-          <Card>
+          <AnimatedCard variant="lilac" animation="lift">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Installs</CardTitle>
-              <Smartphone className="h-4 w-4 text-muted-foreground" />
+              <AnimatedIcon icon={Smartphone} variant="lilac" animation="bounce" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{summary.totalInstalls.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground">User acquisitions</p>
             </CardContent>
-          </Card>
+          </AnimatedCard>
           
-          <Card>
+          <AnimatedCard variant="peach" animation="lift">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Average CPI</CardTitle>
-              <Target className="h-4 w-4 text-muted-foreground" />
+              <AnimatedIcon icon={Target} variant="peach" animation="rotate" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">${summary.avgCPI.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
               <p className="text-xs text-muted-foreground">Cost per install</p>
             </CardContent>
-          </Card>
+          </AnimatedCard>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -239,7 +242,7 @@ export default function Overview() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
-          <Card>
+          <AnimatedCard variant="royal" animation="slide">
             <CardHeader>
               <CardTitle>Campaign Distribution</CardTitle>
               <CardDescription>
@@ -261,7 +264,7 @@ export default function Overview() {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm">Active Countries</span>
-                <span className="font-semibold">{summary.activeCountries}</span>
+                <span className="font-semibold">{summary.activeCountries || 0}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm">Data Source</span>
@@ -270,9 +273,9 @@ export default function Overview() {
                 </Badge>
               </div>
             </CardContent>
-          </Card>
+          </AnimatedCard>
 
-          <Card>
+          <AnimatedCard variant="mint" animation="slide">
             <CardHeader>
               <CardTitle>Performance Summary</CardTitle>
               <CardDescription>
@@ -294,9 +297,7 @@ export default function Overview() {
                 <span className="text-sm">Total Clicks</span>
                 <span className="font-semibold">
                   {summary.totalClicks >= 1000000 
-                    ? (summary.totalClicks / 1000000).toFixed(2) + 'm'
-                    : summary.totalClicks >= 1000 
-                    ? (summary.totalClicks / 1000).toFixed(2) + 'k'
+                    ? (summary.totalClicks / 1000000).toFixed(2) + 'k'
                     : summary.totalClicks.toLocaleString()}
                 </span>
               </div>
@@ -315,18 +316,18 @@ export default function Overview() {
                 </Badge>
               </div>
             </CardContent>
-          </Card>
+          </AnimatedCard>
         </div>
 
         {!data && (
-          <Card className="border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950">
+          <AnimatedCard variant="peach" animation="glow" className="border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-950">
             <CardHeader>
               <CardTitle className="text-yellow-800 dark:text-yellow-200">No CSV Data Loaded</CardTitle>
               <CardDescription className="text-yellow-700 dark:text-yellow-300">
                 Upload your CSV files to see real campaign data and analytics.
               </CardDescription>
             </CardHeader>
-          </Card>
+          </AnimatedCard>
         )}
       </div>
     </Layout>

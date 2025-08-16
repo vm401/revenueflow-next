@@ -1,0 +1,197 @@
+/* Color Accents */
+:root {
+  --mint-50: #f0fdf4;
+  --mint-100: #dcfce7;
+  --mint-200: #bbf7d0;
+  --mint-300: #86efac;
+  --mint-400: #4ade80;
+  --mint-500: #22c55e;
+  --mint-600: #16a34a;
+  --mint-700: #15803d;
+  --mint-800: #166534;
+  --mint-900: #14532d;
+  
+  --lilac-50: #faf5ff;
+  --lilac-100: #f3e8ff;
+  --lilac-200: #e9d5ff;
+  --lilac-300: #d8b4fe;
+  --lilac-400: #c084fc;
+  --lilac-500: #a855f7;
+  --lilac-600: #9333ea;
+  --lilac-700: #7c3aed;
+  --lilac-800: #6b21a8;
+  --lilac-900: #581c87;
+  
+  --royal-50: #eff6ff;
+  --royal-100: #dbeafe;
+  --royal-200: #bfdbfe;
+  --royal-300: #93c5fd;
+  --royal-400: #60a5fa;
+  --royal-500: #3b82f6;
+  --royal-600: #2563eb;
+  --royal-700: #1d4ed8;
+  --royal-800: #1e40af;
+  --royal-900: #1e3a8a;
+  
+  --peach-50: #fff7ed;
+  --peach-100: #ffedd5;
+  --peach-200: #fed7aa;
+  --peach-300: #fdba74;
+  --peach-400: #fb923c;
+  --peach-500: #f97316;
+  --peach-600: #ea580c;
+  --peach-700: #c2410c;
+  --peach-800: #9a3412;
+  --peach-900: #7c2d12;
+}
+
+/* Hover Animations */
+.hover-lift {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+}
+
+.hover-scale {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-scale:hover {
+  transform: scale(1.02);
+}
+
+.hover-glow {
+  transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+}
+
+/* Filter Animations */
+.filter-slide {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.filter-slide:hover {
+  transform: translateX(4px);
+}
+
+.filter-expand {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.filter-expand:hover {
+  transform: scale(1.05);
+}
+
+/* Button Animations */
+.btn-pulse {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-pulse:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-bounce {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-bounce:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Table Animations */
+.table-row-hover {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.table-row-hover:hover {
+  background-color: hsl(var(--muted) / 0.1);
+  transform: translateX(2px);
+}
+
+/* Badge Animations */
+.badge-glow {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.badge-glow:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 10px currentColor;
+}
+
+/* Copy Button Animation */
+.copy-btn {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.copy-btn:hover {
+  transform: scale(1.1);
+  background-color: var(--mint-100);
+}
+
+.copy-btn:active {
+  transform: scale(0.95);
+}
+
+/* Tooltip Animation */
+.tooltip-enter {
+  opacity: 0;
+  transform: translateY(8px) scale(0.95);
+}
+
+.tooltip-enter-active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tooltip-exit {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.tooltip-exit-active {
+  opacity: 0;
+  transform: translateY(8px) scale(0.95);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Loading Animation */
+.loading-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Success Animation */
+.success-check {
+  animation: checkmark 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes checkmark {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

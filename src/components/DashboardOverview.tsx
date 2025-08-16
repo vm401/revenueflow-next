@@ -10,6 +10,8 @@ import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { useUltraData } from "@/contexts/UltraDataContext";
 import { useState, useEffect } from "react";
+import { AnimatedCard } from "@/components/AnimatedCard";
+import { AnimatedIcon } from "@/components/AnimatedIcon";
 
 // Mock data based on Moloco CRM specification
 const mockMetrics = {
@@ -304,7 +306,7 @@ export function DashboardOverview() {
             variant="outline" 
             onClick={handleRefresh}
             disabled={isLoading}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 btn-bounce"
           >
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -324,7 +326,7 @@ export function DashboardOverview() {
             <strong>Connection Lost:</strong> Unable to fetch live data. Showing cached data from {lastUpdated.toLocaleString()}.
             <Button 
               variant="link" 
-              className="p-0 h-auto text-destructive underline ml-2"
+              className="p-0 h-auto text-destructive underline ml-2 btn-pulse"
               onClick={handleRefresh}
             >
               Try reconnecting
@@ -349,7 +351,7 @@ export function DashboardOverview() {
             Data may be outdated. 
             <Button 
               variant="link" 
-              className="p-0 h-auto underline ml-1"
+              className="p-0 h-auto underline ml-1 btn-pulse"
               onClick={handleRefresh}
             >
               Refresh now
@@ -361,7 +363,7 @@ export function DashboardOverview() {
       {/* Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Total Spend */}
-        <Card className="bg-card border-border">
+        <AnimatedCard variant="mint" animation="lift" className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <div className="flex items-center gap-2">
               <CardTitle className="text-sm font-medium text-card-foreground">Total Spend</CardTitle>
@@ -383,7 +385,7 @@ export function DashboardOverview() {
                 </Tooltip>
               </TooltipProvider>
             </div>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <AnimatedIcon icon={TrendingUp} variant="mint" animation="glow" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-card-foreground">${(getMetricValue('total_spend') || getMetricValue('totalSpend') || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
@@ -394,13 +396,13 @@ export function DashboardOverview() {
               <div className="h-full w-3/4 bg-primary rounded-full"></div>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
         {/* Total Installs */}
-        <Card className="bg-card border-border">
+        <AnimatedCard variant="lilac" animation="lift" className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-card-foreground">Total Installs</CardTitle>
-            <Smartphone className="h-4 w-4 text-muted-foreground" />
+            <AnimatedIcon icon={Smartphone} variant="lilac" animation="bounce" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-card-foreground">{(getMetricValue('total_installs') || getMetricValue('totalInstalls') || 0).toLocaleString()}</div>
@@ -411,13 +413,13 @@ export function DashboardOverview() {
               <div className="h-full w-4/5 bg-accent rounded-full"></div>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
         {/* Total Campaigns */}
-        <Card className="bg-card border-border">
+        <AnimatedCard variant="royal" animation="lift" className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-card-foreground">Active Campaigns</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
+            <AnimatedIcon icon={Activity} variant="royal" animation="pulse" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-card-foreground">{getMetricValue('total_campaigns') || getMetricValue('totalCampaigns') || 0}</div>
@@ -426,13 +428,13 @@ export function DashboardOverview() {
               <div className="h-full w-5/6 bg-accent rounded-full"></div>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
         {/* Average CPI */}
-        <Card className="bg-card border-border">
+        <AnimatedCard variant="peach" animation="lift" className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-card-foreground">Average CPI</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
+            <AnimatedIcon icon={Target} variant="peach" animation="rotate" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-card-foreground">${(getMetricValue('average_cpi') || getMetricValue('averageCPI') || getMetricValue('avgCPI') || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
@@ -441,10 +443,10 @@ export function DashboardOverview() {
               <div className="h-full w-2/3 bg-accent rounded-full"></div>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
         {/* Average IPM */}
-        <Card className="bg-card border-border">
+        <AnimatedCard variant="mint" animation="lift" className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <div className="flex items-center gap-2">
               <CardTitle className="text-sm font-medium text-card-foreground">Average IPM</CardTitle>
@@ -466,7 +468,7 @@ export function DashboardOverview() {
                 </Tooltip>
               </TooltipProvider>
             </div>
-            <Target className="h-4 w-4 text-muted-foreground" />
+            <AnimatedIcon icon={Target} variant="mint" animation="glow" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-card-foreground">
@@ -477,13 +479,13 @@ export function DashboardOverview() {
               <div className="h-full w-3/5 bg-primary rounded-full"></div>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
         {/* Active Countries */}
-        <Card className="bg-card border-border">
+        <AnimatedCard variant="lilac" animation="lift" className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-card-foreground">Active Countries</CardTitle>
-            <Globe className="h-4 w-4 text-muted-foreground" />
+            <AnimatedIcon icon={Globe} variant="lilac" animation="bounce" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-card-foreground">{getMetricValue('activeCountries') || 0}</div>
@@ -492,11 +494,11 @@ export function DashboardOverview() {
               <div className="h-full w-4/5 bg-accent rounded-full"></div>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
       </div>
 
       {/* Recent Campaigns */}
-      <Card className="bg-card border-border">
+      <AnimatedCard variant="royal" animation="slide" className="bg-card border-border">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle className="text-card-foreground">Recent Campaigns</CardTitle>
@@ -533,7 +535,7 @@ export function DashboardOverview() {
                 <TableRow>
                   <TableCell colSpan={8} className="text-center py-8">
                     <p className="text-muted-foreground">No recent campaigns found</p>
-                    <Button variant="link" className="mt-2" asChild>
+                    <Button variant="link" className="mt-2 btn-pulse" asChild>
                       <a href="/upload">
                         <ExternalLink className="h-4 w-4 mr-2" />
                         Upload campaign data
@@ -575,7 +577,7 @@ export function DashboardOverview() {
                   const flag = countryFlags[country] || '🌍';
 
                   return (
-                    <TableRow key={campaign.id || index} className="border-border hover:bg-muted/50 cursor-pointer group">
+                    <TableRow key={campaign.id || index} className="border-border hover:bg-muted/50 cursor-pointer group table-row-hover">
                       <TableCell className="font-medium text-sm">
                         <div className="max-w-[200px] truncate">
                           <span className="text-foreground group-hover:text-primary transition-colors">
@@ -606,7 +608,7 @@ export function DashboardOverview() {
             </TableBody>
           </Table>
         </CardContent>
-      </Card>
+      </AnimatedCard>
 
 
     </div>
