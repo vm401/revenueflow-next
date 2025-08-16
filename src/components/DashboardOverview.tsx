@@ -3,7 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { TrendingUp, DollarSign, Users, BarChart, RefreshCw, Loader2, AlertTriangle, CheckCircle, ExternalLink, Info } from "lucide-react";
+import { TrendingUp, DollarSign, Users, BarChart, RefreshCw, Loader2, AlertTriangle, CheckCircle, ExternalLink, Info, Smartphone, Target, Globe, Activity } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -165,11 +165,19 @@ export function DashboardOverview() {
 
   // Use CSV data if available, fallback to API data, then mock data
   const csvSummary = getDashboardSummary();
-  const recentCampaigns = getFilteredCampaigns({ 
+  // Get unique campaigns sorted by spend (descending) to avoid duplicates
+  const allCampaigns = getFilteredCampaigns({ 
     sortBy: 'spend', 
     sortOrder: 'desc', 
-    limit: 5 
+    limit: 50 // Get more to filter out duplicates
   });
+  
+  // Remove duplicates based on campaign name and get first 5 unique
+  const recentCampaigns = allCampaigns
+    .filter((campaign, index, self) => 
+      index === self.findIndex(c => c.name === campaign.name)
+    )
+    .slice(0, 5);
 
   // Use CSV data if available, otherwise fallback to API or mock
   const metrics = csvData ? {
@@ -375,11 +383,13 @@ export function DashboardOverview() {
                 </Tooltip>
               </TooltipProvider>
             </div>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-card-foreground">${(getMetricValue('total_spend') || getMetricValue('totalSpend') || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
-            <p className="text-xs text-muted-foreground">Last 30 days</p>
+            <p className="text-xs text-muted-foreground">
+              {csvData && csvSummary.totalCampaigns > 0 ? 'From CSV data' : 'Last 30 days'}
+            </p>
             <div className="mt-4 h-2 bg-muted rounded-full overflow-hidden">
               <div className="h-full w-3/4 bg-primary rounded-full"></div>
             </div>
@@ -390,11 +400,13 @@ export function DashboardOverview() {
         <Card className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-card-foreground">Total Installs</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <Smartphone className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-card-foreground">{(getMetricValue('total_installs') || getMetricValue('totalInstalls') || 0).toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">Last 30 days</p>
+            <p className="text-xs text-muted-foreground">
+              {csvData && csvSummary.totalInstalls > 0 ? 'From CSV data' : 'Last 30 days'}
+            </p>
             <div className="mt-4 h-2 bg-muted rounded-full overflow-hidden">
               <div className="h-full w-4/5 bg-accent rounded-full"></div>
             </div>
@@ -405,7 +417,7 @@ export function DashboardOverview() {
         <Card className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-card-foreground">Active Campaigns</CardTitle>
-            <BarChart className="h-4 w-4 text-muted-foreground" />
+            <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-card-foreground">{getMetricValue('total_campaigns') || getMetricValue('totalCampaigns') || 0}</div>
@@ -420,7 +432,7 @@ export function DashboardOverview() {
         <Card className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-card-foreground">Average CPI</CardTitle>
-            <RefreshCw className="h-4 w-4 text-muted-foreground" />
+            <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-card-foreground">${(getMetricValue('average_cpi') || getMetricValue('averageCPI') || getMetricValue('avgCPI') || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
@@ -454,11 +466,11 @@ export function DashboardOverview() {
                 </Tooltip>
               </TooltipProvider>
             </div>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-card-foreground">
-              {csvData ? (csvSummary.totalImpressions > 0 ? ((csvSummary.totalInstalls / csvSummary.totalImpressions) * 1000).toFixed(2) : '0.00') : '0.00'}‰
+              {csvData ? (csvSummary.totalImpressions > 0 ? ((csvSummary.totalInstalls / csvSummary.totalImpressions) * 1000).toFixed(2) : '0.00') : '0.00'}
             </div>
             <p className="text-xs text-muted-foreground">Installs per 1000 impressions</p>
             <div className="mt-4 h-2 bg-muted rounded-full overflow-hidden">
@@ -471,7 +483,7 @@ export function DashboardOverview() {
         <Card className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-card-foreground">Active Countries</CardTitle>
-            <BarChart className="h-4 w-4 text-muted-foreground" />
+            <Globe className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-card-foreground">{getMetricValue('activeCountries') || 0}</div>
@@ -585,7 +597,7 @@ export function DashboardOverview() {
                       <TableCell className="text-foreground">{installs.toLocaleString()}</TableCell>
                       <TableCell className="text-foreground">{cpi}</TableCell>
                       <TableCell className="text-foreground font-semibold">
-                        {ipm}‰
+                        {ipm}
                       </TableCell>
                     </TableRow>
                   );
@@ -596,31 +608,7 @@ export function DashboardOverview() {
         </CardContent>
       </Card>
 
-      {/* CSV Data Actions */}
-      <Card className="bg-card border-border">
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="font-semibold text-card-foreground">CSV Data Management</h3>
-              <p className="text-sm text-muted-foreground">Upload and analyze your campaign data</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" asChild>
-                <a href="/upload">
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  Upload CSV Files
-                </a>
-              </Button>
-              <Button variant="outline" asChild>
-                <a href="/campaigns">
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  View Campaign Data
-                </a>
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+
     </div>
   );
 }

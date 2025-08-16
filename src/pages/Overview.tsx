@@ -70,6 +70,17 @@ export default function Overview() {
                 >
                   Clear
                 </Button>
+                <Button 
+                  variant="default" 
+                  onClick={() => {
+                    // TODO: Implement date filtering logic
+                    console.log('Filtering by dates:', dateFrom, dateTo);
+                  }}
+                  size="sm"
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  Apply
+                </Button>
               </div>
             </div>
           </Card>
@@ -174,7 +185,7 @@ export default function Overview() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {avgIPM.toFixed(2)}‰
+                {avgIPM.toFixed(2)}
               </div>
               <p className="text-xs text-muted-foreground">
                 {avgIPM > 2 ? (
@@ -203,26 +214,26 @@ export default function Overview() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-sm">Total Campaigns</span>
-                <span className="font-semibold">{summary.totalCampaigns}</span>
-              </div>
-              <div className="flex justify-between items-center">
                 <span className="text-sm">Total Creatives</span>
                 <span className="font-semibold">{summary.totalCreatives}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm">Total Campaigns</span>
+                <span className="font-semibold">{summary.totalCampaigns}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm">Ad Exchanges</span>
                 <span className="font-semibold">{summary.totalExchanges}</span>
               </div>
               <div className="flex justify-between items-center">
+                <span className="text-sm">Active Countries</span>
+                <span className="font-semibold">{summary.activeCountries}</span>
+              </div>
+              <div className="flex justify-between items-center">
                 <span className="text-sm">Data Source</span>
                 <Badge variant="secondary" className="text-xs">
                   {data ? 'CSV Files' : 'Demo Data'}
                 </Badge>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm">Active Countries</span>
-                <span className="font-semibold">{summary.activeCountries}</span>
               </div>
             </CardContent>
           </Card>
@@ -237,19 +248,31 @@ export default function Overview() {
             <CardContent className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-sm">Total Impressions</span>
-                <span className="font-semibold">{summary.totalImpressions.toLocaleString()}</span>
+                <span className="font-semibold">
+                  {summary.totalImpressions >= 1000000 
+                    ? (summary.totalImpressions / 1000000).toFixed(2) + 'm'
+                    : summary.totalImpressions >= 1000 
+                    ? (summary.totalImpressions / 1000).toFixed(2) + 'k'
+                    : summary.totalImpressions.toLocaleString()}
+                </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm">Total Clicks</span>
-                <span className="font-semibold">{summary.totalClicks.toLocaleString()}</span>
+                <span className="font-semibold">
+                  {summary.totalClicks >= 1000000 
+                    ? (summary.totalClicks / 1000000).toFixed(2) + 'm'
+                    : summary.totalClicks >= 1000 
+                    ? (summary.totalClicks / 1000).toFixed(2) + 'k'
+                    : summary.totalClicks.toLocaleString()}
+                </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm">Install Rate</span>
-                <span className="font-semibold">{conversionRate.toFixed(3)}%</span>
+                <span className="font-semibold">{conversionRate.toFixed(2)}%</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm">Avg. CTR</span>
-                <span className="font-semibold">{avgCTR.toFixed(3)}%</span>
+                <span className="font-semibold">{avgCTR.toFixed(2)}%</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm">Data Source</span>
