@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -74,51 +75,51 @@
   }
 
   .dark {
-    /* Dark Theme - Using the exact palette */
+    /* Dark Theme - Using the exact palette with improved contrast */
     --background: 240 1% 13%; /* shark #222223 */
-    --foreground: 285 13% 75%; /* chatelle #bfb8c7 */
+    --foreground: 0 0% 95%; /* much brighter for better contrast */
     
     /* Cards and Surfaces */
-    --card: 225 8% 20%; /* tuna #383a45 */
-    --card-foreground: 285 13% 75%;
+    --card: 225 8% 22%; /* tuna but lighter #424249 */
+    --card-foreground: 0 0% 95%;
     
     /* Popover Elements */
-    --popover: 225 8% 20%; /* tuna #383a45 */
-    --popover-foreground: 285 13% 75%;
+    --popover: 225 8% 22%; /* tuna but lighter */
+    --popover-foreground: 0 0% 95%;
     
     /* Primary Brand Colors - cornflower-blue */
     --primary: 230 74% 66%; /* cornflower-blue #6a7de7 */
     --primary-foreground: 0 0% 100%;
     
     /* Secondary Colors */
-    --secondary: 0 1% 29%; /* abbey #49494a */
-    --secondary-foreground: 285 13% 75%;
+    --secondary: 0 1% 32%; /* abbey but lighter */
+    --secondary-foreground: 0 0% 95%;
     
     /* Muted Elements */
-    --muted: 0 1% 29%; /* abbey #49494a */
-    --muted-foreground: 0 1% 45%; /* jumbo #737375 */
+    --muted: 0 1% 32%; /* abbey but lighter for better visibility */
+    --muted-foreground: 0 0% 85%; /* much brighter than jumbo */
     
     /* Accent Colors - mountain-meadow */
     --accent: 158 75% 45%; /* mountain-meadow #1fc78a */
     --accent-foreground: 0 0% 100%;
     
     /* Destructive Actions */
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 285 13% 75%;
+    --destructive: 0 84% 50%;
+    --destructive-foreground: 0 0% 95%;
     
     /* Borders and Inputs */
-    --border: 0 1% 29%; /* abbey #49494a */
-    --input: 0 1% 29%;
+    --border: 0 1% 35%; /* lighter for better visibility */
+    --input: 0 1% 35%;
     --ring: 230 74% 66%;
     
-    /* Sidebar Colors - Dark theme with exact colors */
+    /* Sidebar Colors - Dark theme with exact colors but better contrast */
     --sidebar-background: 240 1% 13%; /* shark #222223 */
-    --sidebar-foreground: 285 13% 75%; /* chatelle #bfb8c7 */
+    --sidebar-foreground: 0 0% 95%; /* bright white for clarity */
     --sidebar-primary: 230 74% 66%; /* cornflower-blue #6a7de7 */
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 1% 29%; /* abbey #49494a */
-    --sidebar-accent-foreground: 285 13% 75%;
-    --sidebar-border: 0 1% 29%; /* abbey #49494a */
+    --sidebar-accent: 0 1% 35%; /* abbey but lighter */
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 0 1% 35%; /* abbey but lighter */
     --sidebar-ring: 230 74% 66%;
     
     /* Chart Colors - Dark theme with palette */

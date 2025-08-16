@@ -14,7 +14,13 @@ import {
   TrendingUp,
   Search,
   HelpCircle,
-  User
+  User,
+  Zap,
+  Globe,
+  Palette,
+  Activity,
+  PieChart,
+  Briefcase
 } from "lucide-react";
 
 import {
@@ -28,18 +34,18 @@ import {
 } from "@/components/ui/sidebar";
 
 const menuItems = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Overview", url: "/overview", icon: TrendingUp },
-  { title: "Campaigns", url: "/campaigns", icon: Target },
-  { title: "Creatives", url: "/creatives", icon: FileText },
-  { title: "Apps", url: "/apps", icon: ShoppingBag },
-  { title: "Exchanges", url: "/exchanges", icon: Database },
-  { title: "Inventory", url: "/inventory", icon: Layers },
-  { title: "Upload", url: "/upload", icon: Upload },
+  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, font: "font-display" },
+  { title: "Overview", url: "/overview", icon: Activity, font: "font-sans" },
+  { title: "Campaigns", url: "/campaigns", icon: Zap, font: "font-display" },
+  { title: "Creatives", url: "/creatives", icon: Palette, font: "font-sans" },
+  { title: "Apps", url: "/apps", icon: Briefcase, font: "font-display" },
+  { title: "Exchanges", url: "/exchanges", icon: Globe, font: "font-sans" },
+  { title: "Inventory", url: "/inventory", icon: Database, font: "font-mono" },
+  { title: "Upload", url: "/upload", icon: Upload, font: "font-mono" },
 ];
 
 const bottomMenuItems = [
-  { title: "Settings", url: "/settings", icon: Settings },
+  { title: "Settings", url: "/settings", icon: Settings, font: "font-mono" },
 ];
 
 export function CrmSidebar() {
@@ -64,7 +70,7 @@ export function CrmSidebar() {
             </div>
             {!collapsed && (
               <div>
-                <p className="text-sidebar-foreground font-medium">Moloco CRM</p>
+                <p className="text-sidebar-foreground font-display font-semibold">Moloco CRM</p>
               </div>
             )}
           </div>
@@ -93,7 +99,7 @@ export function CrmSidebar() {
                   <SidebarMenuButton asChild>
                     <NavLink to={item.url} end className={getNavCls}>
                       <item.icon className="w-4 h-4" />
-                      {!collapsed && <span>{item.title}</span>}
+                      {!collapsed && <span className={item.font}>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -112,7 +118,7 @@ export function CrmSidebar() {
                     <SidebarMenuButton asChild>
                       <NavLink to={item.url} className={getNavCls}>
                         <item.icon className="w-4 h-4" />
-                        {!collapsed && <span>{item.title}</span>}
+                        {!collapsed && <span className={item.font}>{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -125,7 +131,7 @@ export function CrmSidebar() {
           <div className="p-4 border-t border-sidebar-border">
             <div className="flex items-center gap-3 text-sidebar-foreground/60">
               <HelpCircle className="w-4 h-4" />
-              {!collapsed && <span className="text-sm">Help</span>}
+              {!collapsed && <span className="text-sm font-mono">Help</span>}
             </div>
           </div>
         </div>
