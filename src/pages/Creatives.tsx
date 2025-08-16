@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Search, Download, Link2, FileImage } from "lucide-react";
+import { Search, Download, FileImage } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const mockCreatives = [
@@ -15,17 +15,23 @@ const mockCreatives = [
     type: "Image",
     size: "320x50",
     format: "JPG",
-    performance: 8.5,
+    spend: 1250.75,
+    installs: 185,
+    cpi: 6.76,
+    campaignName: "Summer Mobile Game",
     uploadDate: "2024-01-15",
     tags: ["summer", "banner", "mobile"]
   },
   {
     id: 2,
     name: "Game Video Ad",
-    type: "Video",
+    type: "Video", 
     size: "1280x720",
     format: "MP4",
-    performance: 9.2,
+    spend: 2840.50,
+    installs: 342,
+    cpi: 8.31,
+    campaignName: "Holiday Shopping App",
     uploadDate: "2024-01-14",
     tags: ["video", "game", "interactive"]
   },
@@ -35,7 +41,10 @@ const mockCreatives = [
     type: "Image",
     size: "512x512",
     format: "PNG",
-    performance: 7.8,
+    spend: 890.25,
+    installs: 124,
+    cpi: 7.18,
+    campaignName: "Fitness Tracker Promo",
     uploadDate: "2024-01-13",
     tags: ["icon", "app", "variant"]
   }
@@ -47,24 +56,10 @@ export default function Creatives() {
   const [selectedFormat, setSelectedFormat] = useState("all");
   const { toast } = useToast();
 
-  const handleUploadCreative = () => {
-    toast({
-      title: "Upload Creative",
-      description: "Creative upload functionality will be available soon",
-    });
-  };
-
-  const handleMatchCreatives = () => {
-    toast({
-      title: "Match Creatives",
-      description: "Matching creatives with campaigns...",
-    });
-  };
-
   const handleExportCreatives = () => {
     toast({
       title: "Export Started",
-      description: "Downloading all creatives...",
+      description: "Exporting creative performance report...",
     });
   };
 
@@ -84,21 +79,13 @@ export default function Creatives() {
           <div>
             <h1 className="text-3xl font-bold">Creatives</h1>
             <p className="text-muted-foreground">
-              Manage and organize your creative assets
+              Analyze performance of your advertising creatives
             </p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={handleMatchCreatives}>
-              <Link2 className="w-4 h-4 mr-2" />
-              Match
-            </Button>
             <Button variant="outline" onClick={handleExportCreatives}>
               <Download className="w-4 h-4 mr-2" />
-              Export
-            </Button>
-            <Button onClick={handleUploadCreative}>
-              <Upload className="w-4 h-4 mr-2" />
-              Upload Creative
+              Export Report
             </Button>
           </div>
         </div>
@@ -167,23 +154,27 @@ export default function Creatives() {
                   <FileImage className="w-12 h-12 text-muted-foreground" />
                 </div>
                 
-                {/* Details */}
+                {/* Performance Metrics */}
                 <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Campaign:</span>
+                    <span className="font-medium">{creative.campaignName}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Total Spend:</span>
+                    <span className="font-medium">${creative.spend.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Installs:</span>
+                    <span className="font-medium">{creative.installs}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">CPI:</span>
+                    <span className="font-medium">${creative.cpi.toFixed(2)}</span>
+                  </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Size:</span>
                     <span>{creative.size}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Format:</span>
-                    <span>{creative.format}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Performance:</span>
-                    <span className="font-medium">{creative.performance}/10</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Uploaded:</span>
-                    <span>{creative.uploadDate}</span>
                   </div>
                 </div>
                 
@@ -199,10 +190,10 @@ export default function Creatives() {
                 {/* Actions */}
                 <div className="flex gap-2 pt-2">
                   <Button variant="outline" size="sm" className="flex-1">
-                    Edit
+                    View Details
                   </Button>
                   <Button variant="outline" size="sm" className="flex-1">
-                    Download
+                    Performance
                   </Button>
                 </div>
               </CardContent>
@@ -210,31 +201,35 @@ export default function Creatives() {
           ))}
         </div>
 
-        {/* Upload Instructions */}
+        {/* Performance Summary */}
         <Card>
           <CardHeader>
-            <CardTitle>Upload Guidelines</CardTitle>
-            <CardDescription>Supported formats and best practices</CardDescription>
+            <CardTitle>Creative Performance Summary</CardTitle>
+            <CardDescription>Overview of all creative advertising metrics</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <h4 className="font-semibold mb-2">Supported Formats</h4>
-                <ul className="text-sm space-y-1">
-                  <li>• Images: JPG, PNG, GIF</li>
-                  <li>• Videos: MP4, MOV</li>
-                  <li>• Maximum file size: 50MB</li>
-                  <li>• Recommended dimensions: 1280x720 for videos</li>
-                </ul>
+            <div className="grid gap-4 md:grid-cols-4">
+              <div className="text-center">
+                <p className="text-2xl font-bold">{mockCreatives.length}</p>
+                <p className="text-sm text-muted-foreground">Total Creatives</p>
               </div>
-              <div>
-                <h4 className="font-semibold mb-2">Best Practices</h4>
-                <ul className="text-sm space-y-1">
-                  <li>• Use descriptive file names</li>
-                  <li>• Add relevant tags for easy searching</li>
-                  <li>• Optimize file sizes for faster loading</li>
-                  <li>• Include multiple size variants</li>
-                </ul>
+              <div className="text-center">
+                <p className="text-2xl font-bold">
+                  ${mockCreatives.reduce((sum, creative) => sum + creative.spend, 0).toLocaleString()}
+                </p>
+                <p className="text-sm text-muted-foreground">Total Spend</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold">
+                  {mockCreatives.reduce((sum, creative) => sum + creative.installs, 0).toLocaleString()}
+                </p>
+                <p className="text-sm text-muted-foreground">Total Installs</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold">
+                  ${(mockCreatives.reduce((sum, creative) => sum + creative.cpi, 0) / mockCreatives.length).toFixed(2)}
+                </p>
+                <p className="text-sm text-muted-foreground">Avg CPI</p>
               </div>
             </div>
           </CardContent>

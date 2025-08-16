@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Search, BarChart3, Shield, AlertTriangle } from "lucide-react";
+import { Search, BarChart3, Shield, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const mockInventory = [
@@ -67,12 +67,7 @@ export default function Inventory() {
   const [selectedType, setSelectedType] = useState("all");
   const { toast } = useToast();
 
-  const handleAddSource = () => {
-    toast({
-      title: "Add Source",
-      description: "New traffic source addition functionality will be available soon",
-    });
-  };
+
 
   const handleAnalyze = (sourceName: string) => {
     toast({
@@ -138,13 +133,9 @@ export default function Inventory() {
           <div>
             <h1 className="text-3xl font-bold">Inventory</h1>
             <p className="text-muted-foreground">
-              Manage traffic sources and analyze inventory quality
+              Monitor traffic sources and analyze inventory quality
             </p>
           </div>
-          <Button onClick={handleAddSource}>
-            <Plus className="w-4 h-4 mr-2" />
-            Add Source
-          </Button>
         </div>
 
         {/* Overview Metrics */}
