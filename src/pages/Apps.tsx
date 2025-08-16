@@ -1,265 +1,613 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Search, Smartphone, TrendingUp, FileSpreadsheet, ExternalLink } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { Search, Filter, Download, FileSpreadsheet, Printer, Mail, Eye, Loader2, RefreshCw, Calendar, ChevronDown, ArrowUpDown, ArrowUp, ArrowDown, ExternalLink, AlertTriangle, Database, GripVertical, Settings, Copy, CheckCircle, Smartphone, Globe } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-// Mock apps based on CSV campaign data
-const mockApps = [
-  {
-    id: 1,
-    name: "Puzzle Adventure Pro",
-    bundleId: "com.gamedev.puzzle",
-    platform: "iOS",
-    category: "Games",
-    totalSpend: 24850.75,
-    totalInstalls: 3120,
-    totalActions: 2340,
-    avgCPI: 7.96,
-    activeCampaigns: 12,
-    countries: ["US", "CA", "UK", "AU"],
-    status: "Active"
-  },
-  {
-    id: 2,
-    name: "ShopEasy Mobile",
-    bundleId: "com.retail.shopeasy",
-    platform: "Android", 
-    category: "Shopping",
-    totalSpend: 18750.25,
-    totalInstalls: 2245,
-    totalActions: 1890,
-    avgCPI: 8.35,
-    activeCampaigns: 8,
-    countries: ["US", "UK", "DE", "FR"],
-    status: "Active"
-  },
-  {
-    id: 3,
-    name: "FitLife Tracker",
-    bundleId: "com.health.fitlife",
-    platform: "iOS",
-    category: "Health & Fitness",
-    totalSpend: 31230.50,
-    totalInstalls: 3890,
-    totalActions: 2950,
-    avgCPI: 8.03,
-    activeCampaigns: 5,
-    countries: ["US", "CA", "UK"],
-    status: "Active"
-  },
-  {
-    id: 4,
-    name: "TravelGuide Plus",
-    bundleId: "com.travel.guide",
-    platform: "Android",
-    category: "Travel",
-    totalSpend: 12450.00,
-    totalInstalls: 1580,
-    totalActions: 1120,
-    avgCPI: 7.88,
-    activeCampaigns: 6,
-    countries: ["US", "UK", "IT", "ES"],
-    status: "Active"
-  }
-];
+import { useUltraData } from "@/contexts/UltraDataContext";
+import { format } from "date-fns";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import {
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 export default function Apps() {
+  const { data, getFilteredApps, exportData } = useUltraData();
+  const { toast } = useToast();
+  
+  // State
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPlatform, setSelectedPlatform] = useState("all");
-  const { toast } = useToast();
+  const [selectedExchange, setSelectedExchange] = useState("all");
+  const [sortBy, setSortBy] = useState<'name' | 'spend' | 'installs' | 'avgCPI' | 'avgCTR' | 'avgCPC'>('spend');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [columnOrder, setColumnOrder] = useState([
+    'name', 'platform', 'campaigns', 'creatives', 'spend', 'installs', 'avgCPI', 'avgCTR', 'avgCPC', 'moves'
+  ]);
+  const [showDetails, setShowDetails] = useState<{[key: string]: boolean}>({});
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  
+  // DnD sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
-  const handleViewCampaigns = (appName: string) => {
+  // Get filtered apps
+  const apps = useMemo(() => {
+    return getFilteredApps({
+      search: searchTerm,
+      platform: selectedPlatform,
+      exchange: selectedExchange,
+      sortBy,
+      sortOrder,
+      page: currentPage,
+      limit: pageSize
+    });
+  }, [searchTerm, selectedPlatform, selectedExchange, sortBy, sortOrder, currentPage, pageSize, getFilteredApps]);
+
+  // Get total count for pagination
+  const totalApps = data?.apps?.length || 0;
+  const totalPages = Math.ceil(totalApps / pageSize);
+
+  // Get unique platforms and exchanges for filters
+  const platforms = useMemo(() => {
+    if (!data?.apps) return [];
+    const uniquePlatforms = new Set(data.apps.map(a => a.platform));
+    return Array.from(uniquePlatforms).sort();
+  }, [data?.apps]);
+
+  const exchanges = useMemo(() => {
+    if (!data?.apps) return [];
+    const uniqueExchanges = new Set(data.apps.flatMap(app => 
+      data.campaigns
+        .filter(c => c.targetAppId === app.appId)
+        .flatMap(c => c.exchanges.map(e => e.exchange))
+    ));
+    return Array.from(uniqueExchanges).sort();
+  }, [data?.apps, data?.campaigns]);
+
+  // Handle sorting
+  const handleSort = (column: 'name' | 'spend' | 'installs' | 'avgCPI' | 'avgCTR' | 'avgCPC') => {
+    if (sortBy === column) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(column);
+      setSortOrder('desc');
+    }
+    setCurrentPage(1);
+  };
+
+  // Handle column reordering
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (over && active.id !== over.id) {
+      setColumnOrder((items) => {
+        const oldIndex = items.indexOf(active.id as string);
+        const newIndex = items.indexOf(over.id as string);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
+
+  // Handle export
+  const handleExport = (format: 'csv' | 'json') => {
+    exportData(format);
     toast({
-      title: "App Campaigns",
-      description: `Viewing campaigns for ${appName} from CSV data`,
+      title: "Export Started",
+      description: `Exporting apps data as ${format.toUpperCase()}`,
     });
   };
 
-  const filteredApps = mockApps.filter(app => {
-    const matchesSearch = app.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         app.bundleId.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesPlatform = selectedPlatform === "all" || app.platform.toLowerCase() === selectedPlatform;
-    
-    return matchesSearch && matchesPlatform;
-  });
+  // Toggle app details
+  const toggleDetails = (appId: string) => {
+    setShowDetails(prev => ({
+      ...prev,
+      [appId]: !prev[appId]
+    }));
+  };
+
+  // Copy app name
+  const copyAppName = async (appName: string, appId: string) => {
+    try {
+      await navigator.clipboard.writeText(appName);
+      setCopiedId(appId);
+      toast({
+        title: "Copied!",
+        description: "App name copied to clipboard",
+      });
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (error) {
+      toast({
+        title: "Copy Failed",
+        description: "Failed to copy app name",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Render sort icon
+  const SortIcon = ({ column }: { column: string }) => {
+    if (sortBy !== column) return <ArrowUpDown className="h-4 w-4" />;
+    return sortOrder === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />;
+  };
+
+  // Column header component with drag handle
+  const SortableColumnHeader = ({ id, children, sortable = false, onSort }: { 
+    id: string; 
+    children: React.ReactNode; 
+    sortable?: boolean;
+    onSort?: () => void;
+  }) => {
+    const {
+      attributes,
+      listeners,
+      setNodeRef,
+      transform,
+      transition,
+      isDragging,
+    } = useSortable({ id });
+
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+      opacity: isDragging ? 0.5 : 1,
+    };
+
+    return (
+      <TableHead 
+        ref={setNodeRef} 
+        style={style} 
+        className="cursor-move select-none"
+        onClick={sortable ? onSort : undefined}
+      >
+        <div className="flex items-center gap-2">
+          <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
+            <GripVertical className="h-3 w-3 text-muted-foreground" />
+          </div>
+          {children}
+        </div>
+      </TableHead>
+    );
+  };
 
   return (
     <Layout>
       <div className="space-y-6">
+        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Apps</h1>
             <p className="text-muted-foreground">
-              Mobile applications found in your CSV campaign data
+              Manage and analyze your target applications and performance
             </p>
           </div>
-          <Button variant="outline" asChild>
-            <a href="/upload">
-              <FileSpreadsheet className="h-4 w-4 mr-2" />
-              Upload CSV Data
-            </a>
-          </Button>
+          {data && (
+            <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+              <Database className="h-3 w-3 mr-1" />
+              CSV Data Active
+            </Badge>
+          )}
         </div>
 
-        {/* Summary Stats */}
-        <div className="grid gap-6 md:grid-cols-3">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Apps in Data</CardTitle>
-              <Smartphone className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{mockApps.length}</div>
-              <p className="text-xs text-muted-foreground">From CSV files</p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Spend</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                ${mockApps.reduce((sum, app) => sum + app.totalSpend, 0).toLocaleString()}
-              </div>
-              <p className="text-xs text-muted-foreground">Across all campaigns</p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Campaigns</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {mockApps.reduce((sum, app) => sum + app.activeCampaigns, 0)}
-              </div>
-              <p className="text-xs text-muted-foreground">From CSV data</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Search & Filter */}
+        {/* Filters */}
         <Card>
           <CardHeader>
-            <CardTitle>Filter Apps</CardTitle>
-            <CardDescription>Search and filter apps from your CSV data</CardDescription>
+            <CardTitle>Filters</CardTitle>
+            <CardDescription>Filter apps by various criteria</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search apps..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div>
+                <div className="relative">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search apps..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-8"
+                  />
+                </div>
               </div>
               
               <Select value={selectedPlatform} onValueChange={setSelectedPlatform}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select platform" />
+                  <SelectValue placeholder="All Platforms" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Platforms</SelectItem>
-                  <SelectItem value="ios">iOS</SelectItem>
-                  <SelectItem value="android">Android</SelectItem>
+                  {platforms.map((platform) => (
+                    <SelectItem key={platform} value={platform}>
+                      {platform}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
+              
+              <Select value={selectedExchange} onValueChange={setSelectedExchange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Exchanges" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Exchanges</SelectItem>
+                  {exchanges.map((exchange) => (
+                    <SelectItem key={exchange} value={exchange}>
+                      {exchange}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="mt-4 flex items-center gap-4">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setSearchTerm("");
+                  setSelectedPlatform("all");
+                  setSelectedExchange("all");
+                }}
+                size="sm"
+              >
+                Clear
+              </Button>
+              
+              <Button 
+                variant="default" 
+                onClick={() => {
+                  // Filters are applied automatically via useMemo
+                  console.log('Applying filters:', { searchTerm, selectedPlatform, selectedExchange });
+                }}
+                size="sm"
+                className="bg-green-600 hover:bg-green-700"
+              >
+                Apply
+              </Button>
             </div>
           </CardContent>
         </Card>
 
-        {/* Apps List */}
-        <div className="grid gap-4">
-          {filteredApps.map((app) => (
-            <Card key={app.id}>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                      <Smartphone className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-lg">{app.name}</h3>
-                      <p className="text-sm text-muted-foreground">{app.bundleId}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge variant="outline">{app.platform}</Badge>
-                        <Badge variant={app.status === "Active" ? "default" : "secondary"}>
-                          {app.status}
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="text-right space-y-1">
-                    <div className="text-sm text-muted-foreground">Campaign Performance</div>
-                    <div className="flex items-center gap-6">
-                      <div className="text-center">
-                        <div className="font-semibold">${app.totalSpend.toLocaleString()}</div>
-                        <div className="text-xs text-muted-foreground">Spend</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="font-semibold">{app.totalInstalls.toLocaleString()}</div>
-                        <div className="text-xs text-muted-foreground">Installs</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="font-semibold">${app.avgCPI.toFixed(2)}</div>
-                        <div className="text-xs text-muted-foreground">Avg CPI</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="font-semibold">{app.activeCampaigns}</div>
-                        <div className="text-xs text-muted-foreground">Campaigns</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleViewCampaigns(app.name)}
-                    >
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      View Campaigns
-                    </Button>
-                  </div>
+        {/* Apps Data */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Apps Data</CardTitle>
+            <CardDescription>
+              {data ? `${totalApps} apps found` : 'No CSV data loaded'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {!data ? (
+              <Alert>
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  No CSV data loaded. Please upload your campaign files to see app data here.
+                </AlertDescription>
+              </Alert>
+            ) : (
+              <>
+                <div className="rounded-md border">
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                  >
+                    <Table>
+                      <TableHeader>
+                        <SortableContext items={columnOrder} strategy={verticalListSortingStrategy}>
+                          <TableRow>
+                            {columnOrder.includes('name') && (
+                              <SortableColumnHeader 
+                                id="name" 
+                                sortable 
+                                onSort={() => handleSort('name')}
+                              >
+                                <div className="flex items-center gap-2">
+                                  App Name
+                                  <SortIcon column="name" />
+                                </div>
+                              </SortableColumnHeader>
+                            )}
+                            
+                            {columnOrder.includes('platform') && (
+                              <SortableColumnHeader id="platform">
+                                Platform
+                              </SortableColumnHeader>
+                            )}
+                            
+                            {columnOrder.includes('campaigns') && (
+                              <SortableColumnHeader id="campaigns">
+                                Campaigns
+                              </SortableColumnHeader>
+                            )}
+                            
+                            {columnOrder.includes('creatives') && (
+                              <SortableColumnHeader id="creatives">
+                                Creatives
+                              </SortableColumnHeader>
+                            )}
+                            
+                            {columnOrder.includes('spend') && (
+                              <SortableColumnHeader 
+                                id="spend" 
+                                sortable 
+                                onSort={() => handleSort('spend')}
+                              >
+                                <div className="flex items-center gap-2">
+                                  Total Spend
+                                  <SortIcon column="spend" />
+                                </div>
+                              </SortableColumnHeader>
+                            )}
+                            
+                            {columnOrder.includes('installs') && (
+                              <SortableColumnHeader 
+                                id="installs" 
+                                sortable 
+                                onSort={() => handleSort('installs')}
+                              >
+                                <div className="flex items-center gap-2">
+                                  Total Installs
+                                  <SortIcon column="installs" />
+                                </div>
+                              </SortableColumnHeader>
+                            )}
+                            
+                            {columnOrder.includes('avgCPI') && (
+                              <SortableColumnHeader 
+                                id="avgCPI" 
+                                sortable 
+                                onSort={() => handleSort('avgCPI')}
+                              >
+                                <div className="flex items-center gap-2">
+                                  Avg CPI
+                                  <SortIcon column="avgCPI" />
+                                </div>
+                              </SortableColumnHeader>
+                            )}
+                            
+                            {columnOrder.includes('avgCTR') && (
+                              <SortableColumnHeader 
+                                id="avgCTR" 
+                                sortable 
+                                onSort={() => handleSort('avgCTR')}
+                              >
+                                <div className="flex items-center gap-2">
+                                  Avg CTR
+                                  <SortIcon column="avgCTR" />
+                                </div>
+                              </SortableColumnHeader>
+                            )}
+                            
+                            {columnOrder.includes('avgCPC') && (
+                              <SortableColumnHeader 
+                                id="avgCPC" 
+                                sortable 
+                                onSort={() => handleSort('avgCPC')}
+                              >
+                                <div className="flex items-center gap-2">
+                                  Avg CPC
+                                  <SortIcon column="avgCPC" />
+                                </div>
+                              </SortableColumnHeader>
+                            )}
+                            
+                            {columnOrder.includes('moves') && (
+                              <SortableColumnHeader id="moves">
+                                Moves
+                              </SortableColumnHeader>
+                            )}
+                          </TableRow>
+                        </SortableContext>
+                      </TableHeader>
+                      <TableBody>
+                        {apps.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={columnOrder.length} className="text-center py-8">
+                              No apps found matching your criteria.
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          apps.map((app, index) => (
+                            <TableRow key={app.id || index}>
+                              {columnOrder.includes('name') && (
+                                <TableCell className="font-medium">
+                                  <div className="flex items-center gap-2">
+                                    <div className="max-w-[200px] truncate">
+                                      {app.name}
+                                    </div>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-6 w-6 p-0 hover:bg-mint-100 dark:hover:bg-mint-900"
+                                      onClick={() => copyAppName(app.name, app.id)}
+                                    >
+                                      {copiedId === app.id ? (
+                                        <CheckCircle className="h-3 w-3 text-mint-600" />
+                                      ) : (
+                                        <Copy className="h-3 w-3 text-muted-foreground hover:text-mint-600" />
+                                      )}
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                              )}
+                              
+                              {columnOrder.includes('platform') && (
+                                <TableCell>
+                                  <div className="flex items-center gap-2">
+                                    {app.platform === 'iOS' ? (
+                                      <Smartphone className="h-4 w-4 text-royal-600" />
+                                    ) : (
+                                      <Globe className="h-4 w-4 text-peach-600" />
+                                    )}
+                                    <Badge variant="outline" className="bg-lilac-50 text-lilac-700 border-lilac-200 dark:bg-lilac-900/20 dark:text-lilac-300 dark:border-lilac-700">
+                                      {app.platform}
+                                    </Badge>
+                                  </div>
+                                </TableCell>
+                              )}
+                              
+                              {columnOrder.includes('campaigns') && (
+                                <TableCell className="text-center">
+                                  <Badge variant="secondary" className="bg-mint-50 text-mint-700 dark:bg-mint-900/20 dark:text-mint-300">
+                                    {app.campaignsCount}
+                                  </Badge>
+                                </TableCell>
+                              )}
+                              
+                              {columnOrder.includes('creatives') && (
+                                <TableCell className="text-center">
+                                  <Badge variant="secondary" className="bg-royal-50 text-royal-700 dark:bg-royal-900/20 dark:text-royal-300">
+                                    {app.creativesCount}
+                                  </Badge>
+                                </TableCell>
+                              )}
+                              
+                              {columnOrder.includes('spend') && (
+                                <TableCell className="text-right font-semibold">
+                                  ${app.totalSpend.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                                </TableCell>
+                              )}
+                              
+                              {columnOrder.includes('installs') && (
+                                <TableCell className="text-right">
+                                  {app.totalInstalls.toLocaleString()}
+                                </TableCell>
+                              )}
+                              
+                              {columnOrder.includes('avgCPI') && (
+                                <TableCell className="text-right">
+                                  ${app.avgCPI.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                                </TableCell>
+                              )}
+                              
+                              {columnOrder.includes('avgCTR') && (
+                                <TableCell className="text-right">
+                                  {app.avgCTR.toFixed(2)}%
+                                </TableCell>
+                              )}
+                              
+                              {columnOrder.includes('avgCPC') && (
+                                <TableCell className="text-right">
+                                  ${app.avgCPC.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                                </TableCell>
+                              )}
+                              
+                              {columnOrder.includes('moves') && (
+                                <TableCell>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" className="h-8 w-8 p-0">
+                                        <span className="sr-only">Open menu</span>
+                                        <ChevronDown className="h-4 w-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      <DropdownMenuItem onClick={() => toggleDetails(app.id)}>
+                                        <Eye className="h-4 w-4 mr-2" />
+                                        {showDetails[app.id] ? 'Hide Details' : 'View Details'}
+                                      </DropdownMenuItem>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem>
+                                        <ExternalLink className="h-4 w-4 mr-2" />
+                                        View Campaigns
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </TableCell>
+                              )}
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </DndContext>
                 </div>
 
-                {/* Countries */}
-                <div className="mt-4 pt-4 border-t">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">Active Countries:</span>
-                    {app.countries.map((country, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs">
-                        {country}
-                      </Badge>
-                    ))}
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="mt-4">
+                    <Pagination>
+                      <PaginationContent>
+                        <PaginationItem>
+                          <PaginationPrevious 
+                            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                            className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                          />
+                        </PaginationItem>
+                        
+                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                          const pageNumber = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
+                          return (
+                            <PaginationItem key={pageNumber}>
+                              <PaginationLink
+                                onClick={() => setCurrentPage(pageNumber)}
+                                isActive={currentPage === pageNumber}
+                                className="cursor-pointer"
+                              >
+                                {pageNumber}
+                              </PaginationLink>
+                            </PaginationItem>
+                          );
+                        })}
+                        
+                        <PaginationItem>
+                          <PaginationNext 
+                            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                            className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                          />
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                )}
 
-        {filteredApps.length === 0 && (
-          <Card>
-            <CardContent className="text-center py-8">
-              <p className="text-muted-foreground">No apps found matching your criteria.</p>
-              <Button variant="link" className="mt-2" asChild>
-                <a href="/upload">Upload CSV files to see app data</a>
-              </Button>
-            </CardContent>
-          </Card>
-        )}
+                {/* Page Size Control */}
+                <div className="mt-4 flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Show:</span>
+                  <Select value={pageSize.toString()} onValueChange={(value) => setPageSize(Number(value))}>
+                    <SelectTrigger className="w-20">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="25">25</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <span className="text-sm text-muted-foreground">entries per page</span>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </Layout>
   );
