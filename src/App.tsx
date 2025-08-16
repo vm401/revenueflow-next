@@ -29,15 +29,15 @@ const App = () => (
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/overview" element={<ProtectedRoute><Overview /></ProtectedRoute>} />
-          <Route path="/campaigns" element={<ProtectedRoute><Campaigns /></ProtectedRoute>} />
-          <Route path="/upload" element={<ProtectedRoute><Upload /></ProtectedRoute>} />
-          <Route path="/creatives" element={<ProtectedRoute><Creatives /></ProtectedRoute>} />
-          <Route path="/apps" element={<ProtectedRoute><Apps /></ProtectedRoute>} />
-          <Route path="/exchanges" element={<ProtectedRoute><Exchanges /></ProtectedRoute>} />
-          <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
-          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/overview" element={<Overview />} />
+          <Route path="/campaigns" element={<Campaigns />} />
+          <Route path="/upload" element={<Upload />} />
+          <Route path="/creatives" element={<Creatives />} />
+          <Route path="/apps" element={<Apps />} />
+          <Route path="/exchanges" element={<Exchanges />} />
+          <Route path="/inventory" element={<Inventory />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
