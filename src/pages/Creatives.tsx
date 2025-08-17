@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { Search, Filter, Download, FileSpreadsheet, Printer, Mail, Eye, Loader2, RefreshCw, Calendar, ChevronDown, ArrowUpDown, ArrowUp, ArrowDown, ExternalLink, AlertTriangle, Database, GripVertical, Settings, Copy, CheckCircle } from "lucide-react";
+import { Search, Filter, Download, FileSpreadsheet, Printer, Mail, Eye, Loader2, RefreshCw, Calendar, ChevronDown, ArrowUpDown, ArrowUp, ArrowDown, ExternalLink, AlertTriangle, Database, GripVertical, Settings, Copy, CheckCircle, Upload, Play } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useUltraData } from "@/contexts/UltraDataContext";
 import { format } from "date-fns";
@@ -60,7 +60,11 @@ export default function Creatives() {
   
   // DnD sensors
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -190,8 +194,8 @@ export default function Creatives() {
 
   // Render sort icon
   const SortIcon = ({ column }: { column: string }) => {
-    if (sortBy !== column) return <ArrowUpDown className="h-4 w-4" />;
-    return sortOrder === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />;
+    if (sortBy !== column) return <ArrowUpDown className="h-4 w-4 border-r border-border/50" />;
+    return sortOrder === 'asc' ? <ArrowUp className="h-4 w-4 border-r border-border/50" /> : <ArrowDown className="h-4 w-4 border-r border-border/50" />;
   };
 
   // Column header component with drag handle
@@ -220,12 +224,12 @@ export default function Creatives() {
       <TableHead 
         ref={setNodeRef} 
         style={style} 
-        className="cursor-move select-none"
+        className="cursor-move select-none border-r border-border/50"
         onClick={sortable ? onSort : undefined}
       >
-        <div className="flex items-center gap-2">
-          <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
-            <GripVertical className="h-3 w-3 text-muted-foreground" />
+        <div className="flex items-center gap-2 border-r border-border/50">
+          <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing border-r border-border/50">
+            <GripVertical className="h-3 w-3 text-muted-foreground border-r border-border/50" />
           </div>
           {children}
         </div>
@@ -235,18 +239,18 @@ export default function Creatives() {
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <div className="space-y-6 border-r border-border/50">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between border-r border-border/50">
           <div>
-            <h1 className="text-3xl font-bold">Creative Assets</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-3xl font-bold border-r border-border/50">Creative Assets</h1>
+            <p className="text-muted-foreground border-r border-border/50">
               Manage and analyze your creative assets and performance
             </p>
           </div>
           {data && (
-            <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-              <Database className="h-3 w-3 mr-1" />
+            <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 border-r border-border/50">
+              <Database className="h-3 w-3 mr-1 border-r border-border/50" />
               CSV Data Active
             </Badge>
           )}
@@ -259,15 +263,15 @@ export default function Creatives() {
             <CardDescription>Filter creatives by various criteria</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 border-r border-border/50">
               <div>
-                <div className="relative">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <div className="relative border-r border-border/50">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground border-r border-border/50" />
                   <Input
                     placeholder="Search creatives..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-8"
+                    className="pl-8 border-r border-border/50"
                   />
                 </div>
               </div>
@@ -331,7 +335,7 @@ export default function Creatives() {
               </Select>
             </div>
             
-            <div className="mt-4 flex items-center gap-4">
+            <div className="mt-4 flex items-center gap-4 border-r border-border/50">
               <Button 
                 variant="outline" 
                 onClick={() => {
@@ -360,14 +364,14 @@ export default function Creatives() {
           <CardContent>
             {!data ? (
               <Alert>
-                <AlertTriangle className="h-4 w-4" />
+                <AlertTriangle className="h-4 w-4 border-r border-border/50" />
                 <AlertDescription>
                   No CSV data loaded. Please upload your creative files to see data here.
                 </AlertDescription>
               </Alert>
             ) : (
               <>
-                <div className="rounded-md border">
+                <div className="rounded-md border border-r border-border/50">
                   <DndContext
                     sensors={sensors}
                     collisionDetection={closestCenter}
@@ -383,7 +387,7 @@ export default function Creatives() {
                                 sortable 
                                 onSort={() => handleSort('name')}
                               >
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 border-r border-border/50">
                                   Creative Name
                                   <SortIcon column="name" />
                                 </div>
@@ -414,7 +418,7 @@ export default function Creatives() {
                                 sortable 
                                 onSort={() => handleSort('spend')}
                               >
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 border-r border-border/50">
                                   Spend
                                   <SortIcon column="spend" />
                                 </div>
@@ -427,7 +431,7 @@ export default function Creatives() {
                                 sortable 
                                 onSort={() => handleSort('installs')}
                               >
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 border-r border-border/50">
                                   Installs
                                   <SortIcon column="installs" />
                                 </div>
@@ -446,7 +450,7 @@ export default function Creatives() {
                                 sortable 
                                 onSort={() => handleSort('cpi')}
                               >
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 border-r border-border/50">
                                   CPI
                                   <SortIcon column="cpi" />
                                 </div>
@@ -459,7 +463,7 @@ export default function Creatives() {
                                 sortable 
                                 onSort={() => handleSort('ctr')}
                               >
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 border-r border-border/50">
                                   CTR
                                   <SortIcon column="ctr" />
                                 </div>
@@ -489,7 +493,7 @@ export default function Creatives() {
                       <TableBody>
                         {creatives.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={columnOrder.length} className="text-center py-8">
+                            <TableCell colSpan={columnOrder.length} className="text-center py-8 border-r border-border/50">
                               No creatives found matching your criteria.
                             </TableCell>
                           </TableRow>
@@ -497,20 +501,20 @@ export default function Creatives() {
                           creatives.map((creative, index) => (
                             <TableRow key={creative.id || index}>
                               {columnOrder.includes('name') && (
-                                <TableCell className="font-medium">
-                                  <div className="flex items-center gap-2">
-                                    <div className="max-w-[200px] truncate">
+                                <TableCell className="font-medium border-r border-border/50">
+                                  <div className="flex items-center gap-2 border-r border-border/50">
+                                    <div className="max-w-[200px] truncate border-r border-border/50">
                                       {creative.name}
                                     </div>
                                     <Button
                                       variant="ghost"
-                                      className="h-6 w-6 p-0 hover:bg-mint-100 dark:hover:bg-mint-900"
+                                      className="h-6 w-6 p-0 hover:bg-mint-100 dark:hover:bg-mint-900 border-r border-border/50"
                                       onClick={() => copyCreativeName(creative.name, creative.id)}
                                     >
                                       {copiedId === creative.id ? (
-                                        <CheckCircle className="h-3 w-3 text-mint-600" />
+                                        <CheckCircle className="h-3 w-3 text-mint-600 border-r border-border/50" />
                                       ) : (
-                                        <Copy className="h-3 w-3 text-muted-foreground hover:text-mint-600" />
+                                        <Copy className="h-3 w-3 text-muted-foreground hover:text-mint-600 border-r border-border/50" />
                                       )}
                                     </Button>
                                   </div>
@@ -523,7 +527,7 @@ export default function Creatives() {
                               
                               {columnOrder.includes('type') && (
                                 <TableCell>
-                                  <Badge variant="outline" className="bg-lilac-50 text-lilac-700 border-lilac-200 dark:bg-lilac-900/20 dark:text-lilac-300 dark:border-lilac-700">
+                                  <Badge variant="outline" className="bg-lilac-50 text-lilac-700 border-lilac-200 dark:bg-lilac-900/20 dark:text-lilac-300 dark:border-lilac-700 border-r border-border/50">
                                     {creative.type}
                                   </Badge>
                                 </TableCell>
@@ -531,44 +535,44 @@ export default function Creatives() {
                               
                               {columnOrder.includes('format') && (
                                 <TableCell>
-                                  <Badge variant="outline" className="bg-royal-50 text-royal-700 border-royal-200 dark:bg-royal-900/20 dark:text-royal-300 dark:border-royal-700">
+                                  <Badge variant="outline" className="bg-royal-50 text-royal-700 border-royal-200 dark:bg-royal-900/20 dark:text-royal-300 dark:border-royal-700 border-r border-border/50">
                                     {creative.format}
                                   </Badge>
                                 </TableCell>
                               )}
                               
                               {columnOrder.includes('spend') && (
-                                <TableCell className="text-right font-semibold">
+                                <TableCell className="text-right font-semibold border-r border-border/50">
                                   ${creative.totalSpend.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                                 </TableCell>
                               )}
                               
                               {columnOrder.includes('installs') && (
-                                <TableCell className="text-right">
+                                <TableCell className="text-right border-r border-border/50">
                                   {creative.totalInstalls.toLocaleString()}
                                 </TableCell>
                               )}
                               
                               {columnOrder.includes('actions') && (
-                                <TableCell className="text-right font-semibold text-blue-600 dark:text-blue-400">
+                                <TableCell className="text-right font-semibold text-blue-600 dark:text-blue-400 border-r border-border/50">
                                   {(creative.totalActions || 0).toLocaleString()}
                                 </TableCell>
                               )}
                               
                               {columnOrder.includes('cpi') && (
-                                <TableCell className="text-right">
+                                <TableCell className="text-right border-r border-border/50">
                                   ${creative.cpi.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                                 </TableCell>
                               )}
                               
                               {columnOrder.includes('ctr') && (
-                                <TableCell className="text-right">
+                                <TableCell className="text-right border-r border-border/50">
                                   {creative.ctr.toFixed(2)}%
                                 </TableCell>
                               )}
                               
                               {columnOrder.includes('impressions') && (
-                                <TableCell className="text-right">
+                                <TableCell className="text-right border-r border-border/50">
                                   {creative.totalImpressions >= 1000000 
                                     ? (creative.totalImpressions / 1000000).toFixed(2) + 'm'
                                     : creative.totalImpressions >= 1000 
@@ -578,7 +582,7 @@ export default function Creatives() {
                               )}
                               
                               {columnOrder.includes('clicks') && (
-                                <TableCell className="text-right">
+                                <TableCell className="text-right border-r border-border/50">
                                   {creative.totalClicks >= 1000000 
                                     ? (creative.totalClicks / 1000000).toFixed(2) + 'm'
                                     : creative.totalClicks >= 1000 
@@ -591,20 +595,26 @@ export default function Creatives() {
                                 <TableCell>
                                   <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                      <Button variant="ghost" className="h-8 w-8 p-0">
-                                        <span className="sr-only">Open menu</span>
-                                        <ChevronDown className="h-4 w-4" />
+                                      <Button variant="ghost" className="h-8 w-8 p-0 border-r border-border/50">
+                                        <span className="sr-only border-r border-border/50">Open menu</span>
+                                        <ChevronDown className="h-4 w-4 border-r border-border/50" />
                                       </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                      <DropdownMenuItem onClick={() => toggleDetails(creative.id)}>
-                                        <Eye className="h-4 w-4 mr-2" />
-                                        {showDetails[creative.id] ? 'Hide Details' : 'View Details'}
+                                      <DropdownMenuItem onClick={() => {
+                                        // TODO: Open upload creative route (not accessible from main menu)
+                                        console.log('Upload creative for:', creative.name);
+                                      }}>
+                                        <Upload className="h-4 w-4 mr-2" />
+                                        Upload Creative
                                       </DropdownMenuItem>
                                       <DropdownMenuSeparator />
-                                      <DropdownMenuItem>
-                                        <ExternalLink className="h-4 w-4 mr-2" />
-                                        View Campaign
+                                      <DropdownMenuItem onClick={() => {
+                                        // TODO: Play video preview based on creative name from DB
+                                        console.log('Watch creative:', creative.name);
+                                      }}>
+                                        <Play className="h-4 w-4 mr-2" />
+                                        Watch Creative
                                       </DropdownMenuItem>
                                     </DropdownMenuContent>
                                   </DropdownMenu>
@@ -620,7 +630,7 @@ export default function Creatives() {
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                  <div className="mt-4">
+                  <div className="mt-4 border-r border-border/50">
                     <Pagination>
                       <PaginationContent>
                         <PaginationItem>
@@ -637,7 +647,7 @@ export default function Creatives() {
                               <PaginationLink
                                 onClick={() => setCurrentPage(pageNumber)}
                                 isActive={currentPage === pageNumber}
-                                className="cursor-pointer"
+                                className="cursor-pointer border-r border-border/50"
                               >
                                 {pageNumber}
                               </PaginationLink>
@@ -657,10 +667,10 @@ export default function Creatives() {
                 )}
 
                 {/* Page Size Control */}
-                <div className="mt-4 flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Show:</span>
+                <div className="mt-4 flex items-center gap-2 border-r border-border/50">
+                  <span className="text-sm text-muted-foreground border-r border-border/50">Show:</span>
                   <Select value={pageSize.toString()} onValueChange={(value) => setPageSize(Number(value))}>
-                    <SelectTrigger className="w-20">
+                    <SelectTrigger className="w-20 border-r border-border/50">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -670,7 +680,7 @@ export default function Creatives() {
                       <SelectItem value="100">100</SelectItem>
                     </SelectContent>
                   </Select>
-                  <span className="text-sm text-muted-foreground">entries per page</span>
+                  <span className="text-sm text-muted-foreground border-r border-border/50">entries per page</span>
                 </div>
               </>
             )}

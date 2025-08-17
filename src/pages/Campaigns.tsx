@@ -59,7 +59,11 @@ export default function Campaigns() {
   
   // DnD sensors
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -154,8 +158,8 @@ export default function Campaigns() {
 
   // Render sort icon
   const SortIcon = ({ column }: { column: string }) => {
-    if (sortBy !== column) return <ArrowUpDown className="h-4 w-4" />;
-    return sortOrder === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />;
+    if (sortBy !== column) return <ArrowUpDown className="h-4 w-4 border-r border-border/50" />;
+    return sortOrder === 'asc' ? <ArrowUp className="h-4 w-4 border-r border-border/50" /> : <ArrowDown className="h-4 w-4 border-r border-border/50" />;
   };
 
   // Column header component with drag handle
@@ -184,12 +188,12 @@ export default function Campaigns() {
       <TableHead 
         ref={setNodeRef} 
         style={style} 
-        className="cursor-move select-none"
+        className="cursor-move select-none border-r border-border/50"
         onClick={sortable ? onSort : undefined}
       >
-        <div className="flex items-center gap-2">
-          <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
-            <GripVertical className="h-3 w-3 text-muted-foreground" />
+        <div className="flex items-center gap-2 border-r border-border/50">
+          <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing border-r border-border/50">
+            <GripVertical className="h-3 w-3 text-muted-foreground border-r border-border/50" />
           </div>
           {children}
         </div>
@@ -199,18 +203,18 @@ export default function Campaigns() {
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <div className="space-y-6 border-r border-border/50">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between border-r border-border/50">
           <div>
-            <h1 className="text-3xl font-bold">Campaigns</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-3xl font-bold border-r border-border/50">Campaigns</h1>
+            <p className="text-muted-foreground border-r border-border/50">
               Manage and analyze your advertising campaigns
             </p>
           </div>
           {data && (
-            <AnimatedBadge animation="glow" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-              <AnimatedIcon icon={Database} variant="royal" animation="glow" className="h-3 w-3 mr-1" />
+            <AnimatedBadge animation="glow" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 border-r border-border/50">
+              <AnimatedIcon icon={Database} variant="royal" animation="glow" className="h-3 w-3 mr-1 border-r border-border/50" />
               CSV Data Active
             </AnimatedBadge>
           )}
@@ -223,15 +227,15 @@ export default function Campaigns() {
             <CardDescription>Filter campaigns by various criteria</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 border-r border-border/50">
               <div>
-                <div className="relative">
-                  <AnimatedIcon icon={Search} variant="mint" animation="glow" className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <div className="relative border-r border-border/50">
+                  <AnimatedIcon icon={Search} variant="mint" animation="glow" className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground border-r border-border/50" />
                   <Input
                     placeholder="Search campaigns..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-8"
+                    className="pl-8 border-r border-border/50"
                   />
                 </div>
               </div>
@@ -265,14 +269,14 @@ export default function Campaigns() {
               </Select>
             </div>
             
-            <div className="mt-4 flex items-center gap-4">
-              <div className="flex gap-2">
+            <div className="mt-4 flex items-center gap-4 border-r border-border/50">
+              <div className="flex gap-2 border-r border-border/50">
                 <Input
                   type="date"
                   value={dateFrom}
                   onChange={(e) => setDateFrom(e.target.value)}
                   placeholder="From"
-                  className="w-auto"
+                  className="w-auto border-r border-border/50"
                   min={getDateRange()?.minDate}
                   max={getDateRange()?.maxDate}
                 />
@@ -281,14 +285,14 @@ export default function Campaigns() {
                   value={dateTo}
                   onChange={(e) => setDateTo(e.target.value)}
                   placeholder="To"
-                  className="w-auto"
+                  className="w-auto border-r border-border/50"
                   min={getDateRange()?.minDate}
                   max={getDateRange()?.maxDate}
                 />
               </div>
               
               {getDateRange() && (
-                <div className="text-sm text-muted-foreground">
+                <div className="text-sm text-muted-foreground border-r border-border/50">
                   📅 Available: {getDateRange()?.minDate} to {getDateRange()?.maxDate}
                 </div>
               )}
@@ -302,7 +306,7 @@ export default function Campaigns() {
                   setDateTo("");
                 }}
                 animation="bounce"
-                className="btn-bounce"
+                className="btn-bounce border-r border-border/50"
               >
                 Clear All Filters
               </AnimatedButton>
@@ -321,14 +325,14 @@ export default function Campaigns() {
           <CardContent>
             {!data ? (
                                 <Alert>
-                    <AnimatedIcon icon={AlertTriangle} variant="peach" animation="glow" className="h-4 w-4" />
+                    <AnimatedIcon icon={AlertTriangle} variant="peach" animation="glow" className="h-4 w-4 border-r border-border/50" />
                 <AlertDescription>
                   No CSV data loaded. Please upload your campaign files to see data here.
                 </AlertDescription>
               </Alert>
             ) : (
               <>
-                <div className="rounded-md border">
+                <div className="rounded-md border border-r border-border/50">
                   <DndContext
                     sensors={sensors}
                     collisionDetection={closestCenter}
@@ -344,7 +348,7 @@ export default function Campaigns() {
                                 sortable 
                                 onSort={() => handleSort('name')}
                               >
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 border-r border-border/50">
                                   Campaign Name
                                   <SortIcon column="name" />
                                 </div>
@@ -357,7 +361,7 @@ export default function Campaigns() {
                                 sortable 
                                 onSort={() => handleSort('targetApp')}
                               >
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 border-r border-border/50">
                                   Target App
                                   <SortIcon column="targetApp" />
                                 </div>
@@ -376,7 +380,7 @@ export default function Campaigns() {
                                 sortable 
                                 onSort={() => handleSort('spend')}
                               >
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 border-r border-border/50">
                                   Spend
                                   <SortIcon column="spend" />
                                 </div>
@@ -389,7 +393,7 @@ export default function Campaigns() {
                                 sortable 
                                 onSort={() => handleSort('installs')}
                               >
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 border-r border-border/50">
                                   Installs
                                   <SortIcon column="installs" />
                                 </div>
@@ -402,7 +406,7 @@ export default function Campaigns() {
                                 sortable 
                                 onSort={() => handleSort('cpi')}
                               >
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 border-r border-border/50">
                                   CPI
                                   <SortIcon column="cpi" />
                                 </div>
@@ -415,7 +419,7 @@ export default function Campaigns() {
                                 sortable 
                                 onSort={() => handleSort('ctr')}
                               >
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 border-r border-border/50">
                                   CTR
                                   <SortIcon column="ctr" />
                                 </div>
@@ -428,7 +432,7 @@ export default function Campaigns() {
                                 sortable 
                                 onSort={() => handleSort('impressions')}
                               >
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 border-r border-border/50">
                                   Impressions
                                   <SortIcon column="impressions" />
                                 </div>
@@ -441,7 +445,7 @@ export default function Campaigns() {
                                 sortable 
                                 onSort={() => handleSort('clicks')}
                               >
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 border-r border-border/50">
                                   Clicks
                                   <SortIcon column="clicks" />
                                 </div>
@@ -454,7 +458,7 @@ export default function Campaigns() {
                                 sortable 
                                 onSort={() => handleSort('roas')}
                               >
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 border-r border-border/50">
                                   ROAS
                                   <SortIcon column="roas" />
                                 </div>
@@ -467,7 +471,7 @@ export default function Campaigns() {
                                 sortable 
                                 onSort={() => handleSort('revenue')}
                               >
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 border-r border-border/50">
                                   Revenue
                                   <SortIcon column="revenue" />
                                 </div>
@@ -480,7 +484,7 @@ export default function Campaigns() {
                                 sortable 
                                 onSort={() => handleSort('actions')}
                               >
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 border-r border-border/50">
                                   Actions
                                   <SortIcon column="actions" />
                                 </div>
@@ -492,7 +496,7 @@ export default function Campaigns() {
                       <TableBody>
                         {campaigns.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={columnOrder.length} className="text-center py-8">
+                            <TableCell colSpan={columnOrder.length} className="text-center py-8 border-r border-border/50">
                               No campaigns found matching your criteria.
                             </TableCell>
                           </TableRow>
@@ -500,12 +504,12 @@ export default function Campaigns() {
                           campaigns.map((campaign, index) => (
                             <TableRow key={campaign.id || index}>
                               {columnOrder.includes('name') && (
-                                <TableCell className="font-medium">
-                                  <div className="max-w-[300px]">
+                                <TableCell className="font-medium border-r border-border/50">
+                                  <div className="max-w-[300px] border-r border-border/50">
                                     <ExpandableText 
                                       text={campaign.name} 
                                       maxLength={40}
-                                      className="font-medium"
+                                      className="font-medium border-r border-border/50"
                                     />
                                   </div>
                                 </TableCell>
@@ -517,15 +521,15 @@ export default function Campaigns() {
                               
                               {columnOrder.includes('countries') && (
                                 <TableCell>
-                                  <div className="flex flex-wrap gap-1">
+                                  <div className="flex flex-wrap gap-1 border-r border-border/50">
                                     {campaign.countries.slice(0, 2).map(country => (
-                                      <div key={country} className="flex items-center gap-1">
+                                      <div key={country} className="flex items-center gap-1 border-r border-border/50">
                                         <span>{getCountryFlag(country)}</span>
-                                        <span className="text-xs">{country}</span>
+                                        <span className="text-xs border-r border-border/50">{country}</span>
                                       </div>
                                     ))}
                                     {campaign.countries.length > 2 && (
-                                      <span className="text-xs text-muted-foreground">
+                                      <span className="text-xs text-muted-foreground border-r border-border/50">
                                         +{campaign.countries.length - 2} more
                                       </span>
                                     )}
@@ -534,31 +538,31 @@ export default function Campaigns() {
                               )}
                               
                               {columnOrder.includes('spend') && (
-                                <TableCell className="text-right font-semibold">
+                                <TableCell className="text-right font-semibold border-r border-border/50">
                                   ${campaign.totalSpend.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                                 </TableCell>
                               )}
                               
                               {columnOrder.includes('installs') && (
-                                <TableCell className="text-right">
+                                <TableCell className="text-right border-r border-border/50">
                                   {campaign.totalInstalls.toLocaleString()}
                                 </TableCell>
                               )}
                               
                               {columnOrder.includes('cpi') && (
-                                <TableCell className="text-right">
+                                <TableCell className="text-right border-r border-border/50">
                                   ${campaign.cpi.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                                 </TableCell>
                               )}
                               
                               {columnOrder.includes('ctr') && (
-                                <TableCell className="text-right">
+                                <TableCell className="text-right border-r border-border/50">
                                   {campaign.ctr.toFixed(2)}%
                                 </TableCell>
                               )}
                               
                               {columnOrder.includes('impressions') && (
-                                <TableCell className="text-right">
+                                <TableCell className="text-right border-r border-border/50">
                                   {campaign.totalImpressions >= 1000000 
                                     ? (campaign.totalImpressions / 1000000).toFixed(2) + 'm'
                                     : campaign.totalImpressions >= 1000 
@@ -568,7 +572,7 @@ export default function Campaigns() {
                               )}
                               
                               {columnOrder.includes('clicks') && (
-                                <TableCell className="text-right">
+                                <TableCell className="text-right border-r border-border/50">
                                   {campaign.totalClicks >= 1000000 
                                     ? (campaign.totalClicks / 1000000).toFixed(2) + 'm'
                                     : campaign.totalClicks >= 1000 
@@ -578,7 +582,7 @@ export default function Campaigns() {
                               )}
                               
                               {columnOrder.includes('roas') && (
-                                <TableCell className="text-right">
+                                <TableCell className="text-right border-r border-border/50">
                                   <span className={`font-semibold ${
                                     (campaign.totalSpend > 0 ? (campaign.totalInstalls * campaign.cpi * 1.5) / campaign.totalSpend : 0) >= 2 
                                       ? 'text-green-600 dark:text-green-400' 
@@ -594,13 +598,13 @@ export default function Campaigns() {
                               )}
                               
                               {columnOrder.includes('revenue') && (
-                                <TableCell className="text-right font-semibold text-green-600 dark:text-green-400">
+                                <TableCell className="text-right font-semibold text-green-600 dark:text-green-400 border-r border-border/50">
                                   ${(campaign.totalInstalls * campaign.cpi * 1.5).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                                 </TableCell>
                               )}
                               
                               {columnOrder.includes('actions') && (
-                                <TableCell className="text-right font-semibold text-blue-600 dark:text-blue-400">
+                                <TableCell className="text-right font-semibold text-blue-600 dark:text-blue-400 border-r border-border/50">
                                   {(campaign.totalActions || 0).toLocaleString()}
                                 </TableCell>
                               )}
@@ -614,7 +618,7 @@ export default function Campaigns() {
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                  <div className="mt-4">
+                  <div className="mt-4 border-r border-border/50">
                     <Pagination>
                       <PaginationContent>
                         <PaginationItem>
@@ -631,7 +635,7 @@ export default function Campaigns() {
                               <PaginationLink
                                 onClick={() => setCurrentPage(pageNumber)}
                                 isActive={currentPage === pageNumber}
-                                className="cursor-pointer"
+                                className="cursor-pointer border-r border-border/50"
                               >
                                 {pageNumber}
                               </PaginationLink>
@@ -651,10 +655,10 @@ export default function Campaigns() {
                 )}
 
                 {/* Page Size Control */}
-                <div className="mt-4 flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Show:</span>
+                <div className="mt-4 flex items-center gap-2 border-r border-border/50">
+                  <span className="text-sm text-muted-foreground border-r border-border/50">Show:</span>
                   <Select value={pageSize.toString()} onValueChange={(value) => setPageSize(Number(value))}>
-                    <SelectTrigger className="w-20">
+                    <SelectTrigger className="w-20 border-r border-border/50">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -664,7 +668,7 @@ export default function Campaigns() {
                       <SelectItem value="100">100</SelectItem>
                     </SelectContent>
                   </Select>
-                  <span className="text-sm text-muted-foreground">entries per page</span>
+                  <span className="text-sm text-muted-foreground border-r border-border/50">entries per page</span>
                 </div>
               </>
             )}
