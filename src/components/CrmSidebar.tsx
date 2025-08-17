@@ -65,7 +65,7 @@ export function CrmSidebar() {
       : "text-white/80 hover:bg-accent/10 hover:text-white";
 
   return (
-    <Sidebar className={collapsed ? "w-16" : "w-64"}>
+    <Sidebar className={`${collapsed ? "w-20" : "w-64"} transition-all duration-300`}>
       <SidebarContent className="bg-sidebar-background border-r border-sidebar-border">
         {/* Project Selector */}
         <div className="p-4 border-b border-sidebar-border">
@@ -111,7 +111,7 @@ export function CrmSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink to={item.url} end className={getNavCls}>
-                      <item.icon className="w-4 h-4" />
+                      <item.icon className={`${collapsed ? "w-6 h-6" : "w-5 h-5"}`} />
                       {!collapsed && <span className={item.font}>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
@@ -130,7 +130,7 @@ export function CrmSidebar() {
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
                       <NavLink to={item.url} className={getNavCls}>
-                        <item.icon className="w-4 h-4" />
+                        <item.icon className={`${collapsed ? "w-6 h-6" : "w-5 h-5"}`} />
                         {!collapsed && <span className={item.font}>{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
@@ -143,7 +143,7 @@ export function CrmSidebar() {
           {/* Help */}
           <div className="p-4 border-t border-sidebar-border">
             <div className="flex items-center gap-3 text-white/60">
-              <HelpCircle className="w-4 h-4" />
+              <HelpCircle className={`${collapsed ? "w-6 h-6" : "w-5 h-5"}`} />
               {!collapsed && <span className="text-sm font-mono">Help</span>}
             </div>
           </div>

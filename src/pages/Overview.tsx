@@ -78,7 +78,7 @@ export default function Overview() {
           </div>
           
           {/* Date Filter */}
-          <AnimatedCard variant="mint" animation="slide" className="p-4">
+          <AnimatedCard variant="royal" animation="slide" className="p-4">
             <div className="flex items-center gap-4">
               <AnimatedIcon icon={Calendar} variant="mint" animation="glow" />
               <span className="text-sm font-medium">Date Range:</span>
@@ -160,7 +160,7 @@ export default function Overview() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <AnimatedCard>
+          <AnimatedCard variant="royal">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Click-Through Rate</CardTitle>
               <MousePointer className="h-4 w-4 text-muted-foreground" />
@@ -183,7 +183,7 @@ export default function Overview() {
             </CardContent>
           </AnimatedCard>
           
-          <AnimatedCard>
+          <AnimatedCard variant="royal">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -194,7 +194,7 @@ export default function Overview() {
             </CardContent>
           </AnimatedCard>
           
-          <AnimatedCard>
+          <AnimatedCard variant="royal">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Actions</CardTitle>
               <Target className="h-4 w-4 text-muted-foreground" />
@@ -205,7 +205,7 @@ export default function Overview() {
             </CardContent>
           </AnimatedCard>
           
-          <AnimatedCard>
+          <AnimatedCard variant="royal">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Average IPM</CardTitle>
               <Target className="h-4 w-4 text-muted-foreground" />

@@ -30,7 +30,7 @@ import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
+  horizontalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import {
   useSortable,
@@ -375,7 +375,7 @@ export default function Creatives() {
                   >
                     <Table>
                       <TableHeader>
-                        <SortableContext items={columnOrder} strategy={verticalListSortingStrategy}>
+                        <SortableContext items={columnOrder} strategy={horizontalListSortingStrategy}>
                           <TableRow>
                             {columnOrder.includes('name') && (
                               <SortableColumnHeader 

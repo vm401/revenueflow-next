@@ -30,7 +30,7 @@ import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
+  horizontalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import {
   useSortable,
@@ -240,7 +240,7 @@ export default function Exchanges() {
         </AnimatedCard>
 
         {/* Exchanges Data */}
-        <AnimatedCard>
+        <AnimatedCard variant="royal">
           <CardHeader>
             <CardTitle>Exchanges Data</CardTitle>
             <CardDescription>
@@ -265,7 +265,7 @@ export default function Exchanges() {
                   >
                     <Table>
                       <TableHeader>
-                        <SortableContext items={columnOrder} strategy={verticalListSortingStrategy}>
+                        <SortableContext items={columnOrder} strategy={horizontalListSortingStrategy}>
                           <TableRow>
                             {columnOrder.includes('name') && (
                               <SortableColumnHeader 

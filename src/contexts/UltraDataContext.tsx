@@ -294,6 +294,22 @@ export const UltraDataProvider: React.FC<UltraDataProviderProps> = ({ children }
             aVal = a.totalClicks;
             bVal = b.totalClicks;
             break;
+          case 'actions':
+            aVal = a.totalActions || 0;
+            bVal = b.totalActions || 0;
+            break;
+          case 'targetApp':
+            aVal = a.targetApp?.toLowerCase() || '';
+            bVal = b.targetApp?.toLowerCase() || '';
+            break;
+          case 'roas':
+            aVal = a.roas || 0;
+            bVal = b.roas || 0;
+            break;
+          case 'revenue':
+            aVal = a.totalRevenue || 0;
+            bVal = b.totalRevenue || 0;
+            break;
           default:
             return 0;
         }
@@ -414,6 +430,10 @@ export const UltraDataProvider: React.FC<UltraDataProviderProps> = ({ children }
             aVal = a.totalClicks;
             bVal = b.totalClicks;
             break;
+          case 'actions':
+            aVal = a.totalActions || 0;
+            bVal = b.totalActions || 0;
+            break;
           default:
             return 0;
         }
@@ -506,6 +526,10 @@ export const UltraDataProvider: React.FC<UltraDataProviderProps> = ({ children }
           case 'avgCPC':
             aVal = a.avgCPC;
             bVal = b.avgCPC;
+            break;
+          case 'actions':
+            aVal = a.totalActions || 0;
+            bVal = b.totalActions || 0;
             break;
           default:
             return 0;
@@ -606,6 +630,10 @@ export const UltraDataProvider: React.FC<UltraDataProviderProps> = ({ children }
           case 'avgCPC':
             aVal = a.avgCPC;
             bVal = b.avgCPC;
+            break;
+          case 'actions':
+            aVal = a.totalActions || 0;
+            bVal = b.totalActions || 0;
             break;
           default:
             return 0;
@@ -711,6 +739,10 @@ export const UltraDataProvider: React.FC<UltraDataProviderProps> = ({ children }
           case 'clicks':
             aVal = a.totalClicks;
             bVal = b.totalClicks;
+            break;
+          case 'actions':
+            aVal = a.totalActions || 0;
+            bVal = b.totalActions || 0;
             break;
           default:
             return 0;
