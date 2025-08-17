@@ -170,7 +170,7 @@ export default function Overview() {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
+          <AnimatedCard>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Click-Through Rate</CardTitle>
               <MousePointer className="h-4 w-4 text-muted-foreground" />
@@ -191,9 +191,9 @@ export default function Overview() {
                 )}
               </p>
             </CardContent>
-          </Card>
+          </AnimatedCard>
           
-          <Card>
+          <AnimatedCard>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Average CPC</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -202,9 +202,9 @@ export default function Overview() {
               <div className="text-2xl font-bold">${avgCPC.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
               <p className="text-xs text-muted-foreground">Cost per click</p>
             </CardContent>
-          </Card>
+          </AnimatedCard>
           
-          <Card>
+          <AnimatedCard>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
               <Target className="h-4 w-4 text-muted-foreground" />
@@ -213,9 +213,9 @@ export default function Overview() {
               <div className="text-2xl font-bold">{conversionRate.toFixed(2)}%</div>
               <p className="text-xs text-muted-foreground">Impressions to installs</p>
             </CardContent>
-          </Card>
+          </AnimatedCard>
           
-          <Card>
+          <AnimatedCard>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Average IPM</CardTitle>
               <Target className="h-4 w-4 text-muted-foreground" />
@@ -238,7 +238,7 @@ export default function Overview() {
                 )}
               </p>
             </CardContent>
-          </Card>
+          </AnimatedCard>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">

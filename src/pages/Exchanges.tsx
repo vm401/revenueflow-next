@@ -313,10 +313,10 @@ export default function Exchanges() {
               </Button>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
         {/* Exchanges Data */}
-        <Card>
+        <AnimatedCard>
           <CardHeader>
             <CardTitle>Exchanges Data</CardTitle>
             <CardDescription>
@@ -635,7 +635,7 @@ export default function Exchanges() {
               </>
             )}
           </CardContent>
-        </Card>
+        </AnimatedCard>
       </div>
     </Layout>
   );

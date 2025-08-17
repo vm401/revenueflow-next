@@ -8,7 +8,7 @@ const NotFound = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md text-center">
+      <AnimatedCard className="w-full max-w-md text-center">
         <CardHeader>
           <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-4xl font-bold text-primary">404</span>
@@ -36,7 +36,7 @@ const NotFound = () => {
             </Button>
           </div>
         </CardContent>
-      </Card>
+      </AnimatedCard>
     </div>
   );
 };

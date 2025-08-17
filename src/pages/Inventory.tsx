@@ -336,10 +336,10 @@ export default function Inventory() {
               </Button>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
         {/* Inventory Data */}
-        <Card>
+        <AnimatedCard>
           <CardHeader>
             <CardTitle>Inventory Data</CardTitle>
             <CardDescription>
@@ -666,7 +666,7 @@ export default function Inventory() {
               </>
             )}
           </CardContent>
-        </Card>
+        </AnimatedCard>
       </div>
     </Layout>
   );

@@ -294,10 +294,10 @@ export default function Apps() {
               </Button>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
         {/* Apps Data */}
-        <Card>
+        <AnimatedCard>
           <CardHeader>
             <CardTitle>Apps Data</CardTitle>
             <CardDescription>
@@ -609,7 +609,7 @@ export default function Apps() {
               </>
             )}
           </CardContent>
-        </Card>
+        </AnimatedCard>
       </div>
     </Layout>
   );

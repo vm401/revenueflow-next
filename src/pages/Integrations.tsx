@@ -121,7 +121,7 @@ export default function Integrations() {
         </div>
 
         {/* Featured Integration - Adjust */}
-        <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950">
+        <AnimatedCard className="border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -177,12 +177,12 @@ export default function Integrations() {
               </div>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
         {/* Integration Categories */}
         <div className="grid gap-6">
           {["Attribution", "Ad Networks"].map((category) => (
-            <Card key={category}>
+            <AnimatedCard key={category}>
               <CardHeader>
                 <CardTitle>{category} Platforms</CardTitle>
                 <CardDescription>
@@ -268,12 +268,12 @@ export default function Integrations() {
                     })}
                 </div>
               </CardContent>
-            </Card>
+            </AnimatedCard>
           ))}
         </div>
 
         {/* Setup Instructions */}
-        <Card>
+        <AnimatedCard>
           <CardHeader>
             <CardTitle>Integration Setup Guide</CardTitle>
             <CardDescription>
@@ -313,7 +313,7 @@ export default function Integrations() {
               </div>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
       </div>
     </Layout>
   );

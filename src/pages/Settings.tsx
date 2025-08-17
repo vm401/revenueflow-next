@@ -94,7 +94,7 @@ export default function Settings() {
           </TabsList>
 
           <TabsContent value="account" className="space-y-6">
-            <Card>
+            <AnimatedCard>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <User className="h-5 w-5" />
@@ -149,11 +149,11 @@ export default function Settings() {
                   Save Profile
                 </Button>
               </CardContent>
-            </Card>
+            </AnimatedCard>
           </TabsContent>
 
           <TabsContent value="notifications" className="space-y-6">
-            <Card>
+            <AnimatedCard>
               <CardHeader>
                 <CardTitle>Notification Preferences</CardTitle>
                 <CardDescription>
@@ -219,11 +219,11 @@ export default function Settings() {
                   Save Notification Settings
                 </Button>
               </CardContent>
-            </Card>
+            </AnimatedCard>
           </TabsContent>
 
           <TabsContent value="preferences" className="space-y-6">
-            <Card>
+            <AnimatedCard>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileSpreadsheet className="h-5 w-5" />
@@ -307,9 +307,9 @@ export default function Settings() {
                   </Button>
                 </div>
               </CardContent>
-            </Card>
+            </AnimatedCard>
 
-            <Card>
+            <AnimatedCard>
               <CardHeader>
                 <CardTitle>Data Export</CardTitle>
                 <CardDescription>
@@ -328,7 +328,7 @@ export default function Settings() {
                   </Button>
                 </div>
               </CardContent>
-            </Card>
+            </AnimatedCard>
           </TabsContent>
         </Tabs>
       </div>

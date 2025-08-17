@@ -336,7 +336,7 @@ export default function Creatives() {
               </Button>
             </div>
           </CardContent>
-        </Card>
+        </AnimatedCard>
 
         {/* Creative Assets Data */}
         <AnimatedCard variant="peach" animation="lift">
@@ -653,7 +653,7 @@ export default function Creatives() {
               </>
             )}
           </CardContent>
-        </Card>
+        </AnimatedCard>
       </div>
     </Layout>
   );
