@@ -72,6 +72,7 @@ export interface UltraCreativeData {
   totalClicks: number;
   totalInstalls: number;
   totalSpend: number;
+  totalActions: number;
   
   // Вычисляемые
   ctr: number;
@@ -469,7 +470,7 @@ export class UltraCSVProcessor {
           id: creativeKey,
           name: row.Creative,
           creativeId: row['Creative ID'],
-          campaignId: row['Campaign ID'],
+          campaignId: campaignKey, // ИСПРАВЛЕНО: используем campaignKey вместо row['Campaign ID']
           campaignName: row.Campaign,
           type: row['Creative Type'],
           size: row['Creative Size'],
@@ -480,6 +481,7 @@ export class UltraCSVProcessor {
           totalClicks: 0,
           totalInstalls: 0,
           totalSpend: 0,
+          totalActions: 0,
           ctr: 0,
           cpi: 0,
           cpc: 0,
@@ -495,6 +497,7 @@ export class UltraCSVProcessor {
       creative.totalClicks += clicks;
       creative.totalInstalls += installs;
       creative.totalSpend += spend;
+      creative.totalActions += actions;
       
       // Обработка приложения
       if (!appsMap.has(appKey)) {
