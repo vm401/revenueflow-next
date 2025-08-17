@@ -67,6 +67,7 @@ export interface UltraCreativeFilters {
   campaign?: string;
   type?: string;
   format?: string;
+  country?: string;
   exchange?: string;
   minSpend?: number;
   maxSpend?: number;
@@ -337,6 +338,16 @@ export const UltraDataProvider: React.FC<UltraDataProviderProps> = ({ children }
     
     if (filters.format && filters.format !== 'all') {
       filtered = filtered.filter(creative => creative.format === filters.format);
+    }
+    
+    if (filters.country && filters.country !== 'all') {
+      // Filter creatives by campaign country
+      filtered = filtered.filter(creative => 
+        data.campaigns.some(campaign => 
+          campaign.id === creative.campaignId &&
+          campaign.countries.includes(filters.country!)
+        )
+      );
     }
     
     if (filters.exchange && filters.exchange !== 'all') {
