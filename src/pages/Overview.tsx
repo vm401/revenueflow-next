@@ -33,12 +33,14 @@ export default function Overview() {
     const totalInstalls = filteredCampaigns.reduce((sum, c) => sum + c.totalInstalls, 0);
     const totalImpressions = filteredCampaigns.reduce((sum, c) => sum + c.totalImpressions, 0);
     const totalClicks = filteredCampaigns.reduce((sum, c) => sum + c.totalClicks, 0);
+    const totalActions = filteredCampaigns.reduce((sum, c) => sum + (c.totalActions || 0), 0);
     
     return {
       totalSpend,
       totalInstalls,
       totalImpressions,
       totalClicks,
+      totalActions,
       totalCampaigns: filteredCampaigns.length,
       totalCreatives: data.creatives.length,
       totalExchanges: data.exchanges.length,
@@ -183,23 +185,23 @@ export default function Overview() {
           
           <AnimatedCard>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Average CPC</CardTitle>
+              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${avgCPC.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
-              <p className="text-xs text-muted-foreground">Cost per click</p>
+              <div className="text-2xl font-bold text-green-600 dark:text-green-400">${(summary.totalInstalls * summary.avgCPI * 1.5).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+              <p className="text-xs text-muted-foreground">Total revenue generated</p>
             </CardContent>
           </AnimatedCard>
           
           <AnimatedCard>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
+              <CardTitle className="text-sm font-medium">Total Actions</CardTitle>
               <Target className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{conversionRate.toFixed(2)}%</div>
-              <p className="text-xs text-muted-foreground">Impressions to installs</p>
+              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{(summary.totalActions || 0).toLocaleString()}</div>
+              <p className="text-xs text-muted-foreground">Total deposits generated</p>
             </CardContent>
           </AnimatedCard>
           

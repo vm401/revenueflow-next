@@ -48,7 +48,7 @@ export default function Campaigns() {
   const [selectedApp, setSelectedApp] = useState("all");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
-  const [sortBy, setSortBy] = useState<'date' | 'spend' | 'installs' | 'cpi' | 'ctr' | 'name'>('spend');
+  const [sortBy, setSortBy] = useState<'name' | 'targetApp' | 'spend' | 'installs' | 'cpi' | 'ctr' | 'impressions' | 'clicks' | 'roas' | 'revenue' | 'actions'>('spend');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -101,7 +101,7 @@ export default function Campaigns() {
   }, [data?.campaigns]);
 
   // Handle sorting
-  const handleSort = (column: 'date' | 'spend' | 'installs' | 'cpi' | 'ctr' | 'name') => {
+  const handleSort = (column: 'name' | 'targetApp' | 'spend' | 'installs' | 'cpi' | 'ctr' | 'impressions' | 'clicks' | 'roas' | 'revenue' | 'actions') => {
     if (sortBy === column) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {
@@ -352,8 +352,15 @@ export default function Campaigns() {
                             )}
                             
                             {columnOrder.includes('targetApp') && (
-                              <SortableColumnHeader id="targetApp">
-                                Target App
+                              <SortableColumnHeader 
+                                id="targetApp" 
+                                sortable 
+                                onSort={() => handleSort('targetApp')}
+                              >
+                                <div className="flex items-center gap-2">
+                                  Target App
+                                  <SortIcon column="targetApp" />
+                                </div>
                               </SortableColumnHeader>
                             )}
                             
@@ -416,32 +423,67 @@ export default function Campaigns() {
                             )}
                             
                             {columnOrder.includes('impressions') && (
-                              <SortableColumnHeader id="impressions">
-                                Impressions
+                              <SortableColumnHeader 
+                                id="impressions" 
+                                sortable 
+                                onSort={() => handleSort('impressions')}
+                              >
+                                <div className="flex items-center gap-2">
+                                  Impressions
+                                  <SortIcon column="impressions" />
+                                </div>
                               </SortableColumnHeader>
                             )}
                             
                             {columnOrder.includes('clicks') && (
-                              <SortableColumnHeader id="clicks">
-                                Clicks
+                              <SortableColumnHeader 
+                                id="clicks" 
+                                sortable 
+                                onSort={() => handleSort('clicks')}
+                              >
+                                <div className="flex items-center gap-2">
+                                  Clicks
+                                  <SortIcon column="clicks" />
+                                </div>
                               </SortableColumnHeader>
                             )}
                             
                             {columnOrder.includes('roas') && (
-                              <SortableColumnHeader id="roas">
-                                ROAS
+                              <SortableColumnHeader 
+                                id="roas" 
+                                sortable 
+                                onSort={() => handleSort('roas')}
+                              >
+                                <div className="flex items-center gap-2">
+                                  ROAS
+                                  <SortIcon column="roas" />
+                                </div>
                               </SortableColumnHeader>
                             )}
                             
                             {columnOrder.includes('revenue') && (
-                              <SortableColumnHeader id="revenue">
-                                Revenue
+                              <SortableColumnHeader 
+                                id="revenue" 
+                                sortable 
+                                onSort={() => handleSort('revenue')}
+                              >
+                                <div className="flex items-center gap-2">
+                                  Revenue
+                                  <SortIcon column="revenue" />
+                                </div>
                               </SortableColumnHeader>
                             )}
                             
                             {columnOrder.includes('actions') && (
-                              <SortableColumnHeader id="actions">
-                                Actions
+                              <SortableColumnHeader 
+                                id="actions" 
+                                sortable 
+                                onSort={() => handleSort('actions')}
+                              >
+                                <div className="flex items-center gap-2">
+                                  Actions
+                                  <SortIcon column="actions" />
+                                </div>
                               </SortableColumnHeader>
                             )}
                           </TableRow>

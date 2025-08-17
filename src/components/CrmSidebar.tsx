@@ -61,7 +61,7 @@ export function CrmSidebar() {
   const isActive = (path: string) => currentPath === path;
   const getNavCls = ({ isActive: active }: { isActive: boolean }) =>
     active 
-      ? "bg-accent/20 text-white font-medium border-r-2 border-accent" 
+      ? "bg-accent/20 text-white font-medium" 
       : "text-white/80 hover:bg-accent/10 hover:text-white";
 
   return (

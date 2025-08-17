@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Milk carton shape -->
+  <path d="M25 85 L25 35 L20 30 L20 20 L30 15 L70 15 L80 20 L80 30 L75 35 L75 85 Z" fill="#E8E8E8" stroke="#8B5CF6" stroke-width="2"/>
+  
+  <!-- Top fold -->
+  <path d="M30 15 L50 10 L70 15 L80 20 L70 25 L30 25 Z" fill="#C4B5FD" stroke="#8B5CF6" stroke-width="2"/>
+  
+  <!-- Milk wave -->
+  <path d="M25 55 Q35 50 45 55 T65 55 T75 55 L75 85 L25 85 Z" fill="#60A5FA"/>
+  
+  <!-- Label background -->
+  <rect x="30" y="40" width="40" height="25" rx="3" fill="#FFFFFF" stroke="#8B5CF6" stroke-width="1"/>
+  
+  <!-- M.I.L.K text -->
+  <text x="50" y="55" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" font-weight="bold" fill="#8B5CF6">M.I.L.K</text>
+  
+  <!-- Bubbles -->
+  <circle cx="40" cy="65" r="2" fill="#BFDBFE"/>
+  <circle cx="60" cy="70" r="1.5" fill="#BFDBFE"/>
+  <circle cx="35" cy="75" r="1" fill="#BFDBFE"/>
+</svg>
