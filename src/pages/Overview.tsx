@@ -78,7 +78,7 @@ export default function Overview() {
           {/* Date Filter */}
           <AnimatedCard variant="mint" animation="slide" className="p-4">
             <div className="flex items-center gap-4">
-              <AnimatedIcon icon={Calendar} variant="mint" animation="pulse" />
+              <AnimatedIcon icon={Calendar} variant="mint" animation="glow" />
               <span className="text-sm font-medium">Date Range:</span>
               <div className="flex items-center gap-2">
                 <Input
@@ -101,23 +101,11 @@ export default function Overview() {
                     setDateFrom("");
                     setDateTo("");
                   }}
-                  size="sm"
                   animation="bounce"
                 >
                   Clear
                 </AnimatedButton>
-                <AnimatedButton 
-                  onClick={() => {
-                    // Date filtering is now automatic via useMemo
-                    // Just log for debugging
-                    console.log('Filtering by dates:', dateFrom, dateTo);
-                  }}
-                  size="sm"
-                  className="bg-green-600 hover:bg-green-700"
-                  animation="pulse"
-                >
-                  Apply
-                </AnimatedButton>
+
               </div>
             </div>
           </AnimatedCard>
@@ -127,7 +115,7 @@ export default function Overview() {
           <AnimatedCard variant="royal" animation="lift">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Campaigns</CardTitle>
-              <AnimatedIcon icon={Activity} variant="royal" animation="pulse" />
+              <AnimatedIcon icon={Activity} variant="royal" animation="glow" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{summary.totalCampaigns}</div>

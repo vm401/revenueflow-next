@@ -22,7 +22,9 @@ import {
   PieChart,
   Briefcase,
   Plug,
-  Link
+  Link,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 
 import {
@@ -67,15 +69,23 @@ export function CrmSidebar() {
       <SidebarContent className="bg-sidebar-background border-r border-sidebar-border">
         {/* Project Selector */}
         <div className="p-4 border-b border-sidebar-border">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-accent rounded-md flex items-center justify-center">
-              <span className="text-accent-foreground font-bold text-sm">MC</span>
-            </div>
-            {!collapsed && (
-              <div>
-                <p className="text-white font-display font-semibold">Moloco CRM</p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-accent rounded-md flex items-center justify-center">
+                <span className="text-accent-foreground font-bold text-sm">MC</span>
               </div>
-            )}
+              {!collapsed && (
+                <div>
+                  <p className="text-white font-display font-semibold">Moloco CRM</p>
+                </div>
+              )}
+            </div>
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              className="p-1 rounded-md hover:bg-white/10 text-white/60 hover:text-white transition-colors"
+            >
+              {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+            </button>
           </div>
         </div>
 

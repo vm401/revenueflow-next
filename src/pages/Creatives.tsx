@@ -46,6 +46,7 @@ export default function Creatives() {
   const [selectedCampaign, setSelectedCampaign] = useState("all");
   const [selectedType, setSelectedType] = useState("all");
   const [selectedFormat, setSelectedFormat] = useState("all");
+  const [selectedCountry, setSelectedCountry] = useState("all");
   const [selectedExchange, setSelectedExchange] = useState("all");
   const [sortBy, setSortBy] = useState<'name' | 'spend' | 'installs' | 'cpi' | 'ctr' | 'impressions' | 'clicks'>('spend');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
@@ -72,13 +73,14 @@ export default function Creatives() {
       campaign: selectedCampaign,
       type: selectedType,
       format: selectedFormat,
+      country: selectedCountry,
       exchange: selectedExchange,
       sortBy,
       sortOrder,
       page: currentPage,
       limit: pageSize
     });
-  }, [searchTerm, selectedCampaign, selectedType, selectedFormat, selectedExchange, sortBy, sortOrder, currentPage, pageSize, getFilteredCreatives]);
+  }, [searchTerm, selectedCampaign, selectedType, selectedFormat, selectedCountry, selectedExchange, sortBy, sortOrder, currentPage, pageSize, getFilteredCreatives]);
 
   // Get total count for pagination
   const totalCreatives = data?.creatives?.length || 0;
@@ -108,6 +110,15 @@ export default function Creatives() {
     const uniqueExchanges = new Set(data.creatives.flatMap(c => c.exchanges.map(e => e.exchange)));
     return Array.from(uniqueExchanges).sort();
   }, [data?.creatives]);
+
+  const countries = useMemo(() => {
+    if (!data?.campaigns) return [];
+    const uniqueCountries = new Set<string>();
+    data.campaigns.forEach(campaign => {
+      campaign.countries.forEach(country => uniqueCountries.add(country));
+    });
+    return Array.from(uniqueCountries).sort();
+  }, [data?.campaigns]);
 
   // Handle sorting
   const handleSort = (column: 'name' | 'spend' | 'installs' | 'cpi' | 'ctr' | 'impressions' | 'clicks') => {
@@ -295,6 +306,20 @@ export default function Creatives() {
                 </SelectContent>
               </Select>
               
+              <Select value={selectedCountry} onValueChange={setSelectedCountry}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Countries" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Countries</SelectItem>
+                  {countries.map((country) => (
+                    <SelectItem key={country} value={country}>
+                      {country}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
               <Select value={selectedExchange} onValueChange={setSelectedExchange}>
                 <SelectTrigger>
                   <SelectValue placeholder="All Exchanges" />
@@ -320,20 +345,10 @@ export default function Creatives() {
                   setSelectedFormat("all");
                   setSelectedExchange("all");
                 }}
-                size="sm"
               >
                 Clear
               </Button>
               
-              <Button 
-                variant="default" 
-                onClick={() => {
-                  // Filters are applied automatically via useMemo
-                }}
-                size="sm"
-                className="bg-green-600 hover:bg-green-700"
-              >
-              </Button>
             </div>
           </CardContent>
         </AnimatedCard>
@@ -487,7 +502,6 @@ export default function Creatives() {
                                     </div>
                                     <Button
                                       variant="ghost"
-                                      size="sm"
                                       className="h-6 w-6 p-0 hover:bg-mint-100 dark:hover:bg-mint-900"
                                       onClick={() => copyCreativeName(creative.name, creative.id)}
                                     >

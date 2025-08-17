@@ -241,7 +241,6 @@ export default function Integrations() {
                                     </Button>
                                     <Button 
                                       variant="outline" 
-                                      size="sm"
                                       onClick={() => handleDisconnect(integration.id)}
                                     >
                                       Disconnect
@@ -249,7 +248,6 @@ export default function Integrations() {
                                   </>
                                 ) : integration.status === "available" ? (
                                   <Button 
-                                    size="sm"
                                     onClick={() => handleConnect(integration.id)}
                                   >
                                     <LinkIcon className="h-4 w-4 mr-2" />

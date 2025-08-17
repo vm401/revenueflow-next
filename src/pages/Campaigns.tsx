@@ -210,7 +210,7 @@ export default function Campaigns() {
           </div>
           {data && (
             <AnimatedBadge animation="glow" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-              <AnimatedIcon icon={Database} variant="royal" animation="pulse" className="h-3 w-3 mr-1" />
+              <AnimatedIcon icon={Database} variant="royal" animation="glow" className="h-3 w-3 mr-1" />
               CSV Data Active
             </AnimatedBadge>
           )}
@@ -226,7 +226,7 @@ export default function Campaigns() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
                 <div className="relative">
-                  <AnimatedIcon icon={Search} variant="mint" animation="pulse" className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <AnimatedIcon icon={Search} variant="mint" animation="glow" className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Search campaigns..."
                     value={searchTerm}
@@ -301,7 +301,6 @@ export default function Campaigns() {
                   setDateFrom("");
                   setDateTo("");
                 }}
-                size="sm"
                 animation="bounce"
                 className="btn-bounce"
               >
@@ -322,7 +321,7 @@ export default function Campaigns() {
           <CardContent>
             {!data ? (
                                 <Alert>
-                    <AnimatedIcon icon={AlertTriangle} variant="peach" animation="pulse" className="h-4 w-4" />
+                    <AnimatedIcon icon={AlertTriangle} variant="peach" animation="glow" className="h-4 w-4" />
                 <AlertDescription>
                   No CSV data loaded. Please upload your campaign files to see data here.
                 </AlertDescription>
@@ -562,9 +561,8 @@ export default function Campaigns() {
                                 <TableCell>
                                   <div className="flex items-center gap-2">
                                     <AnimatedButton
-                                      size="sm"
                                       onClick={() => toggleDetails(campaign.id)}
-                                      animation="pulse"
+                                      animation="glow"
                                       className="btn-pulse"
                                     >
                                       <AnimatedIcon icon={Eye} variant="royal" animation="glow" className="h-4 w-4 mr-1" />

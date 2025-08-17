@@ -297,20 +297,10 @@ export default function Exchanges() {
                   setSelectedCountry("all");
                   setSelectedApp("all");
                 }}
-                size="sm"
               >
                 Clear
               </Button>
               
-              <Button 
-                variant="default" 
-                onClick={() => {
-                  // Filters are applied automatically via useMemo
-                }}
-                size="sm"
-                className="bg-green-600 hover:bg-green-700"
-              >
-              </Button>
             </div>
           </CardContent>
         </AnimatedCard>
@@ -471,7 +461,6 @@ export default function Exchanges() {
                                     </div>
                                     <Button
                                       variant="ghost"
-                                      size="sm"
                                       className="h-6 w-6 p-0 hover:bg-mint-100 dark:hover:bg-mint-900"
                                       onClick={() => copyExchangeName(exchange.name, exchange.id)}
                                     >

@@ -500,7 +500,7 @@ export default function Upload() {
                     {files.map((file) => (
                       <div key={file.id} className="flex items-center justify-between p-4 border rounded-lg">
                         <div className="flex items-center gap-3">
-                          <AnimatedIcon icon={FileText} variant="mint" animation="pulse" className="h-5 w-5 text-muted-foreground" />
+                          <AnimatedIcon icon={FileText} variant="mint" animation="glow" className="h-5 w-5 text-muted-foreground" />
                           <div>
                             <div className="flex items-center gap-2">
                               <p className="font-medium">{file.file.name}</p>
@@ -534,7 +534,6 @@ export default function Upload() {
                           {file.validation && (
                             <Button
                               variant="outline"
-                              size="sm"
                               onClick={() => setSelectedFile(file.id)}
                             >
                               <Eye className="h-4 w-4 mr-2" />
@@ -544,7 +543,6 @@ export default function Upload() {
 
                           <Button
                             variant="ghost"
-                            size="sm"
                             onClick={() => removeFile(file.id)}
                           >
                             <X className="h-4 w-4" />
