@@ -50,7 +50,7 @@ export default function Apps() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [columnOrder, setColumnOrder] = useState([
-    'name', 'platform', 'campaigns', 'creatives', 'spend', 'installs', 'avgCPI', 'avgCTR', 'avgCPC', 'moves'
+    'name', 'platform', 'campaigns', 'creatives', 'spend', 'installs', 'actions', 'avgCPI', 'avgCTR', 'avgCPC', 'moves'
   ]);
   const [showDetails, setShowDetails] = useState<{[key: string]: boolean}>({});
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -372,6 +372,12 @@ export default function Apps() {
                               </SortableColumnHeader>
                             )}
                             
+                            {columnOrder.includes('actions') && (
+                              <SortableColumnHeader id="actions">
+                                Actions
+                              </SortableColumnHeader>
+                            )}
+                            
                             {columnOrder.includes('avgCPI') && (
                               <SortableColumnHeader 
                                 id="avgCPI" 
@@ -490,6 +496,12 @@ export default function Apps() {
                               {columnOrder.includes('installs') && (
                                 <TableCell className="text-right">
                                   {app.totalInstalls.toLocaleString()}
+                                </TableCell>
+                              )}
+                              
+                              {columnOrder.includes('actions') && (
+                                <TableCell className="text-right">
+                                  {(app.totalActions || 0).toLocaleString()}
                                 </TableCell>
                               )}
                               

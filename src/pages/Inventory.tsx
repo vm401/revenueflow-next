@@ -52,7 +52,7 @@ export default function Inventory() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [columnOrder, setColumnOrder] = useState([
-    'appTitle', 'trafficType', 'platform', 'appBundle', 'exchange', 'spend', 'impressions', 'clicks', 'ctr', 'cpi', 'moves'
+    'appTitle', 'trafficType', 'platform', 'appBundle', 'exchange', 'spend', 'impressions', 'clicks', 'actions', 'ctr', 'cpi', 'moves'
   ]);
   const [showDetails, setShowDetails] = useState<{[key: string]: boolean}>({});
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -425,6 +425,12 @@ export default function Inventory() {
                               </SortableColumnHeader>
                             )}
                             
+                            {columnOrder.includes('actions') && (
+                              <SortableColumnHeader id="actions">
+                                Actions
+                              </SortableColumnHeader>
+                            )}
+                            
                             {columnOrder.includes('ctr') && (
                               <SortableColumnHeader 
                                 id="ctr" 
@@ -545,6 +551,12 @@ export default function Inventory() {
                                      : item.totalClicks >= 1000 
                                      ? (item.totalClicks / 1000).toFixed(2) + 'k'
                                      : item.totalClicks.toLocaleString()}
+                                 </TableCell>
+                               )}
+                               
+                               {columnOrder.includes('actions') && (
+                                 <TableCell className="text-right">
+                                   {(item.totalActions || 0).toLocaleString()}
                                  </TableCell>
                                )}
                                

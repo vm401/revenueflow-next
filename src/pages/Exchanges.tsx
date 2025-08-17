@@ -51,7 +51,7 @@ export default function Exchanges() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [columnOrder, setColumnOrder] = useState([
-    'name', 'type', 'campaigns', 'creatives', 'apps', 'spend', 'installs', 'avgCPI', 'avgCTR', 'avgCPC', 'moves'
+    'name', 'type', 'campaigns', 'creatives', 'apps', 'spend', 'installs', 'actions', 'avgCPI', 'avgCTR', 'avgCPC', 'moves'
   ]);
   const [showDetails, setShowDetails] = useState<{[key: string]: boolean}>({});
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -396,6 +396,12 @@ export default function Exchanges() {
                               </SortableColumnHeader>
                             )}
                             
+                            {columnOrder.includes('actions') && (
+                              <SortableColumnHeader id="actions">
+                                Actions
+                              </SortableColumnHeader>
+                            )}
+                            
                             {columnOrder.includes('avgCPI') && (
                               <SortableColumnHeader 
                                 id="avgCPI" 
@@ -515,6 +521,12 @@ export default function Exchanges() {
                               {columnOrder.includes('installs') && (
                                 <TableCell className="text-right">
                                   {exchange.totalInstalls.toLocaleString()}
+                                </TableCell>
+                              )}
+                              
+                              {columnOrder.includes('actions') && (
+                                <TableCell className="text-right">
+                                  {(exchange.totalActions || 0).toLocaleString()}
                                 </TableCell>
                               )}
                               

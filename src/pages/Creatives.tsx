@@ -53,7 +53,7 @@ export default function Creatives() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [columnOrder, setColumnOrder] = useState([
-    'name', 'campaign', 'type', 'format', 'spend', 'installs', 'cpi', 'ctr', 'impressions', 'clicks', 'moves'
+    'name', 'campaign', 'type', 'format', 'spend', 'installs', 'actions', 'cpi', 'ctr', 'impressions', 'clicks', 'moves'
   ]);
   const [showDetails, setShowDetails] = useState<{[key: string]: boolean}>({});
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -112,13 +112,22 @@ export default function Creatives() {
   }, [data?.creatives]);
 
   const countries = useMemo(() => {
-    if (!data?.campaigns) return [];
+    const allCreatives = getFilteredCreatives({ limit: 999999 });
+    if (!allCreatives.length) return [];
+    
+    // Get unique countries from campaigns that have creatives
     const uniqueCountries = new Set<string>();
-    data.campaigns.forEach(campaign => {
-      campaign.countries.forEach(country => uniqueCountries.add(country));
-    });
+    if (data?.campaigns) {
+      data.campaigns.forEach(campaign => {
+        // Only include countries from campaigns that have creatives
+        const hasCreatives = allCreatives.some(creative => creative.campaignId === campaign.id);
+        if (hasCreatives) {
+          campaign.countries.forEach(country => uniqueCountries.add(country));
+        }
+      });
+    }
     return Array.from(uniqueCountries).sort();
-  }, [data?.campaigns]);
+  }, [data?.campaigns, getFilteredCreatives]);
 
   // Handle sorting
   const handleSort = (column: 'name' | 'spend' | 'installs' | 'cpi' | 'ctr' | 'impressions' | 'clicks') => {
@@ -438,6 +447,12 @@ export default function Creatives() {
                               </SortableColumnHeader>
                             )}
                             
+                            {columnOrder.includes('actions') && (
+                              <SortableColumnHeader id="actions">
+                                Actions
+                              </SortableColumnHeader>
+                            )}
+                            
                             {columnOrder.includes('cpi') && (
                               <SortableColumnHeader 
                                 id="cpi" 
@@ -544,6 +559,12 @@ export default function Creatives() {
                               {columnOrder.includes('installs') && (
                                 <TableCell className="text-right">
                                   {creative.totalInstalls.toLocaleString()}
+                                </TableCell>
+                              )}
+                              
+                              {columnOrder.includes('actions') && (
+                                <TableCell className="text-right">
+                                  {(creative.totalActions || 0).toLocaleString()}
                                 </TableCell>
                               )}
                               
