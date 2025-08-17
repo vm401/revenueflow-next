@@ -500,7 +500,7 @@ export default function Apps() {
                               )}
                               
                               {columnOrder.includes('actions') && (
-                                <TableCell className="text-right">
+                                <TableCell className="text-right font-semibold text-blue-600 dark:text-blue-400">
                                   {(app.totalActions || 0).toLocaleString()}
                                 </TableCell>
                               )}

@@ -71,7 +71,6 @@ export default function Creatives() {
     return getFilteredCreatives({
       search: searchTerm,
       campaign: selectedCampaign,
-      type: selectedType,
       format: selectedFormat,
       country: selectedCountry,
       exchange: selectedExchange,
@@ -80,7 +79,7 @@ export default function Creatives() {
       page: currentPage,
       limit: pageSize
     });
-  }, [searchTerm, selectedCampaign, selectedType, selectedFormat, selectedCountry, selectedExchange, sortBy, sortOrder, currentPage, pageSize, getFilteredCreatives]);
+  }, [searchTerm, selectedCampaign, selectedFormat, selectedCountry, selectedExchange, sortBy, sortOrder, currentPage, pageSize, getFilteredCreatives]);
 
   // Get total count for pagination
   const totalCreatives = data?.creatives?.length || 0;
@@ -287,19 +286,7 @@ export default function Creatives() {
                 </SelectContent>
               </Select>
               
-              <Select value={selectedType} onValueChange={setSelectedType}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Types" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  {types.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+
               
               <Select value={selectedFormat} onValueChange={setSelectedFormat}>
                 <SelectTrigger>
@@ -563,7 +550,7 @@ export default function Creatives() {
                               )}
                               
                               {columnOrder.includes('actions') && (
-                                <TableCell className="text-right">
+                                <TableCell className="text-right font-semibold text-blue-600 dark:text-blue-400">
                                   {(creative.totalActions || 0).toLocaleString()}
                                 </TableCell>
                               )}

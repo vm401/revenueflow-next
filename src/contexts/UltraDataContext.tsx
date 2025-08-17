@@ -314,18 +314,7 @@ export const UltraDataProvider: React.FC<UltraDataProviderProps> = ({ children }
 
   // 🎯 ULTRA FILTERED CREATIVES
   const getFilteredCreatives = (filters: UltraCreativeFilters): UltraCreativeData[] => {
-    if (!data) {
-      console.log('🚨 getFilteredCreatives: NO DATA');
-      return [];
-    }
-    
-    console.log('🔍 getFilteredCreatives:', {
-      totalCreatives: data.creatives?.length || 0,
-      totalCampaigns: data.campaigns?.length || 0,
-      filters,
-      sampleCreative: data.creatives?.[0],
-      sampleCampaign: data.campaigns?.[0]
-    });
+    if (!data) return [];
     
     let filtered = [...data.creatives];
     
@@ -340,10 +329,7 @@ export const UltraDataProvider: React.FC<UltraDataProviderProps> = ({ children }
     }
     
     if (filters.campaign && filters.campaign !== 'all') {
-      console.log('🎯 Filtering by campaign:', filters.campaign);
-      console.log('🔍 Sample creative campaignId:', data.creatives?.[0]?.campaignId);
       filtered = filtered.filter(creative => creative.campaignId === filters.campaign);
-      console.log('📊 After campaign filter:', filtered.length);
     }
     
     if (filters.type && filters.type !== 'all') {
@@ -355,8 +341,6 @@ export const UltraDataProvider: React.FC<UltraDataProviderProps> = ({ children }
     }
     
     if (filters.country && filters.country !== 'all') {
-      console.log('🌍 Filtering by country:', filters.country);
-      console.log('🔍 Sample campaign countries:', data.campaigns?.[0]?.countries);
       // Filter creatives by campaign country
       filtered = filtered.filter(creative => 
         data.campaigns.some(campaign => 
@@ -364,7 +348,6 @@ export const UltraDataProvider: React.FC<UltraDataProviderProps> = ({ children }
           campaign.countries.includes(filters.country!)
         )
       );
-      console.log('📊 After country filter:', filtered.length);
     }
     
     if (filters.exchange && filters.exchange !== 'all') {

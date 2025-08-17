@@ -558,39 +558,8 @@ export default function Campaigns() {
                               )}
                               
                               {columnOrder.includes('actions') && (
-                                <TableCell>
-                                  <div className="flex items-center gap-2">
-                                    <AnimatedButton
-                                      onClick={() => toggleDetails(campaign.id)}
-                                      animation="glow"
-                                      className="btn-pulse"
-                                    >
-                                      <AnimatedIcon icon={Eye} variant="royal" animation="glow" className="h-4 w-4 mr-1" />
-                                      {showDetails[campaign.id] ? 'Hide' : 'View'}
-                                    </AnimatedButton>
-                                    <DropdownMenu>
-                                      <DropdownMenuTrigger asChild>
-                                        <AnimatedButton size="sm" animation="bounce" className="btn-bounce">
-                                          <AnimatedIcon icon={Settings} variant="lilac" animation="rotate" className="h-4 w-4" />
-                                        </AnimatedButton>
-                                      </DropdownMenuTrigger>
-                                      <DropdownMenuContent align="end">
-                                        <DropdownMenuItem>
-                                          <ExternalLink className="h-4 w-4 mr-2" />
-                                          View Creatives
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem>
-                                          <Settings className="h-4 w-4 mr-2" />
-                                          Edit Campaign
-                                        </DropdownMenuItem>
-                                        <DropdownMenuSeparator />
-                                        <DropdownMenuItem className="text-red-600">
-                                          <AlertTriangle className="h-4 w-4 mr-2" />
-                                          Pause Campaign
-                                        </DropdownMenuItem>
-                                      </DropdownMenuContent>
-                                    </DropdownMenu>
-                                  </div>
+                                <TableCell className="text-right font-semibold text-blue-600 dark:text-blue-400">
+                                  {(campaign.totalActions || 0).toLocaleString()}
                                 </TableCell>
                               )}
                             </TableRow>

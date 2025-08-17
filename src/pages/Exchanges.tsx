@@ -42,10 +42,7 @@ export default function Exchanges() {
   const { toast } = useToast();
   
   // State
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedType, setSelectedType] = useState("all");
-  const [selectedCountry, setSelectedCountry] = useState("all");
-  const [selectedApp, setSelectedApp] = useState("all");
+  const [selectedCampaign, setSelectedCampaign] = useState("all");
   const [sortBy, setSortBy] = useState<'name' | 'spend' | 'installs' | 'avgCPI' | 'avgCTR' | 'avgCPC'>('spend');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [currentPage, setCurrentPage] = useState(1);
@@ -67,38 +64,22 @@ export default function Exchanges() {
   // Get filtered exchanges
   const exchanges = useMemo(() => {
     return getFilteredExchanges({
-      search: searchTerm,
-      type: selectedType,
-      country: selectedCountry,
-      app: selectedApp,
+      campaign: selectedCampaign,
       sortBy,
       sortOrder,
       page: currentPage,
       limit: pageSize
     });
-  }, [searchTerm, selectedType, selectedCountry, selectedApp, sortBy, sortOrder, currentPage, pageSize, getFilteredExchanges]);
+  }, [selectedCampaign, sortBy, sortOrder, currentPage, pageSize, getFilteredExchanges]);
 
   // Get total count for pagination
   const totalExchanges = data?.exchanges?.length || 0;
   const totalPages = Math.ceil(totalExchanges / pageSize);
 
-  // Get unique types, countries, and apps for filters
-  const types = useMemo(() => {
-    if (!data?.exchanges) return [];
-    const uniqueTypes = new Set(data.exchanges.map(e => e.type));
-    return Array.from(uniqueTypes).sort();
-  }, [data?.exchanges]);
-
-  const countries = useMemo(() => {
+  // Get campaigns for filter
+  const campaigns = useMemo(() => {
     if (!data?.campaigns) return [];
-    const uniqueCountries = new Set(data.campaigns.flatMap(c => c.countries));
-    return Array.from(uniqueCountries).sort();
-  }, [data?.campaigns]);
-
-  const apps = useMemo(() => {
-    if (!data?.campaigns) return [];
-    const uniqueApps = new Set(data.campaigns.map(c => c.targetApp));
-    return Array.from(uniqueApps).sort();
+    return data.campaigns.map(c => c.name).sort();
   }, [data?.campaigns]);
 
   // Handle sorting
@@ -232,75 +213,28 @@ export default function Exchanges() {
             <CardDescription>Filter exchanges by various criteria</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div>
-                <div className="relative">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search exchanges..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-8"
-                  />
-                </div>
-              </div>
-              
-              <Select value={selectedType} onValueChange={setSelectedType}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Select value={selectedCampaign} onValueChange={setSelectedCampaign}>
                 <SelectTrigger>
-                  <SelectValue placeholder="All Types" />
+                  <SelectValue placeholder="All Campaigns" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  {types.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
+                  <SelectItem value="all">All Campaigns</SelectItem>
+                  {campaigns.map((campaign) => (
+                    <SelectItem key={campaign} value={campaign}>
+                      {campaign}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               
-              <Select value={selectedCountry} onValueChange={setSelectedCountry}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Countries" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Countries</SelectItem>
-                  {countries.map((country) => (
-                    <SelectItem key={country} value={country}>
-                      {country}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              
-              <Select value={selectedApp} onValueChange={setSelectedApp}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Apps" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Apps</SelectItem>
-                  {apps.map((app) => (
-                    <SelectItem key={app} value={app}>
-                      {app}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="mt-4 flex items-center gap-4">
               <Button 
                 variant="outline" 
-                onClick={() => {
-                  setSearchTerm("");
-                  setSelectedType("all");
-                  setSelectedCountry("all");
-                  setSelectedApp("all");
-                }}
+                onClick={() => setSelectedCampaign("all")}
+                className="w-fit"
               >
                 Clear
               </Button>
-              
             </div>
           </CardContent>
         </AnimatedCard>
@@ -525,7 +459,7 @@ export default function Exchanges() {
                               )}
                               
                               {columnOrder.includes('actions') && (
-                                <TableCell className="text-right">
+                                <TableCell className="text-right font-semibold text-blue-600 dark:text-blue-400">
                                   {(exchange.totalActions || 0).toLocaleString()}
                                 </TableCell>
                               )}
