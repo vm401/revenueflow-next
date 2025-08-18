@@ -48,12 +48,12 @@ export default function Campaigns() {
   const [selectedApp, setSelectedApp] = useState("all");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
-  const [sortBy, setSortBy] = useState<'name' | 'targetApp' | 'spend' | 'installs' | 'cpi' | 'ctr' | 'impressions' | 'clicks' | 'roas' | 'revenue' | 'actions'>('spend');
+  const [sortBy, setSortBy] = useState<'name' | 'targetApp' | 'spend' | 'installs' | 'cpi' | 'cpa' | 'ctr' | 'impressions' | 'clicks' | 'roas' | 'revenue' | 'actions'>('spend');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [columnOrder, setColumnOrder] = useState([
-    'name', 'targetApp', 'countries', 'spend', 'installs', 'cpi', 'ctr', 'impressions', 'clicks', 'roas', 'revenue', 'actions'
+    'name', 'targetApp', 'countries', 'spend', 'installs', 'cpi', 'cpa', 'ctr', 'impressions', 'clicks', 'roas', 'revenue', 'actions'
   ]);
   const [showDetails, setShowDetails] = useState<{[key: string]: boolean}>({});
   
@@ -105,7 +105,7 @@ export default function Campaigns() {
   }, [data?.campaigns]);
 
   // Handle sorting
-  const handleSort = (column: 'name' | 'targetApp' | 'spend' | 'installs' | 'cpi' | 'ctr' | 'impressions' | 'clicks' | 'roas' | 'revenue' | 'actions') => {
+  const handleSort = (column: 'name' | 'targetApp' | 'spend' | 'installs' | 'cpi' | 'cpa' | 'ctr' | 'impressions' | 'clicks' | 'roas' | 'revenue' | 'actions') => {
     if (sortBy === column) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {
@@ -189,13 +189,13 @@ export default function Campaigns() {
         ref={setNodeRef} 
         style={style} 
         className="cursor-move select-none border-r border-border/50"
-        onClick={sortable ? onSort : undefined}
+        {...attributes} 
+        {...listeners}
       >
-        <div className="flex items-center gap-2 border-r border-border/50">
-          <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing border-r border-border/50">
-            <GripVertical className="h-3 w-3 text-muted-foreground border-r border-border/50" />
-          </div>
+        <div className="flex items-center gap-2" onClick={sortable ? onSort : undefined}>
+          <GripVertical className="h-3 w-3 text-muted-foreground cursor-grab" />
           {children}
+          {sortable && <SortIcon column={id} />}
         </div>
       </TableHead>
     );
@@ -413,6 +413,19 @@ export default function Campaigns() {
                               </SortableColumnHeader>
                             )}
                             
+                            {columnOrder.includes('cpa') && (
+                              <SortableColumnHeader 
+                                id="cpa" 
+                                sortable 
+                                onSort={() => handleSort('cpa')}
+                              >
+                                <div className="flex items-center gap-2 border-r border-border/50">
+                                  CPA
+                                  <SortIcon column="cpa" />
+                                </div>
+                              </SortableColumnHeader>
+                            )}
+                            
                             {columnOrder.includes('ctr') && (
                               <SortableColumnHeader 
                                 id="ctr" 
@@ -552,6 +565,12 @@ export default function Campaigns() {
                               {columnOrder.includes('cpi') && (
                                 <TableCell className="text-right border-r border-border/50">
                                   ${campaign.cpi.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                                </TableCell>
+                              )}
+                              
+                              {columnOrder.includes('cpa') && (
+                                <TableCell className="text-right border-r border-border/50">
+                                  ${campaign.cpa.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                                 </TableCell>
                               )}
                               

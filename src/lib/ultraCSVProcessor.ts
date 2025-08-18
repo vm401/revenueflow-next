@@ -78,6 +78,7 @@ export interface UltraCreativeData {
   ctr: number;
   cpi: number;
   cpc: number;
+  cpa: number;
   vtr: number;
   
   // Детализация по exchanges
@@ -105,6 +106,7 @@ export interface UltraAppData {
   avgCTR: number;
   avgCPI: number;
   avgCPC: number;
+  avgCPA: number;
   avgIPM: number;
   
   // Связанные данные
@@ -132,6 +134,7 @@ export interface UltraExchangeData {
   avgCTR: number;
   avgCPI: number;
   avgCPC: number;
+  avgCPA: number;
   avgIPM: number;
   
   // Связанные данные
@@ -577,6 +580,7 @@ export class UltraCSVProcessor {
       creative.ctr = creative.totalImpressions > 0 ? (creative.totalClicks / creative.totalImpressions) * 100 : 0;
       creative.cpi = creative.totalInstalls > 0 ? creative.totalSpend / creative.totalInstalls : 0;
       creative.cpc = creative.totalClicks > 0 ? creative.totalSpend / creative.totalClicks : 0;
+      creative.cpa = creative.totalActions > 0 ? creative.totalSpend / creative.totalActions : 0;
       creative.vtr = creative.totalImpressions > 0 ? (creative.totalImpressions / creative.totalImpressions) * 100 : 0;
     });
     
@@ -584,6 +588,7 @@ export class UltraCSVProcessor {
       app.avgCTR = app.totalImpressions > 0 ? (app.totalClicks / app.totalImpressions) * 100 : 0;
       app.avgCPI = app.totalInstalls > 0 ? app.totalSpend / app.totalInstalls : 0;
       app.avgCPC = app.totalClicks > 0 ? app.totalSpend / app.totalClicks : 0;
+      app.avgCPA = app.totalActions > 0 ? app.totalSpend / app.totalActions : 0;
       app.avgIPM = app.totalImpressions > 0 ? (app.totalInstalls / app.totalImpressions) * 1000 : 0;
     });
     
@@ -591,6 +596,7 @@ export class UltraCSVProcessor {
       exchange.avgCTR = exchange.totalImpressions > 0 ? (exchange.totalClicks / exchange.totalImpressions) * 100 : 0;
       exchange.avgCPI = exchange.totalInstalls > 0 ? exchange.totalSpend / exchange.totalInstalls : 0;
       exchange.avgCPC = exchange.totalClicks > 0 ? exchange.totalSpend / exchange.totalClicks : 0;
+      exchange.avgCPA = exchange.totalActions > 0 ? exchange.totalSpend / exchange.totalActions : 0;
       exchange.avgIPM = exchange.totalImpressions > 0 ? (exchange.totalInstalls / exchange.totalImpressions) * 1000 : 0;
     });
     

@@ -225,13 +225,13 @@ export default function Creatives() {
         ref={setNodeRef} 
         style={style} 
         className="cursor-move select-none border-r border-border/50"
-        onClick={sortable ? onSort : undefined}
+        {...attributes} 
+        {...listeners}
       >
-        <div className="flex items-center gap-2 border-r border-border/50">
-          <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing border-r border-border/50">
-            <GripVertical className="h-3 w-3 text-muted-foreground border-r border-border/50" />
-          </div>
+        <div className="flex items-center gap-2" onClick={sortable ? onSort : undefined}>
+          <GripVertical className="h-3 w-3 text-muted-foreground cursor-grab" />
           {children}
+          {sortable && <SortIcon column={id} />}
         </div>
       </TableHead>
     );
@@ -387,7 +387,7 @@ export default function Creatives() {
                                 sortable 
                                 onSort={() => handleSort('name')}
                               >
-                                <div className="flex items-center gap-2 border-r border-border/50">
+                                <div className="flex items-center gap-2" onClick={sortable ? onSort : undefined}>
                                   Creative Name
                                   <SortIcon column="name" />
                                 </div>
@@ -418,7 +418,7 @@ export default function Creatives() {
                                 sortable 
                                 onSort={() => handleSort('spend')}
                               >
-                                <div className="flex items-center gap-2 border-r border-border/50">
+                                <div className="flex items-center gap-2" onClick={sortable ? onSort : undefined}>
                                   Spend
                                   <SortIcon column="spend" />
                                 </div>
@@ -431,7 +431,7 @@ export default function Creatives() {
                                 sortable 
                                 onSort={() => handleSort('installs')}
                               >
-                                <div className="flex items-center gap-2 border-r border-border/50">
+                                <div className="flex items-center gap-2" onClick={sortable ? onSort : undefined}>
                                   Installs
                                   <SortIcon column="installs" />
                                 </div>
@@ -450,7 +450,7 @@ export default function Creatives() {
                                 sortable 
                                 onSort={() => handleSort('cpi')}
                               >
-                                <div className="flex items-center gap-2 border-r border-border/50">
+                                <div className="flex items-center gap-2" onClick={sortable ? onSort : undefined}>
                                   CPI
                                   <SortIcon column="cpi" />
                                 </div>
@@ -463,7 +463,7 @@ export default function Creatives() {
                                 sortable 
                                 onSort={() => handleSort('ctr')}
                               >
-                                <div className="flex items-center gap-2 border-r border-border/50">
+                                <div className="flex items-center gap-2" onClick={sortable ? onSort : undefined}>
                                   CTR
                                   <SortIcon column="ctr" />
                                 </div>
@@ -502,7 +502,7 @@ export default function Creatives() {
                             <TableRow key={creative.id || index}>
                               {columnOrder.includes('name') && (
                                 <TableCell className="font-medium border-r border-border/50">
-                                  <div className="flex items-center gap-2 border-r border-border/50">
+                                  <div className="flex items-center gap-2" onClick={sortable ? onSort : undefined}>
                                     <div className="max-w-[200px] truncate border-r border-border/50">
                                       {creative.name}
                                     </div>

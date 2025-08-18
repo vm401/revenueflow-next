@@ -45,7 +45,7 @@ export default function Apps() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPlatform, setSelectedPlatform] = useState("all");
   const [selectedExchange, setSelectedExchange] = useState("all");
-  const [sortBy, setSortBy] = useState<'name' | 'spend' | 'installs' | 'avgCPI' | 'avgCTR' | 'avgCPC'>('spend');
+  const [sortBy, setSortBy] = useState<'name' | 'platform' | 'campaigns' | 'creatives' | 'spend' | 'installs' | 'actions' | 'avgCPI' | 'avgCTR' | 'avgCPC'>('spend');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -102,7 +102,7 @@ export default function Apps() {
   }, [data?.apps, data?.campaigns]);
 
   // Handle sorting
-  const handleSort = (column: 'name' | 'spend' | 'installs' | 'avgCPI' | 'avgCTR' | 'avgCPC') => {
+  const handleSort = (column: 'name' | 'platform' | 'campaigns' | 'creatives' | 'spend' | 'installs' | 'actions' | 'avgCPI' | 'avgCTR' | 'avgCPC') => {
     if (sortBy === column) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {
@@ -194,13 +194,13 @@ export default function Apps() {
         ref={setNodeRef} 
         style={style} 
         className="cursor-move select-none border-r border-border/50"
-        onClick={sortable ? onSort : undefined}
+        {...attributes} 
+        {...listeners}
       >
-        <div className="flex items-center gap-2 border-r border-border/50">
-          <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing border-r border-border/50">
-            <GripVertical className="h-3 w-3 text-muted-foreground border-r border-border/50" />
-          </div>
+        <div className="flex items-center gap-2" onClick={sortable ? onSort : undefined}>
+          <GripVertical className="h-3 w-3 text-muted-foreground cursor-grab" />
           {children}
+          {sortable && <SortIcon column={id} />}
         </div>
       </TableHead>
     );
@@ -325,7 +325,7 @@ export default function Apps() {
                                 sortable 
                                 onSort={() => handleSort('name')}
                               >
-                                <div className="flex items-center gap-2 border-r border-border/50">
+                                <div className="flex items-center gap-2" onClick={sortable ? onSort : undefined}>
                                   App Name
                                   <SortIcon column="name" />
                                 </div>
@@ -356,7 +356,7 @@ export default function Apps() {
                                 sortable 
                                 onSort={() => handleSort('spend')}
                               >
-                                <div className="flex items-center gap-2 border-r border-border/50">
+                                <div className="flex items-center gap-2" onClick={sortable ? onSort : undefined}>
                                   Total Spend
                                   <SortIcon column="spend" />
                                 </div>
@@ -369,7 +369,7 @@ export default function Apps() {
                                 sortable 
                                 onSort={() => handleSort('installs')}
                               >
-                                <div className="flex items-center gap-2 border-r border-border/50">
+                                <div className="flex items-center gap-2" onClick={sortable ? onSort : undefined}>
                                   Total Installs
                                   <SortIcon column="installs" />
                                 </div>
@@ -377,8 +377,13 @@ export default function Apps() {
                             )}
                             
                             {columnOrder.includes('actions') && (
-                              <SortableColumnHeader id="actions">
+                              <SortableColumnHeader 
+                                id="actions" 
+                                sortable 
+                                onSort={() => handleSort('actions')}
+                              >
                                 Actions
+                                <SortIcon column="actions" />
                               </SortableColumnHeader>
                             )}
                             
@@ -388,7 +393,7 @@ export default function Apps() {
                                 sortable 
                                 onSort={() => handleSort('avgCPI')}
                               >
-                                <div className="flex items-center gap-2 border-r border-border/50">
+                                <div className="flex items-center gap-2" onClick={sortable ? onSort : undefined}>
                                   Avg CPI
                                   <SortIcon column="avgCPI" />
                                 </div>
@@ -401,7 +406,7 @@ export default function Apps() {
                                 sortable 
                                 onSort={() => handleSort('avgCTR')}
                               >
-                                <div className="flex items-center gap-2 border-r border-border/50">
+                                <div className="flex items-center gap-2" onClick={sortable ? onSort : undefined}>
                                   Avg CTR
                                   <SortIcon column="avgCTR" />
                                 </div>
@@ -414,7 +419,7 @@ export default function Apps() {
                                 sortable 
                                 onSort={() => handleSort('avgCPC')}
                               >
-                                <div className="flex items-center gap-2 border-r border-border/50">
+                                <div className="flex items-center gap-2" onClick={sortable ? onSort : undefined}>
                                   Avg CPC
                                   <SortIcon column="avgCPC" />
                                 </div>
@@ -441,7 +446,7 @@ export default function Apps() {
                             <TableRow key={app.id || index}>
                               {columnOrder.includes('name') && (
                                 <TableCell className="font-medium border-r border-border/50">
-                                  <div className="flex items-center gap-2 border-r border-border/50">
+                                  <div className="flex items-center gap-2" onClick={sortable ? onSort : undefined}>
                                     <div className="max-w-[200px] truncate border-r border-border/50">
                                       {app.name}
                                     </div>
@@ -462,7 +467,7 @@ export default function Apps() {
                               
                               {columnOrder.includes('platform') && (
                                 <TableCell>
-                                  <div className="flex items-center gap-2 border-r border-border/50">
+                                  <div className="flex items-center gap-2" onClick={sortable ? onSort : undefined}>
                                     {app.platform === 'iOS' ? (
                                       <Smartphone className="h-4 w-4 text-royal-600 border-r border-border/50" />
                                     ) : (

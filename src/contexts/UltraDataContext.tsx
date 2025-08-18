@@ -282,6 +282,10 @@ export const UltraDataProvider: React.FC<UltraDataProviderProps> = ({ children }
             aVal = a.cpi;
             bVal = b.cpi;
             break;
+          case 'cpa':
+            aVal = a.cpa || a.avgCPA || 0;
+            bVal = b.cpa || b.avgCPA || 0;
+            break;
           case 'ctr':
             aVal = a.ctr;
             bVal = b.ctr;
@@ -417,6 +421,10 @@ export const UltraDataProvider: React.FC<UltraDataProviderProps> = ({ children }
           case 'cpi':
             aVal = a.cpi;
             bVal = b.cpi;
+            break;
+          case 'cpa':
+            aVal = a.cpa || a.avgCPA || 0;
+            bVal = b.cpa || b.avgCPA || 0;
             break;
           case 'ctr':
             aVal = a.ctr;
@@ -727,6 +735,10 @@ export const UltraDataProvider: React.FC<UltraDataProviderProps> = ({ children }
           case 'cpi':
             aVal = a.cpi;
             bVal = b.cpi;
+            break;
+          case 'cpa':
+            aVal = a.cpa || a.avgCPA || 0;
+            bVal = b.cpa || b.avgCPA || 0;
             break;
           case 'ctr':
             aVal = a.ctr;
