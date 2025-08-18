@@ -317,8 +317,8 @@ export default function Apps() {
                   >
                     <Table>
                       <TableHeader>
-                        <SortableContext items={columnOrder} strategy={horizontalListSortingStrategy}>
-                          <TableRow>
+                        <TableRow>
+                          <SortableContext items={columnOrder} strategy={horizontalListSortingStrategy}>
                             {columnOrder.includes('name') && (
                               <SortableColumnHeader 
                                 id="name" 
@@ -431,8 +431,8 @@ export default function Apps() {
                                 Moves
                               </SortableColumnHeader>
                             )}
-                          </TableRow>
-                        </SortableContext>
+                          </SortableContext>
+                        </TableRow>
                       </TableHeader>
                       <TableBody>
                         {apps.length === 0 ? (

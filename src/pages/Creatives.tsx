@@ -379,8 +379,8 @@ export default function Creatives() {
                   >
                     <Table>
                       <TableHeader>
-                        <SortableContext items={columnOrder} strategy={horizontalListSortingStrategy}>
-                          <TableRow>
+                        <TableRow>
+                          <SortableContext items={columnOrder} strategy={horizontalListSortingStrategy}>
                             {columnOrder.includes('name') && (
                               <SortableColumnHeader 
                                 id="name" 
@@ -503,8 +503,8 @@ export default function Creatives() {
                                 Moves
                               </SortableColumnHeader>
                             )}
-                          </TableRow>
-                        </SortableContext>
+                          </SortableContext>
+                        </TableRow>
                       </TableHeader>
                       <TableBody>
                         {creatives.length === 0 ? (
