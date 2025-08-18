@@ -48,12 +48,12 @@ export default function Creatives() {
   const [selectedFormat, setSelectedFormat] = useState("all");
   const [selectedCountry, setSelectedCountry] = useState("all");
   const [selectedExchange, setSelectedExchange] = useState("all");
-  const [sortBy, setSortBy] = useState<'name' | 'spend' | 'installs' | 'cpi' | 'ctr' | 'impressions' | 'clicks'>('spend');
+  const [sortBy, setSortBy] = useState<'name' | 'spend' | 'installs' | 'cpi' | 'cpa' | 'ctr' | 'impressions' | 'clicks' | 'actions'>('spend');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [columnOrder, setColumnOrder] = useState([
-    'name', 'campaign', 'type', 'format', 'spend', 'installs', 'actions', 'cpi', 'ctr', 'impressions', 'clicks', 'moves'
+    'name', 'campaign', 'type', 'format', 'spend', 'installs', 'actions', 'cpi', 'cpa', 'ctr', 'impressions', 'clicks', 'moves'
   ]);
   const [showDetails, setShowDetails] = useState<{[key: string]: boolean}>({});
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -133,7 +133,7 @@ export default function Creatives() {
   }, [data?.campaigns, getFilteredCreatives]);
 
   // Handle sorting
-  const handleSort = (column: 'name' | 'spend' | 'installs' | 'cpi' | 'ctr' | 'impressions' | 'clicks') => {
+  const handleSort = (column: 'name' | 'spend' | 'installs' | 'cpi' | 'cpa' | 'ctr' | 'impressions' | 'clicks' | 'actions') => {
     if (sortBy === column) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {

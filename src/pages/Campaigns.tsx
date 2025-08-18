@@ -340,8 +340,8 @@ export default function Campaigns() {
                   >
                     <Table>
                       <TableHeader>
-                        <SortableContext items={columnOrder} strategy={horizontalListSortingStrategy}>
-                          <TableRow>
+                        <TableRow>
+                          <SortableContext items={columnOrder} strategy={horizontalListSortingStrategy}>
                             {columnOrder.includes('name') && (
                               <SortableColumnHeader 
                                 id="name" 
@@ -503,8 +503,8 @@ export default function Campaigns() {
                                 </div>
                               </SortableColumnHeader>
                             )}
+                          </SortableContext>
                           </TableRow>
-                        </SortableContext>
                       </TableHeader>
                       <TableBody>
                         {campaigns.length === 0 ? (
