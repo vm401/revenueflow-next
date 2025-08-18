@@ -439,8 +439,13 @@ export default function Creatives() {
                             )}
                             
                             {columnOrder.includes('actions') && (
-                              <SortableColumnHeader id="actions">
+                              <SortableColumnHeader 
+                                id="actions" 
+                                sortable 
+                                onSort={() => handleSort('actions')}
+                              >
                                 Actions
+                                <SortIcon column="actions" />
                               </SortableColumnHeader>
                             )}
                             
@@ -454,6 +459,17 @@ export default function Creatives() {
                                   CPI
                                   <SortIcon column="cpi" />
                                 </div>
+                              </SortableColumnHeader>
+                            )}
+                            
+                            {columnOrder.includes('cpa') && (
+                              <SortableColumnHeader 
+                                id="cpa" 
+                                sortable 
+                                onSort={() => handleSort('cpa')}
+                              >
+                                CPA
+                                <SortIcon column="cpa" />
                               </SortableColumnHeader>
                             )}
                             
@@ -562,6 +578,12 @@ export default function Creatives() {
                               {columnOrder.includes('cpi') && (
                                 <TableCell className="text-right border-r border-border/50">
                                   ${creative.cpi.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                                </TableCell>
+                              )}
+                              
+                              {columnOrder.includes('cpa') && (
+                                <TableCell className="text-right border-r border-border/50">
+                                  ${creative.cpa.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                                 </TableCell>
                               )}
                               
