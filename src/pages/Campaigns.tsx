@@ -3,40 +3,17 @@ import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AnimatedCard } from "@/components/AnimatedCard";
 import { AnimatedButton } from "@/components/AnimatedButton";
 import { AnimatedIcon } from "@/components/AnimatedIcon";
-import { AnimatedBadge } from "@/components/AnimatedBadge";
-import { ExpandableText } from "@/components/ExpandableText";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { Search, Filter, Download, FileSpreadsheet, Printer, Mail, Eye, Loader2, RefreshCw, Calendar, ChevronDown, ArrowUpDown, ArrowUp, ArrowDown, ExternalLink, AlertTriangle, Database, GripVertical, Settings } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Search, Filter, Download, FileSpreadsheet, Printer, Eye, Loader2, Calendar, ChevronDown, AlertTriangle, Database } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useUltraData } from "@/contexts/UltraDataContext";
 import { format } from "date-fns";
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  horizontalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import {
-  useSortable,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+import { CampaignsTable } from "@/components/CampaignsTable";
 
 export default function Campaigns() {
   const { data, getFilteredCampaigns, exportData, getDateRange } = useUltraData();
@@ -48,651 +25,360 @@ export default function Campaigns() {
   const [selectedApp, setSelectedApp] = useState("all");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
-  const [sortBy, setSortBy] = useState<'name' | 'targetApp' | 'spend' | 'installs' | 'cpi' | 'cpa' | 'ctr' | 'impressions' | 'clicks' | 'roas' | 'revenue' | 'actions'>('spend');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [columnOrder, setColumnOrder] = useState([
-    'name', 'targetApp', 'countries', 'spend', 'installs', 'cpi', 'cpa', 'ctr', 'impressions', 'clicks', 'roas', 'revenue', 'actions'
-  ]);
-  const [showDetails, setShowDetails] = useState<{[key: string]: boolean}>({});
-  
-  // DnD sensors
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
+  const [selectedExchange, setSelectedExchange] = useState("all");
+  const [isExporting, setIsExporting] = useState(false);
 
-  // Get filtered campaigns
-  const campaigns = useMemo(() => {
-    return getFilteredCampaigns({
-      search: searchTerm,
-      country: selectedCountry,
-      app: selectedApp,
-      dateFrom,
-      dateTo,
-      sortBy,
-      sortOrder,
-      page: currentPage,
-      limit: pageSize
-    });
-  }, [searchTerm, selectedCountry, selectedApp, dateFrom, dateTo, sortBy, sortOrder, currentPage, pageSize, getFilteredCampaigns]);
-
-  // Get total count for pagination
-  const totalCampaigns = data?.campaigns?.length || 0;
-  const totalPages = Math.ceil(totalCampaigns / pageSize);
-
-  // Get unique countries and apps for filters
+  // Get unique values for filters
   const countries = useMemo(() => {
     if (!data?.campaigns) return [];
-    const uniqueCountries = new Set<string>();
-    data.campaigns.forEach(campaign => {
-      campaign.countries.forEach(country => uniqueCountries.add(country));
-    });
+    const uniqueCountries = new Set(data.campaigns.map(c => c.country).filter(Boolean));
     return Array.from(uniqueCountries).sort();
   }, [data?.campaigns]);
 
   const apps = useMemo(() => {
+    if (!data?.apps) return [];
+    return data.apps.map(a => a.name).sort();
+  }, [data?.apps]);
+
+  const exchanges = useMemo(() => {
+    if (!data?.exchanges) return [];
+    return data.exchanges.map(e => e.name).sort();
+  }, [data?.exchanges]);
+
+  // Get filtered campaigns with all metrics
+  const filteredCampaigns = useMemo(() => {
     if (!data?.campaigns) return [];
-    const uniqueApps = new Set(data.campaigns.map(c => c.targetApp));
-    return Array.from(uniqueApps).sort();
-  }, [data?.campaigns]);
 
-  // Handle sorting
-  const handleSort = (column: 'name' | 'targetApp' | 'spend' | 'installs' | 'cpi' | 'cpa' | 'ctr' | 'impressions' | 'clicks' | 'roas' | 'revenue' | 'actions') => {
-    if (sortBy === column) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(column);
-      setSortOrder('desc');
-    }
-    setCurrentPage(1);
-  };
-
-  // Handle column reordering
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    
-    if (over && active.id !== over.id) {
-      setColumnOrder((items) => {
-        const oldIndex = items.indexOf(active.id as string);
-        const newIndex = items.indexOf(over.id as string);
-        return arrayMove(items, oldIndex, newIndex);
-      });
-    }
-  };
-
-  // Handle export
-  const handleExport = (format: 'csv' | 'json') => {
-    exportData(format);
-    toast({
-      title: "Export Started",
-      description: `Exporting campaigns data as ${format.toUpperCase()}`,
-    });
-  };
-
-  // Toggle campaign details
-  const toggleDetails = (campaignId: string) => {
-    setShowDetails(prev => ({
-      ...prev,
-      [campaignId]: !prev[campaignId]
+    return getFilteredCampaigns(
+      searchTerm,
+      selectedCountry,
+      selectedApp,
+      dateFrom,
+      dateTo,
+      selectedExchange
+    ).map(campaign => ({
+      id: campaign.id,
+      name: campaign.name,
+      app: campaign.app,
+      exchange: campaign.exchange,
+      status: campaign.status as 'active' | 'paused' | 'ended',
+      spend: campaign.spend,
+      installs: campaign.installs,
+      actions: campaign.actions || 0,
+      avgCPI: campaign.avgCPI,
+      avgCPA: campaign.avgCPA || 0,
+      avgCTR: campaign.avgCTR,
+      avgCPC: campaign.avgCPC,
+      creatives: campaign.creatives || 0,
     }));
-  };
+  }, [data?.campaigns, getFilteredCampaigns, searchTerm, selectedCountry, selectedApp, dateFrom, dateTo, selectedExchange]);
 
-  // Country flags
-  const getCountryFlag = (country: string) => {
-    const flags: { [key: string]: string } = {
-      'US': '🇺🇸', 'UK': '🇬🇧', 'DE': '🇩🇪', 'CA': '🇨🇦', 'AU': '🇦🇺',
-      'FR': '🇫🇷', 'IT': '🇮🇹', 'ES': '🇪🇸', 'JP': '🇯🇵', 'KR': '🇰🇷',
-      'FRA': '🇫🇷', 'GRC': '🇬🇷', 'GBR': '🇬🇧', 'USA': '🇺🇸', 'CAN': '🇨🇦',
-      'AUS': '🇦🇺', 'DEU': '🇩🇪', 'ITA': '🇮🇹', 'ESP': '🇪🇸'
+  // Stats calculations
+  const stats = useMemo(() => {
+    const totalSpend = filteredCampaigns.reduce((sum, c) => sum + c.spend, 0);
+    const totalInstalls = filteredCampaigns.reduce((sum, c) => sum + c.installs, 0);
+    const totalActions = filteredCampaigns.reduce((sum, c) => sum + c.actions, 0);
+    const avgCPI = totalInstalls > 0 ? totalSpend / totalInstalls : 0;
+    const avgCPA = totalActions > 0 ? totalSpend / totalActions : 0;
+
+    return {
+      totalCampaigns: filteredCampaigns.length,
+      totalSpend,
+      totalInstalls,
+      totalActions,
+      avgCPI,
+      avgCPA,
     };
-    return flags[country] || '🌍';
-  };
+  }, [filteredCampaigns]);
 
-  // Render sort icon
-  const SortIcon = ({ column }: { column: string }) => {
-    if (sortBy !== column) return <ArrowUpDown className="h-4 w-4 border-r border-border/50" />;
-    return sortOrder === 'asc' ? <ArrowUp className="h-4 w-4 border-r border-border/50" /> : <ArrowDown className="h-4 w-4 border-r border-border/50" />;
-  };
+  const dateRange = getDateRange();
 
-  // Column header component with drag handle
-  const SortableColumnHeader = ({ id, children, sortable = false, onSort }: { 
-    id: string; 
-    children: React.ReactNode; 
-    sortable?: boolean;
-    onSort?: () => void;
-  }) => {
-    const {
-      attributes,
-      listeners,
-      setNodeRef,
-      transform,
-      transition,
-      isDragging,
-    } = useSortable({ id });
-
-    const style = {
-      transform: CSS.Transform.toString(transform),
-      transition,
-      opacity: isDragging ? 0.5 : 1,
-    };
-
-    return (
-      <TableHead 
-        ref={setNodeRef} 
-        style={style} 
-        className="cursor-move select-none border-r border-border/50"
-        {...attributes} 
-        {...listeners}
-      >
-        <div className="flex items-center gap-2" onClick={sortable ? onSort : undefined}>
-          <GripVertical className="h-3 w-3 text-muted-foreground cursor-grab" />
-          {children}
-          {sortable && <SortIcon column={id} />}
-        </div>
-      </TableHead>
-    );
+  const handleExport = async (format: 'csv' | 'excel' | 'pdf') => {
+    setIsExporting(true);
+    try {
+      const success = await exportData('campaigns', format, {
+        searchTerm,
+        country: selectedCountry,
+        app: selectedApp,
+        dateFrom,
+        dateTo,
+        exchange: selectedExchange
+      });
+      
+      if (success) {
+        toast({
+          title: "Export successful",
+          description: `Campaigns data exported as ${format.toUpperCase()}`,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Export failed",
+        description: "There was an error exporting the data",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
     <Layout>
-      <div className="space-y-6 border-r border-border/50">
+      <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between border-r border-border/50">
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold border-r border-border/50">Campaigns</h1>
-            <p className="text-muted-foreground border-r border-border/50">
-              Manage and analyze your advertising campaigns
+            <h1 className="text-3xl font-bold tracking-tight">Campaigns</h1>
+            <p className="text-muted-foreground">
+              🚀 Modern TanStack Table with CPA metrics
             </p>
           </div>
-          {data && (
-            <AnimatedBadge animation="glow" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 border-r border-border/50">
-              <AnimatedIcon icon={Database} variant="royal" animation="glow" className="h-3 w-3 mr-1 border-r border-border/50" />
-              CSV Data Active
-            </AnimatedBadge>
-          )}
+          
+          <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <AnimatedButton variant="outline" disabled={isExporting}>
+                  {isExporting ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Download className="mr-2 h-4 w-4" />
+                  )}
+                  Export
+                  <ChevronDown className="ml-2 h-4 w-4" />
+                </AnimatedButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleExport('csv')}>
+                  <FileSpreadsheet className="mr-2 h-4 w-4" />
+                  Export as CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('excel')}>
+                  <FileSpreadsheet className="mr-2 h-4 w-4" />
+                  Export as Excel
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExport('pdf')}>
+                  <Printer className="mr-2 h-4 w-4" />
+                  Export as PDF
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
+            <AnimatedButton>
+              <Eye className="mr-2 h-4 w-4" />
+              View Report
+            </AnimatedButton>
+          </div>
+        </div>
+
+        {/* Date Range Info */}
+        {dateRange && (
+          <Alert>
+            <Calendar className="h-4 w-4" />
+            <AlertDescription>
+              Data range: {format(new Date(dateRange.start), 'MMM dd, yyyy')} - {format(new Date(dateRange.end), 'MMM dd, yyyy')}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Stats Cards */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
+          <AnimatedCard>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Campaigns</CardTitle>
+              <AnimatedIcon>
+                <Database className="h-4 w-4 text-muted-foreground" />
+              </AnimatedIcon>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalCampaigns.toLocaleString()}</div>
+            </CardContent>
+          </AnimatedCard>
+
+          <AnimatedCard>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Spend</CardTitle>
+              <AnimatedIcon>
+                <Database className="h-4 w-4 text-muted-foreground" />
+              </AnimatedIcon>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600 dark:text-red-400">
+                ${stats.totalSpend.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+            </CardContent>
+          </AnimatedCard>
+
+          <AnimatedCard>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Installs</CardTitle>
+              <AnimatedIcon>
+                <Database className="h-4 w-4 text-muted-foreground" />
+              </AnimatedIcon>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                {stats.totalInstalls.toLocaleString()}
+              </div>
+            </CardContent>
+          </AnimatedCard>
+
+          <AnimatedCard>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Actions</CardTitle>
+              <AnimatedIcon>
+                <Database className="h-4 w-4 text-muted-foreground" />
+              </AnimatedIcon>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                {stats.totalActions.toLocaleString()}
+              </div>
+            </CardContent>
+          </AnimatedCard>
+
+          <AnimatedCard>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Avg CPI</CardTitle>
+              <AnimatedIcon>
+                <Database className="h-4 w-4 text-muted-foreground" />
+              </AnimatedIcon>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                ${stats.avgCPI.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+            </CardContent>
+          </AnimatedCard>
+
+          <AnimatedCard>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Avg CPA</CardTitle>
+              <AnimatedIcon>
+                <Database className="h-4 w-4 text-muted-foreground" />
+              </AnimatedIcon>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                ${stats.avgCPA.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+            </CardContent>
+          </AnimatedCard>
         </div>
 
         {/* Filters */}
-        <AnimatedCard variant="mint" animation="slide">
+        <AnimatedCard>
           <CardHeader>
-            <CardTitle>Filters</CardTitle>
-            <CardDescription>Filter campaigns by various criteria</CardDescription>
+            <CardTitle className="flex items-center gap-2">
+              <Filter className="h-5 w-5" />
+              Filters
+            </CardTitle>
+            <CardDescription>
+              Filter campaigns by various criteria
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 border-r border-border/50">
-              <div>
-                <div className="relative border-r border-border/50">
-                  <AnimatedIcon icon={Search} variant="mint" animation="glow" className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground border-r border-border/50" />
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Search</label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Search campaigns..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-8 border-r border-border/50"
+                    className="pl-9"
                   />
                 </div>
               </div>
-              
-              <Select value={selectedCountry} onValueChange={setSelectedCountry}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Countries" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Countries</SelectItem>
-                  {countries.map((country) => (
-                    <SelectItem key={country} value={country}>
-                      {getCountryFlag(country)} {country}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              
-              <Select value={selectedApp} onValueChange={setSelectedApp}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Apps" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Apps</SelectItem>
-                  {apps.map((app) => (
-                    <SelectItem key={app} value={app}>
-                      {app}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="mt-4 flex items-center gap-4 border-r border-border/50">
-              <div className="flex gap-2 border-r border-border/50">
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Country</label>
+                <Select value={selectedCountry} onValueChange={setSelectedCountry}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All countries" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Countries</SelectItem>
+                    {countries.map((country) => (
+                      <SelectItem key={country} value={country}>{country}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">App</label>
+                <Select value={selectedApp} onValueChange={setSelectedApp}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All apps" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Apps</SelectItem>
+                    {apps.map((app) => (
+                      <SelectItem key={app} value={app}>{app}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Exchange</label>
+                <Select value={selectedExchange} onValueChange={setSelectedExchange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All exchanges" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Exchanges</SelectItem>
+                    {exchanges.map((exchange) => (
+                      <SelectItem key={exchange} value={exchange}>{exchange}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Date From</label>
                 <Input
                   type="date"
                   value={dateFrom}
                   onChange={(e) => setDateFrom(e.target.value)}
-                  placeholder="From"
-                  className="w-auto border-r border-border/50"
-                  min={getDateRange()?.minDate}
-                  max={getDateRange()?.maxDate}
                 />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Date To</label>
                 <Input
                   type="date"
                   value={dateTo}
                   onChange={(e) => setDateTo(e.target.value)}
-                  placeholder="To"
-                  className="w-auto border-r border-border/50"
-                  min={getDateRange()?.minDate}
-                  max={getDateRange()?.maxDate}
                 />
               </div>
-              
-              {getDateRange() && (
-                <div className="text-sm text-muted-foreground border-r border-border/50">
-                  📅 Available: {getDateRange()?.minDate} to {getDateRange()?.maxDate}
-                </div>
-              )}
-              
-              <AnimatedButton 
-                onClick={() => {
-                  setSearchTerm("");
-                  setSelectedCountry("all");
-                  setSelectedApp("all");
-                  setDateFrom("");
-                  setDateTo("");
-                }}
-                animation="bounce"
-                className="btn-bounce border-r border-border/50"
-              >
-                Clear All Filters
-              </AnimatedButton>
             </div>
           </CardContent>
         </AnimatedCard>
 
-        {/* Campaign Data */}
-        <AnimatedCard variant="royal" animation="lift">
-          <CardHeader>
-            <CardTitle>Campaign Data</CardTitle>
-            <CardDescription>
-              {data ? `${totalCampaigns} campaigns found` : 'No CSV data loaded'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {!data ? (
-                                <Alert>
-                    <AnimatedIcon icon={AlertTriangle} variant="peach" animation="glow" className="h-4 w-4 border-r border-border/50" />
-                <AlertDescription>
-                  No CSV data loaded. Please upload your campaign files to see data here.
-                </AlertDescription>
-              </Alert>
-            ) : (
-              <>
-                <div className="rounded-md border border-r border-border/50">
-                  <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragEnd={handleDragEnd}
-                  >
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <SortableContext items={columnOrder} strategy={horizontalListSortingStrategy}>
-                            {columnOrder.includes('name') && (
-                              <SortableColumnHeader 
-                                id="name" 
-                                sortable 
-                                onSort={() => handleSort('name')}
-                              >
-                                <div className="flex items-center gap-2 border-r border-border/50">
-                                  Campaign Name
-                                  <SortIcon column="name" />
-                                </div>
-                              </SortableColumnHeader>
-                            )}
-                            
-                            {columnOrder.includes('targetApp') && (
-                              <SortableColumnHeader 
-                                id="targetApp" 
-                                sortable 
-                                onSort={() => handleSort('targetApp')}
-                              >
-                                <div className="flex items-center gap-2 border-r border-border/50">
-                                  Target App
-                                  <SortIcon column="targetApp" />
-                                </div>
-                              </SortableColumnHeader>
-                            )}
-                            
-                            {columnOrder.includes('countries') && (
-                              <SortableColumnHeader id="countries">
-                                Countries
-                              </SortableColumnHeader>
-                            )}
-                            
-                            {columnOrder.includes('spend') && (
-                              <SortableColumnHeader 
-                                id="spend" 
-                                sortable 
-                                onSort={() => handleSort('spend')}
-                              >
-                                <div className="flex items-center gap-2 border-r border-border/50">
-                                  Spend
-                                  <SortIcon column="spend" />
-                                </div>
-                              </SortableColumnHeader>
-                            )}
-                            
-                            {columnOrder.includes('installs') && (
-                              <SortableColumnHeader 
-                                id="installs" 
-                                sortable 
-                                onSort={() => handleSort('installs')}
-                              >
-                                <div className="flex items-center gap-2 border-r border-border/50">
-                                  Installs
-                                  <SortIcon column="installs" />
-                                </div>
-                              </SortableColumnHeader>
-                            )}
-                            
-                            {columnOrder.includes('cpi') && (
-                              <SortableColumnHeader 
-                                id="cpi" 
-                                sortable 
-                                onSort={() => handleSort('cpi')}
-                              >
-                                <div className="flex items-center gap-2 border-r border-border/50">
-                                  CPI
-                                  <SortIcon column="cpi" />
-                                </div>
-                              </SortableColumnHeader>
-                            )}
-                            
-                            {columnOrder.includes('cpa') && (
-                              <SortableColumnHeader 
-                                id="cpa" 
-                                sortable 
-                                onSort={() => handleSort('cpa')}
-                              >
-                                <div className="flex items-center gap-2 border-r border-border/50">
-                                  CPA
-                                  <SortIcon column="cpa" />
-                                </div>
-                              </SortableColumnHeader>
-                            )}
-                            
-                            {columnOrder.includes('ctr') && (
-                              <SortableColumnHeader 
-                                id="ctr" 
-                                sortable 
-                                onSort={() => handleSort('ctr')}
-                              >
-                                <div className="flex items-center gap-2 border-r border-border/50">
-                                  CTR
-                                  <SortIcon column="ctr" />
-                                </div>
-                              </SortableColumnHeader>
-                            )}
-                            
-                            {columnOrder.includes('impressions') && (
-                              <SortableColumnHeader 
-                                id="impressions" 
-                                sortable 
-                                onSort={() => handleSort('impressions')}
-                              >
-                                <div className="flex items-center gap-2 border-r border-border/50">
-                                  Impressions
-                                  <SortIcon column="impressions" />
-                                </div>
-                              </SortableColumnHeader>
-                            )}
-                            
-                            {columnOrder.includes('clicks') && (
-                              <SortableColumnHeader 
-                                id="clicks" 
-                                sortable 
-                                onSort={() => handleSort('clicks')}
-                              >
-                                <div className="flex items-center gap-2 border-r border-border/50">
-                                  Clicks
-                                  <SortIcon column="clicks" />
-                                </div>
-                              </SortableColumnHeader>
-                            )}
-                            
-                            {columnOrder.includes('roas') && (
-                              <SortableColumnHeader 
-                                id="roas" 
-                                sortable 
-                                onSort={() => handleSort('roas')}
-                              >
-                                <div className="flex items-center gap-2 border-r border-border/50">
-                                  ROAS
-                                  <SortIcon column="roas" />
-                                </div>
-                              </SortableColumnHeader>
-                            )}
-                            
-                            {columnOrder.includes('revenue') && (
-                              <SortableColumnHeader 
-                                id="revenue" 
-                                sortable 
-                                onSort={() => handleSort('revenue')}
-                              >
-                                <div className="flex items-center gap-2 border-r border-border/50">
-                                  Revenue
-                                  <SortIcon column="revenue" />
-                                </div>
-                              </SortableColumnHeader>
-                            )}
-                            
-                            {columnOrder.includes('actions') && (
-                              <SortableColumnHeader 
-                                id="actions" 
-                                sortable 
-                                onSort={() => handleSort('actions')}
-                              >
-                                <div className="flex items-center gap-2 border-r border-border/50">
-                                  Actions
-                                  <SortIcon column="actions" />
-                                </div>
-                              </SortableColumnHeader>
-                            )}
-                          </SortableContext>
-                          </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {campaigns.length === 0 ? (
-                          <TableRow>
-                            <TableCell colSpan={columnOrder.length} className="text-center py-8 border-r border-border/50">
-                              No campaigns found matching your criteria.
-                            </TableCell>
-                          </TableRow>
-                        ) : (
-                          campaigns.map((campaign, index) => (
-                            <TableRow key={campaign.id || index}>
-                              {columnOrder.includes('name') && (
-                                <TableCell className="font-medium border-r border-border/50">
-                                  <div className="max-w-[300px] border-r border-border/50">
-                                    <ExpandableText 
-                                      text={campaign.name} 
-                                      maxLength={40}
-                                      className="font-medium border-r border-border/50"
-                                    />
-                                  </div>
-                                </TableCell>
-                              )}
-                              
-                              {columnOrder.includes('targetApp') && (
-                                <TableCell>{campaign.targetApp}</TableCell>
-                              )}
-                              
-                              {columnOrder.includes('countries') && (
-                                <TableCell>
-                                  <div className="flex flex-wrap gap-1 border-r border-border/50">
-                                    {campaign.countries.slice(0, 2).map(country => (
-                                      <div key={country} className="flex items-center gap-1 border-r border-border/50">
-                                        <span>{getCountryFlag(country)}</span>
-                                        <span className="text-xs border-r border-border/50">{country}</span>
-                                      </div>
-                                    ))}
-                                    {campaign.countries.length > 2 && (
-                                      <span className="text-xs text-muted-foreground border-r border-border/50">
-                                        +{campaign.countries.length - 2} more
-                                      </span>
-                                    )}
-                                  </div>
-                                </TableCell>
-                              )}
-                              
-                              {columnOrder.includes('spend') && (
-                                <TableCell className="text-right font-semibold border-r border-border/50">
-                                  ${campaign.totalSpend.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-                                </TableCell>
-                              )}
-                              
-                              {columnOrder.includes('installs') && (
-                                <TableCell className="text-right border-r border-border/50">
-                                  {campaign.totalInstalls.toLocaleString()}
-                                </TableCell>
-                              )}
-                              
-                              {columnOrder.includes('cpi') && (
-                                <TableCell className="text-right border-r border-border/50">
-                                  ${campaign.cpi.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-                                </TableCell>
-                              )}
-                              
-                              {columnOrder.includes('cpa') && (
-                                <TableCell className="text-right border-r border-border/50">
-                                  ${campaign.cpa.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-                                </TableCell>
-                              )}
-                              
-                              {columnOrder.includes('ctr') && (
-                                <TableCell className="text-right border-r border-border/50">
-                                  {campaign.ctr.toFixed(2)}%
-                                </TableCell>
-                              )}
-                              
-                              {columnOrder.includes('impressions') && (
-                                <TableCell className="text-right border-r border-border/50">
-                                  {campaign.totalImpressions >= 1000000 
-                                    ? (campaign.totalImpressions / 1000000).toFixed(2) + 'm'
-                                    : campaign.totalImpressions >= 1000 
-                                    ? (campaign.totalImpressions / 1000).toFixed(2) + 'k'
-                                    : campaign.totalImpressions.toLocaleString()}
-                                </TableCell>
-                              )}
-                              
-                              {columnOrder.includes('clicks') && (
-                                <TableCell className="text-right border-r border-border/50">
-                                  {campaign.totalClicks >= 1000000 
-                                    ? (campaign.totalClicks / 1000000).toFixed(2) + 'm'
-                                    : campaign.totalClicks >= 1000 
-                                    ? (campaign.totalClicks / 1000).toFixed(2) + 'k'
-                                    : campaign.totalClicks.toLocaleString()}
-                                </TableCell>
-                              )}
-                              
-                              {columnOrder.includes('roas') && (
-                                <TableCell className="text-right border-r border-border/50">
-                                  <span className={`font-semibold ${
-                                    (campaign.totalSpend > 0 ? (campaign.totalInstalls * campaign.cpi * 1.5) / campaign.totalSpend : 0) >= 2 
-                                      ? 'text-green-600 dark:text-green-400' 
-                                      : (campaign.totalSpend > 0 ? (campaign.totalInstalls * campaign.cpi * 1.5) / campaign.totalSpend : 0) >= 1
-                                      ? 'text-yellow-600 dark:text-yellow-400'
-                                      : 'text-red-600 dark:text-red-400'
-                                  }`}>
-                                    {campaign.totalSpend > 0 
-                                      ? ((campaign.totalInstalls * campaign.cpi * 1.5) / campaign.totalSpend).toFixed(2) + 'x'
-                                      : '0.00x'}
-                                  </span>
-                                </TableCell>
-                              )}
-                              
-                              {columnOrder.includes('revenue') && (
-                                <TableCell className="text-right font-semibold text-green-600 dark:text-green-400 border-r border-border/50">
-                                  ${(campaign.totalInstalls * campaign.cpi * 1.5).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-                                </TableCell>
-                              )}
-                              
-                              {columnOrder.includes('actions') && (
-                                <TableCell className="text-right font-semibold text-blue-600 dark:text-blue-400 border-r border-border/50">
-                                  {(campaign.totalActions || 0).toLocaleString()}
-                                </TableCell>
-                              )}
-                            </TableRow>
-                          ))
-                        )}
-                      </TableBody>
-                    </Table>
-                  </DndContext>
-                </div>
-
-                {/* Pagination */}
-                {totalPages > 1 && (
-                  <div className="mt-4 border-r border-border/50">
-                    <Pagination>
-                      <PaginationContent>
-                        <PaginationItem>
-                          <PaginationPrevious 
-                            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                            className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                          />
-                        </PaginationItem>
-                        
-                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                          const pageNumber = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i;
-                          return (
-                            <PaginationItem key={pageNumber}>
-                              <PaginationLink
-                                onClick={() => setCurrentPage(pageNumber)}
-                                isActive={currentPage === pageNumber}
-                                className="cursor-pointer border-r border-border/50"
-                              >
-                                {pageNumber}
-                              </PaginationLink>
-                            </PaginationItem>
-                          );
-                        })}
-                        
-                        <PaginationItem>
-                          <PaginationNext 
-                            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                            className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                          />
-                        </PaginationItem>
-                      </PaginationContent>
-                    </Pagination>
-                  </div>
-                )}
-
-                {/* Page Size Control */}
-                <div className="mt-4 flex items-center gap-2 border-r border-border/50">
-                  <span className="text-sm text-muted-foreground border-r border-border/50">Show:</span>
-                  <Select value={pageSize.toString()} onValueChange={(value) => setPageSize(Number(value))}>
-                    <SelectTrigger className="w-20 border-r border-border/50">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="10">10</SelectItem>
-                      <SelectItem value="25">25</SelectItem>
-                      <SelectItem value="50">50</SelectItem>
-                      <SelectItem value="100">100</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <span className="text-sm text-muted-foreground border-r border-border/50">entries per page</span>
-                </div>
-              </>
-            )}
-          </CardContent>
-        </AnimatedCard>
+        {/* Data Status */}
+        {!data?.campaigns?.length ? (
+          <Alert>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              No campaign data available. Please upload CSV files to view campaigns.
+            </AlertDescription>
+          </Alert>
+        ) : (
+          /* Modern TanStack Table */
+          <AnimatedCard>
+            <CardHeader>
+              <CardTitle>🚀 Modern Campaigns Table</CardTitle>
+              <CardDescription>
+                {filteredCampaigns.length} campaigns found • Powered by TanStack Table
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <CampaignsTable data={filteredCampaigns} />
+            </CardContent>
+          </AnimatedCard>
+        )}
       </div>
     </Layout>
   );

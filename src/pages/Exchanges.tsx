@@ -43,12 +43,12 @@ export default function Exchanges() {
   
   // State
   const [selectedCampaign, setSelectedCampaign] = useState("all");
-  const [sortBy, setSortBy] = useState<'name' | 'spend' | 'installs' | 'avgCPI' | 'avgCTR' | 'avgCPC'>('spend');
+  const [sortBy, setSortBy] = useState<'name' | 'spend' | 'installs' | 'avgCPI' | 'avgCPA' | 'avgCTR' | 'avgCPC' | 'actions'>('spend');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [columnOrder, setColumnOrder] = useState([
-    'name', 'type', 'campaigns', 'creatives', 'apps', 'spend', 'installs', 'actions', 'avgCPI', 'avgCTR', 'avgCPC', 'moves'
+    'name', 'type', 'campaigns', 'creatives', 'apps', 'spend', 'installs', 'actions', 'avgCPI', 'avgCPA', 'avgCTR', 'avgCPC', 'moves'
   ]);
   const [showDetails, setShowDetails] = useState<{[key: string]: boolean}>({});
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -87,7 +87,7 @@ export default function Exchanges() {
   }, [data?.campaigns]);
 
   // Handle sorting
-  const handleSort = (column: 'name' | 'spend' | 'installs' | 'avgCPI' | 'avgCTR' | 'avgCPC') => {
+  const handleSort = (column: 'name' | 'spend' | 'installs' | 'avgCPI' | 'avgCPA' | 'avgCTR' | 'avgCPC' | 'actions') => {
     if (sortBy === column) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {

@@ -45,12 +45,12 @@ export default function Apps() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPlatform, setSelectedPlatform] = useState("all");
   const [selectedExchange, setSelectedExchange] = useState("all");
-  const [sortBy, setSortBy] = useState<'name' | 'platform' | 'campaigns' | 'creatives' | 'spend' | 'installs' | 'actions' | 'avgCPI' | 'avgCTR' | 'avgCPC'>('spend');
+  const [sortBy, setSortBy] = useState<'name' | 'platform' | 'campaigns' | 'creatives' | 'spend' | 'installs' | 'actions' | 'avgCPI' | 'avgCPA' | 'avgCTR' | 'avgCPC'>('spend');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [columnOrder, setColumnOrder] = useState([
-    'name', 'platform', 'campaigns', 'creatives', 'spend', 'installs', 'actions', 'avgCPI', 'avgCTR', 'avgCPC', 'moves'
+    'name', 'platform', 'campaigns', 'creatives', 'spend', 'installs', 'actions', 'avgCPI', 'avgCPA', 'avgCTR', 'avgCPC', 'moves'
   ]);
   const [showDetails, setShowDetails] = useState<{[key: string]: boolean}>({});
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -102,7 +102,7 @@ export default function Apps() {
   }, [data?.apps, data?.campaigns]);
 
   // Handle sorting
-  const handleSort = (column: 'name' | 'platform' | 'campaigns' | 'creatives' | 'spend' | 'installs' | 'actions' | 'avgCPI' | 'avgCTR' | 'avgCPC') => {
+  const handleSort = (column: 'name' | 'platform' | 'campaigns' | 'creatives' | 'spend' | 'installs' | 'actions' | 'avgCPI' | 'avgCPA' | 'avgCTR' | 'avgCPC') => {
     if (sortBy === column) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {
@@ -400,6 +400,17 @@ export default function Apps() {
                               </SortableColumnHeader>
                             )}
                             
+                            {columnOrder.includes('avgCPA') && (
+                              <SortableColumnHeader 
+                                id="avgCPA" 
+                                sortable 
+                                onSort={() => handleSort('avgCPA')}
+                              >
+                                Avg CPA
+                                <SortIcon column="avgCPA" />
+                              </SortableColumnHeader>
+                            )}
+                            
                             {columnOrder.includes('avgCTR') && (
                               <SortableColumnHeader 
                                 id="avgCTR" 
@@ -517,6 +528,12 @@ export default function Apps() {
                               {columnOrder.includes('avgCPI') && (
                                 <TableCell className="text-right border-r border-border/50">
                                   ${app.avgCPI.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                                </TableCell>
+                              )}
+                              
+                              {columnOrder.includes('avgCPA') && (
+                                <TableCell className="text-right border-r border-border/50">
+                                  ${app.avgCPA.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                                 </TableCell>
                               )}
                               
